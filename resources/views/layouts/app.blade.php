@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ $title ?? 'Money Transfer System' }}</title>
+
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    @livewireStyles
+</head>
+
+<body>
+
+<main>
+    {{ $slot }}
+</main>
+<form method="POST" action="{{ route('logout') }}">
+    @csrf
+    <button type="submit">Logout</button>
+</form>
+@livewireScripts
+</body>
+
+</html>
