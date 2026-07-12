@@ -20,7 +20,6 @@ new class extends Component {
         <thead>
             <tr>
                 <th>Reference Number</th>
-                <th>Sender Name</th>
                 <th>Receiver Name</th>
                 <th>Receiver Method</th>
                 <th>Requested Amount</th>
@@ -35,7 +34,6 @@ new class extends Component {
             @foreach ($this->transfers as $transfer)
                 <tr>
                     <td>{{ $transfer->reference_number }}</td>
-                    <td>{{ $transfer->sender_name }}</td>
                     <td>{{ $transfer->receiver_name }}</td>
                     @if($transfer->receiver_method === \App\Enums\ReceiverMethod::BANK)
                         <td>Bank Account: {{ $transfer->receiver_account_number }}</td>
@@ -47,8 +45,9 @@ new class extends Component {
                     <td>{{ $transfer->creator?->name }}</td>
                     <td>{{ $transfer->created_at->format('d/m/Y H:i') }}</td>
                     <td>
-                        <a href="{{ route('transfers.details', ['transfer' => $transfer]) }}">View</a>
+                        <a href="{{ route('transfers.show', ['transfer' => $transfer]) }}">View</a>
                     </td>
+
                 </tr>
             @endforeach
         </tbody>

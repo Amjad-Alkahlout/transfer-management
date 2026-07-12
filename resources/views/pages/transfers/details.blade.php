@@ -15,7 +15,6 @@ new class extends Component {
     use WithFileUploads;
 
     public Transfer $transfer;
-    public $sender_name;
     public $exchange_rate;
     public $commission_amount;
     public $commission_currency;
@@ -40,7 +39,6 @@ new class extends Component {
             abort(403, 'This transfer cannot be priced in its current state.');
         }
         $this->validate([
-            'sender_name' => 'required|string|max:255',
             'exchange_rate' => 'required|numeric|min:0.01',
             'commission_amount' => 'required|numeric|min:0',
             'commission_currency' => [
@@ -50,7 +48,6 @@ new class extends Component {
             'bank_account_id' => 'required|exists:bank_accounts,id',
         ]);
         $this->transfer->fill([
-            'sender_name' => $this->sender_name,
             'exchange_rate' => $this->exchange_rate,
             'commission_amount' => $this->commission_amount,
             'commission_currency' => $this->commission_currency,
@@ -107,6 +104,7 @@ new class extends Component {
             DB::transaction(function () use ($path) {
                 $this->transfer->status = TransferStatus::COMPLETED;
                 $this->transfer->completed_at = now();
+                $this->transfer->comppleted_by = auth()->id();
                 $this->transfer->transfer_proof_path = $path;
                 $this->transfer->save();
             });
@@ -124,7 +122,7 @@ new class extends Component {
 ?>
 
 <div>
-    <a href="{{ route('transfers.index') }}">Back to Transfers</a>
+    <a href="{{ route('transfers.index') }}">Back to Transfers List</a>
     <h1>Transfer Review</h1>
     <div>
         @if(session()->has('price_message'))
@@ -160,7 +158,6 @@ new class extends Component {
                     <th>Requested Amount and Currency</th>
                     <th>Fee mode</th>
                     @if($transfer->status === TransferStatus::AWAITING_APPROVAL||$transfer->status===TransferStatus::APPROVED||$transfer->status===TransferStatus::COMPLETED)
-                        <th>Sender Name</th>
                         <th>Exchange Rate</th>
                         <th>Commission Amount</th>
                         <th>Commission Currency</th>
@@ -185,7 +182,6 @@ new class extends Component {
                     <td>{{ $transfer->requested_amount }} {{ $transfer->requested_currency->name }}</td>
                     <td>{{ $transfer->fee_mode->name }}</td>
                     @if($transfer->status === TransferStatus::AWAITING_APPROVAL||$transfer->status === TransferStatus::APPROVED||$transfer->status === TransferStatus::COMPLETED)
-                        <td>{{ $transfer->sender_name }}</td>
                         <td>{{ $transfer->exchange_rate }}</td>
                         <td>{{ $transfer->commission_amount }}</td>
                         <td>{{ $transfer->commission_currency->name }}</td>
@@ -208,9 +204,6 @@ new class extends Component {
         @if($transfer->status === TransferStatus::PENDING_PRICING)
             <div>
                 <form wire:submit.prevent="priceTransfer">
-                    <label>Sender Name</label>
-                    <input type="text" wire:model="sender_name">
-                    @error('sender_name') <span>{{ $message }}</span> @enderror
 
                     <label for="exchange_rate">Exchange Rate</label>
                     <input type="number" id="exchange_rate" wire:model="exchange_rate" step="0.01">

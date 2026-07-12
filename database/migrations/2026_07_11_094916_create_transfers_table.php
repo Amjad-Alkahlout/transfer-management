@@ -17,9 +17,6 @@ return new class extends Migration
             // Identity
             $table->string('reference_number')->unique();
 
-            // Sender & Receiver
-            $table->string('sender_name')->nullable();
-
 
             $table->string('receiver_name');
 

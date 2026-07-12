@@ -34,6 +34,28 @@ Route::livewire('/transfers/{transfer}', 'pages::transfers.details')
     ->name('transfers.details')
     ->middleware('auth');
 
+Route::livewire('/transfers/{transfer}/edit', 'pages::transfers.edit')
+    ->name('transfers.edit')
+    ->middleware('auth');
+
+Route::livewire('/transfers/{transfer}', 'pages::transfers.show')
+    ->name('transfers.show')
+    ->middleware('auth');
+
+
+Route::livewire('/transfers/{transfer}/price', 'pages::transfers.price')
+    ->name('transfers.price')
+    ->middleware('auth');
+
+Route::livewire('/transfers/{transfer}/approval', 'pages::transfers.approval')
+    ->name('transfers.approval')
+    ->middleware('auth');
+
+Route::livewire('/transfers/{transfer}/execute', 'pages::transfers.execute')
+    ->name('transfers.execute')
+    ->middleware('auth');
+
+
 Route::livewire('/dashboard', 'pages::dashboard.index')
     ->middleware('auth')
     ->name('dashboard');

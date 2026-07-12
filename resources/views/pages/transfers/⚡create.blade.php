@@ -121,11 +121,6 @@ class extends Component {
                     @endif
 
 
-                    <div>
-                        <label>Notes</label>
-                        <textarea wire:model="notes"></textarea>
-                        @error('notes') <span>{{ $message }}</span> @enderror
-                    </div>
 
                     <div>
                         <label>Fee Mode</label>
@@ -153,6 +148,12 @@ class extends Component {
                         <label>Requested Amount</label>
                         <input type="number" step="0.01" wire:model="requested_amount">
                         @error('requested_amount') <span>{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label>Notes</label>
+                        <textarea wire:model="notes"></textarea>
+                        @error('notes') <span>{{ $message }}</span> @enderror
                     </div>
 
                     <button type="submit">Create Transfer</button>
