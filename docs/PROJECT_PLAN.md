@@ -286,6 +286,13 @@ Backups
 - [x] Workflow Protection
 - [x] Receiver Method (Bank / Wallet)
 - [x] Transfer Reference Number
+### Latest Updates
+
+- Refactored the transfer workflow into a single Transfer Details page.
+- Removed separate Price, Approval, and Execute pages.
+- The Transfer Details page now displays actions dynamically based on the current transfer status.
+- Pricing, Approval, and Execution forms are shown only when required.
+- Eliminated duplicate transfer information across multiple pages.
 
 ---
 
@@ -305,3 +312,16 @@ Status
 
 ✅ COMPLETED
 
+## Next Sprint
+
+### Payment Module
+
+- Design the payment workflow.
+- Support full payments.
+- Support partial payments.
+- Support multiple payments for the same transfer.
+- Track remaining balance.
+- Keep payments independent from the transfer workflow.
+
+Business Rule:
+A customer may pay before the transfer, after the transfer, or through multiple installments.

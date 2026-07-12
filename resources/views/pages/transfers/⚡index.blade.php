@@ -14,6 +14,7 @@ new class extends Component {
 ?>
 
 <div>
+    <a href="{{ route('dashboard') }}">Back to Dashboard</a>
     <h1>Transfers</h1>
     <a href="{{ route('create-transfer') }}">Create Transfer</a>
     <table>
