@@ -30,6 +30,10 @@ Route::livewire('/transfers', 'pages::transfers.index')
     ->middleware('auth')
     ->middleware('throttle:10,1');
 
+Route::livewire('/transfers/{transfer}', 'pages::transfers.details')
+    ->name('transfers.details')
+    ->middleware('auth');
+
 Route::livewire('/dashboard', 'pages::dashboard.index')
     ->middleware('auth')
     ->name('dashboard');

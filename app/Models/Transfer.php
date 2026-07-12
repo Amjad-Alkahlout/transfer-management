@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\CurrencyType;
 use App\Enums\FeeMode;
+use App\Enums\ReceiverMethod;
 use App\Enums\TransferStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -35,9 +37,8 @@ class Transfer extends Model
     }
     protected $fillable = [
         'sender_name',
-        'sender_phone',
         'receiver_name',
-        'receiver_phone',
+        'receiver_method',
         'requested_amount',
         'requested_currency',
         'fee_mode',
@@ -48,18 +49,23 @@ class Transfer extends Model
         'due_currency',
         'bank_account_id',
         'notes',
+        'receiver_wallet_phone',
+        'receiver_account_number',
     ];
 
     protected function casts(): array
     {
         return [
-            'fee_mode' => FeeMode::class,
-            'status' => TransferStatus::class,
-
+            'fee_mode' =>FeeMode::class,
+            'status' =>TransferStatus::class,
+            'requested_currency'=>CurrencyType::class,
             'priced_at' => 'datetime',
             'approved_at' => 'datetime',
             'completed_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'receiver_method'=>ReceiverMethod::class,
+            'commission_currency'=>CurrencyType::class,
+
         ];
     }
 }

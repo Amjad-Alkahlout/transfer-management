@@ -269,3 +269,14 @@ Advanced Search
 Statistics
 
 Backups
+
+## Current Sprint
+
+### Transfer Module
+
+- [ ] Edit Transfer
+- [ ] Reset pricing after editing Awaiting Approval transfer
+- [ ] Prevent editing Approved transfers
+- [ ] Prevent editing Completed transfers
+- [ ] Prevent editing Cancelled transfers
+- [ ] Review full transfer workflow

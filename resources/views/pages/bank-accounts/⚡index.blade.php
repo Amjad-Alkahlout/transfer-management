@@ -1,6 +1,8 @@
 <?php
 
+use App\Enums\CurrencyType;
 use App\Models\BankAccount;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -22,7 +24,10 @@ class extends Component {
             'label' => 'required|string|max:255',
             'bank_name' => 'required|string|max:255',
             'account_number' => 'nullable|string|max:20',
-            'currency' => 'required|string|max:3',
+            'currency' => [
+                'required',
+                Rule::enum(CurrencyType::class)
+            ],
             'is_active' => 'required|boolean',
             'notes' => 'nullable|string|max:255',
         ]);
@@ -40,13 +45,15 @@ class extends Component {
         unset($this->accounts);
         session()->flash('message', 'Bank account added successfully.');
     }
-    public function toggleActiveStatus($id){
+
+    public function toggleActiveStatus($id)
+    {
 
         $account = BankAccount::findOrFail($id);
-            $account->is_active = !$account->is_active;
-            $account->save();
-            session()->flash('message', 'Bank account state changed successfully.');
-            unset($this->accounts);
+        $account->is_active = !$account->is_active;
+        $account->save();
+        session()->flash('message', 'Bank account state changed successfully.');
+        unset($this->accounts);
 
     }
 
@@ -91,7 +98,12 @@ class extends Component {
                 <input type="text" wire:model="account_number" placeholder="Account Number">
                 @error('account_number') <span>{{ $message }}</span> @enderror
                 <label>Currency</label>
-                <input type="text" wire:model="currency" placeholder="Currency">
+                <select wire:model="currency">
+                    <option value="">Select Currency</option>
+                    @foreach (CurrencyType::cases() as $case)
+                        <option value="{{ $case->value }}">{{ $case->value }}</option>
+                    @endforeach
+                </select>
                 @error('currency') <span>{{ $message }}</span> @enderror
                 <label>Is Active</label>
                 <input type="checkbox" wire:model="is_active">

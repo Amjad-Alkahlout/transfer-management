@@ -18,11 +18,10 @@ return new class extends Migration
             $table->string('reference_number')->unique();
 
             // Sender & Receiver
-            $table->string('sender_name');
-            $table->string('sender_phone')->nullable();
+            $table->string('sender_name')->nullable();
+
 
             $table->string('receiver_name');
-            $table->string('receiver_phone')->nullable();
 
             // Customer Request
             $table->decimal('requested_amount', 15, 2);
@@ -77,6 +76,7 @@ return new class extends Migration
                 ->restrictOnDelete();
 
             $table->text('cancellation_reason')->nullable();
+            $table->string('transfer_proof_path')->nullable();
 
             // Other
             $table->text('notes')->nullable();
