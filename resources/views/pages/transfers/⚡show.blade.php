@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\CurrencyType;
+use App\Enums\PaymentStatus;
 use App\Enums\ReceiverMethod;
 use App\Enums\TransferStatus;
 use App\Models\BankAccount;
@@ -23,7 +24,7 @@ new class extends Component {
     public $commission_currency;
     public $bank_account_id;
     public $transfer_proof_path;
-    public $transfer_proof_form=false;
+    public $transfer_proof_form = false;
     public bool $showPricingForm = false;
 
 
@@ -35,14 +36,17 @@ new class extends Component {
         $this->commission_currency = $transfer->commission_currency;
         $this->bank_account_id = $transfer->bank_account_id;
     }
+
     public function openTransferProofForm()
     {
         $this->transfer_proof_form = true;
     }
+
     public function hideTransferProofForm()
     {
         $this->transfer_proof_form = false;
     }
+
     public function openPricingForm()
     {
         $this->showPricingForm = true;
@@ -71,7 +75,7 @@ new class extends Component {
                 'required',
                 Rule::enum(CurrencyType::class)
             ],
-            'bank_account_id' => 'required|exists:bank_accounts,id',
+            'bank_account_id' => ['required', Rule::exists('bank_accounts', 'id')->where('is_active', true)],
         ]);
         $this->transfer->fill([
             'exchange_rate' => $this->exchange_rate,
@@ -137,7 +141,7 @@ new class extends Component {
             Storage::disk('public')->delete($path);
             throw $e;
         }
-          $this->transfer_proof_form=false;
+        $this->transfer_proof_form = false;
         session()->flash('complete_message', 'Transfer completed successfully.');
     }
 
@@ -159,9 +163,17 @@ new class extends Component {
                 @elseif($transfer->receiver_method === ReceiverMethod::WALLET)
                     <th>Wallet Number</th>
                 @endif
-                <th>Requested Amount and Currency</th>
+                <th>Requested Amount</th>
                 <th>Fee mode</th>
-                <th>Status</th>
+                <th>Transfer Status</th>
+                <th>Payment Status</th>
+                @if($transfer->status === TransferStatus::COMPLETED && $transfer->transfer_proof_path)
+                    <th>Transfer Proof</th>
+                @endif
+                    <th>Paid Amount</th>
+                @if($transfer->payment_status !== PaymentStatus::PAID)
+                    <th>Remaining Amount</th>
+                @endif
                 @if($transfer->status === TransferStatus::AWAITING_APPROVAL
                     ||$transfer->status===TransferStatus::APPROVED
                     ||$transfer->status===TransferStatus::COMPLETED
@@ -187,6 +199,14 @@ new class extends Component {
                 <td>{{ $transfer->requested_amount }} {{ $transfer->requested_currency->name }}</td>
                 <td>{{ $transfer->fee_mode->name }}</td>
                 <td>{{ str($transfer->status->value)->replace('_', ' ')->title() }}</td>
+                <td>{{ str($transfer->payment_status->value)->replace('_', ' ')->title() }}</td>
+                @if($transfer->status === TransferStatus::COMPLETED && $transfer->transfer_proof_path)
+                    <td><a href="{{ Storage::url($transfer->transfer_proof_path) }}" target="_blank">View Proof</a></td>
+                @endif
+                    <td>{{ $transfer->paid_amount }} {{ optional($transfer->payments()->first())->currency?->name }}</td>
+                @if($transfer->payment_status !== PaymentStatus::PAID)
+                    <td>{{ $transfer->remaining_amount }} {{ $transfer->requested_currency->name }}</td>
+                @endif
                 @if($transfer->status === TransferStatus::AWAITING_APPROVAL||$transfer->status === TransferStatus::APPROVED||$transfer->status === TransferStatus::COMPLETED)
                     <td>{{ $transfer->exchange_rate }}</td>
                     <td>{{ $transfer->commission_amount }}</td>
@@ -201,33 +221,37 @@ new class extends Component {
         <div>
             <h3>Actions</h3>
 
-                @if($transfer->status === TransferStatus::PENDING_PRICING)
+            @if($transfer->status === TransferStatus::PENDING_PRICING)
 
-                    <button wire:click="openPricingForm">Price Transfer</button>
+                <button wire:click="openPricingForm">Price Transfer</button>
 
-                @endif
-
-
-                @if($transfer->status === TransferStatus::AWAITING_APPROVAL)
-
-                    <button wire:click="approveTransfer">Approve</button>
-                    <button wire:click="cancelTransfer">Cancel</button>
-
-                @endif
+            @endif
 
 
-                @if($transfer->status === TransferStatus::APPROVED)
+            @if($transfer->status === TransferStatus::AWAITING_APPROVAL)
 
-                    <button wire:click="openTransferProofForm">Execute Transfer</button>
+                <button wire:click="approveTransfer">Approve</button>
+                <button wire:click="cancelTransfer">Cancel</button>
 
-                @endif
+            @endif
 
 
-                @if($transfer->status === TransferStatus::PENDING_PRICING || $transfer->status === TransferStatus::AWAITING_APPROVAL)
+            @if($transfer->status === TransferStatus::APPROVED)
 
-                    <a href="{{ route('transfers.edit',  $transfer) }}">Edit</a>
+                <button wire:click="openTransferProofForm">Execute Transfer</button>
 
-                @endif
+            @endif
+
+
+            @if($transfer->status === TransferStatus::PENDING_PRICING || $transfer->status === TransferStatus::AWAITING_APPROVAL)
+
+                <a href="{{ route('transfers.edit',  $transfer) }}">Edit</a>
+
+            @endif
+
+            @if( $transfer->payment_status !== PaymentStatus::PAID )
+                <a href="{{ route('receive-payment', ['transfer' => $transfer]) }}">Receive Payment</a>
+            @endif
         </div>
 
 

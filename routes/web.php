@@ -39,6 +39,10 @@ Route::livewire('/transfers/{transfer}', 'pages::transfers.show')
     ->name('transfers.show')
     ->middleware('auth');
 
+Route::livewire('/transfers/{transfer}/receive-payment', 'transfers.receive-payment'
+)->name('receive-payment')
+    ->middleware('auth');
+
 
 Route::livewire('/dashboard', 'pages::dashboard.index')
     ->middleware('auth')

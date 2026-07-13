@@ -13,39 +13,20 @@ class extends Component {
     public function transferStats()
     {
         return [
-            'pending_pricing' => Transfer::where('status', TransferStatus::PENDING_PRICING)->count(),
-            'awaiting_approval' => Transfer::where('status', TransferStatus::AWAITING_APPROVAL)->count(),
-            'approved' => Transfer::where('status', TransferStatus::APPROVED)->count(),
+            'pending' => Transfer::where('status', TransferStatus::PENDING)->count(),
             'completed' => Transfer::where('status', TransferStatus::COMPLETED)->count(),
             'cancelled' => Transfer::where('status', TransferStatus::CANCELLED)->count(),
         ];
     }
     #[Computed]
-    public function pendingPricingTransfers()
+    public function pendingTransfers()
     {
-        return Transfer::where('status', TransferStatus::PENDING_PRICING)
+        return Transfer::where('status', TransferStatus::PENDING)
             ->latest()
             ->take(5)
             ->get();
     }
 
-    #[Computed]
-    public function awaitingApprovalTransfers()
-    {
-        return Transfer::where('status', TransferStatus::AWAITING_APPROVAL)
-            ->latest()
-            ->take(5)
-            ->get();
-    }
-
-    #[Computed]
-    public function approvedTransfers()
-    {
-        return Transfer::where('status', TransferStatus::APPROVED)
-            ->latest()
-            ->take(5)
-            ->get();
-    }
 };
 ?>
 
@@ -81,19 +62,10 @@ class extends Component {
         <tbody>
 
         <tr>
-            <td>Pending Pricing</td>
-            <td>{{ $this->transferStats['pending_pricing'] }}</td>
+            <td>Pending Transfers</td>
+            <td>{{ $this->transferStats['pending'] }}</td>
         </tr>
 
-        <tr>
-            <td>Awaiting Approval</td>
-            <td>{{ $this->transferStats['awaiting_approval'] }}</td>
-        </tr>
-
-        <tr>
-            <td>Approved</td>
-            <td>{{ $this->transferStats['approved'] }}</td>
-        </tr>
 
         <tr>
             <td>Completed</td>
@@ -113,8 +85,8 @@ class extends Component {
 
     <h3>Transfers Requiring Action</h3>
 
-    @if($this->pendingPricingTransfers->isNotEmpty())
-        <h4>Pending Pricing</h4>
+    @if($this->pendingTransfers->isNotEmpty())
+        <h4>Pending Transfers</h4>
 
         <table border="1" cellpadding="8">
             <thead>
@@ -127,7 +99,7 @@ class extends Component {
             </thead>
 
             <tbody>
-            @foreach($this->pendingPricingTransfers as $transfer)
+            @foreach($this->pendingTransfers as $transfer)
                 <tr>
                     <td>{{ $transfer->reference_number }}</td>
                     <td>{{ $transfer->receiver_name }}</td>
@@ -141,66 +113,6 @@ class extends Component {
         </table>
 
         <br>
-    @endif
-
-
-    @if($this->awaitingApprovalTransfers->isNotEmpty())
-        <h4>Awaiting Approval</h4>
-
-        <table border="1" cellpadding="8">
-            <thead>
-            <tr>
-                <th>Reference</th>
-                <th>Receiver</th>
-                <th>Amount</th>
-                <th></th>
-            </tr>
-            </thead>
-
-            <tbody>
-            @foreach($this->awaitingApprovalTransfers as $transfer)
-                <tr>
-                    <td>{{ $transfer->reference_number }}</td>
-                    <td>{{ $transfer->receiver_name }}</td>
-                    <td>{{ $transfer->requested_amount }} {{ $transfer->requested_currency->name }}</td>
-                    <td>
-                        <a href="{{ route('transfers.show', $transfer) }}">Open</a>
-                    </td>
-                </tr>
-            @endforeach
-            </tbody>
-        </table>
-
-        <br>
-    @endif
-
-
-    @if($this->approvedTransfers->isNotEmpty())
-        <h4>Ready To Execute</h4>
-
-        <table border="1" cellpadding="8">
-            <thead>
-            <tr>
-                <th>Reference</th>
-                <th>Receiver</th>
-                <th>Amount</th>
-                <th></th>
-            </tr>
-            </thead>
-
-            <tbody>
-            @foreach($this->approvedTransfers as $transfer)
-                <tr>
-                    <td>{{ $transfer->reference_number }}</td>
-                    <td>{{ $transfer->receiver_name }}</td>
-                    <td>{{ $transfer->requested_amount }} {{ $transfer->requested_currency->name }}</td>
-                    <td>
-                        <a href="{{ route('transfers.show', $transfer) }}">Open</a>
-                    </td>
-                </tr>
-            @endforeach
-            </tbody>
-        </table>
     @endif
 
 </div>

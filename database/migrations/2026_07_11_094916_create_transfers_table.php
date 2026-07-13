@@ -26,34 +26,20 @@ return new class extends Migration
 
             $table->string('fee_mode');
 
-            // Pricing
-            $table->decimal('exchange_rate', 18, 6)->nullable();
-
-            $table->decimal('commission_amount', 15, 2)->nullable();
-            $table->string('commission_currency', 3)->nullable();
 
             $table->decimal('amount_due', 15, 2)->nullable();
             $table->string('due_currency', 3)->nullable();
 
             // Workflow
             $table->string('status')
-                ->default('pending_pricing');
+                ->default('pending');
 
-            // Execution
-            $table->foreignId('bank_account_id')
-                ->nullable()
-                ->constrained('bank_accounts')
-                ->restrictOnDelete();
 
             // Responsibility
             $table->foreignId('created_by')
                 ->constrained('users')
                 ->restrictOnDelete();
 
-            $table->foreignId('priced_by')
-                ->nullable()
-                ->constrained('users')
-                ->restrictOnDelete();
 
             $table->foreignId('completed_by')
                 ->nullable()
@@ -61,8 +47,6 @@ return new class extends Migration
                 ->restrictOnDelete();
 
             // Timeline
-            $table->timestamp('priced_at')->nullable();
-            $table->timestamp('approved_at')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamp('cancelled_at')->nullable();
 
