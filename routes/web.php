@@ -40,7 +40,15 @@ Route::livewire('/transfers/{transfer}', 'pages::transfers.show')
     ->middleware('auth');
 
 Route::livewire('/transfers/{transfer}/receive-payment', 'transfers.receive-payment'
-)->name('receive-payment')
+)->name('transfers.receive-payment')
+    ->middleware('auth');
+
+Route::livewire('/transfers/exchange-rates', 'exchange-rates.index')
+    ->name('exchange-rates.index')
+    ->middleware('auth');
+
+Route::livewire('/transfers/commission-rules', 'commission-rules.index')
+    ->name('commission-rules.index')
     ->middleware('auth');
 
 

@@ -62,6 +62,10 @@ class Transfer extends Model
         'customer_pay_currency',
         'customer_payable_amount',
         'customer_payable_currency',
+        'paid_amount',
+        'remaining_amount',
+        'payment_status',
+        'transfer_amount',
     ];
 
     protected function casts(): array

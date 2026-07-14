@@ -22,7 +22,6 @@ class TransferCalculatorService
         $commissionAmount = $this->commissionService->getCommission(
             $requestedAmount,
             $requestedCurrency,
-            $feeMode
         );
         if (
             $feeMode === FeeMode::INCLUDED &&
@@ -32,26 +31,34 @@ class TransferCalculatorService
                 'Commission cannot be greater than or equal to the transfer amount.'
             );
         }
-        if ($feeMode === FeeMode::EXCLUDED) {
-            $amountToConvert = $requestedAmount + $commissionAmount;
+        if ($feeMode === FeeMode::INCLUDED) {
+
+            $transferAmount = $requestedAmount - $commissionAmount;
+
+            $customerPayableBaseAmount = $requestedAmount;
+
         } else {
-            $amountToConvert = $requestedAmount - $commissionAmount;
+
+            $transferAmount = $requestedAmount;
+
+            $customerPayableBaseAmount = $requestedAmount + $commissionAmount;
         }
 
         $customerPayableAmount = $this->converter->convert(
-            $amountToConvert,
+            $customerPayableBaseAmount,
             $requestedCurrency,
             $payCurrency
         );
 
         return [
+            'transfer_amount' => round($transferAmount, 2),
             'customer_payable_amount' => round($customerPayableAmount, 2),
 
-            'customer_payable_currency' => $payCurrency->value,
+            'customer_payable_currency' => $payCurrency,
 
             'commission_amount' => round($commissionAmount, 2),
 
-            'commission_currency' => $requestedCurrency->value,
+            'commission_currency' => $requestedCurrency,
         ];
     }
 }

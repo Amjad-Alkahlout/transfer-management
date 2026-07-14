@@ -24,28 +24,23 @@ class extends Component {
     public $receiver_method;
     public $receiver_wallet_phone;
     public $receiver_account_number;
-    public $customer_pay_currency;
+    public $customer_payable_currency;
+    public $initial_customer_pay_amount=0;
     public array|null $calculation = null;
 
-    public function updatedRequestedAmount($value)
+
+    public function updated($property)
     {
-        $this->calculateIfReady();
+        if (in_array($property, [
+            'requested_amount',
+            'requested_currency',
+            'customer_pay_currency',
+            'fee_mode',
+        ])) {
+            $this->calculateIfReady();
+        }
     }
 
-    public function updatedFeeMode($value)
-    {
-        $this->calculateIfReady();
-    }
-
-    public function updatedRequestedCurrency($value)
-    {
-        $this->calculateIfReady();
-    }
-
-    public function updatedCustomerPayCurrency($value)
-    {
-        $this->calculateIfReady();
-    }
 
     public function updatedReceiverMethod($value)
     {
@@ -56,12 +51,14 @@ class extends Component {
         }
     }
 
+
     private function calculateIfReady(): void
     {
         if (
             !$this->requested_amount ||
             !$this->requested_currency ||
-            !$this->customer_pay_currency
+            !$this->customer_payable_currency||
+            !$this->fee_mode
         ) {
             $this->calculation = null;
             return;
@@ -70,17 +67,23 @@ class extends Component {
         $this->calculateTransfer();
     }
 
+
+
     public function calculateTransfer()
     {
-        $calculation = app(TransferCalculatorService::class)->calculate(
-            $this->requested_amount,
-            CurrencyType::from($this->requested_currency),
-            CurrencyType::from($this->customer_pay_currency),
-            FeeMode::from($this->fee_mode)
-        );
-
-        $this->calculation = $calculation;
+        try {
+            $this->calculation = app(TransferCalculatorService::class)->calculate(
+                $this->requested_amount,
+                CurrencyType::from($this->requested_currency),
+                CurrencyType::from($this->customer_payable_currency),
+                FeeMode::from($this->fee_mode)
+            );
+        } catch (\Throwable $e) {
+            $this->calculation = null;
+            $this->addError('requested_amount', $e->getMessage());
+        }
     }
+
 
 
     public function createTransfer()
@@ -123,14 +126,15 @@ class extends Component {
                 'string',
                 'max:20',
             ],
-            'customer_pay_currency' => [
+            'customer_payable_currency' => [
                 'required',
                 Rule::enum(CurrencyType::class),
             ],
+            'initial_customer_pay_amount' => 'nullable|numeric|min:0|max:' . $this->calculation['customer_payable_amount'],
 
         ]);
 
-        DB::transaction(function () {
+            DB::transaction(function () {
 
             $transfer = new Transfer();
             $transfer->fill([
@@ -142,20 +146,50 @@ class extends Component {
                 'requested_amount' => $this->requested_amount,
                 'receiver_wallet_phone' => $this->receiver_wallet_phone,
                 'receiver_account_number' => $this->receiver_account_number,
+                'transfer_amount' => $this->calculation['transfer_amount'],
                 'customer_payable_amount' => $this->calculation['customer_payable_amount'],
-                'customer_payable_currency' => $this->calculation['customer_payable_currency'],
+                'customer_payable_currency' => $this->calculation['customer_payable_currency']->value,
                 'commission_amount' => $this->calculation['commission_amount'],
-                'commission_currency' => $this->calculation['commission_currency'],
+                'commission_currency' => $this->calculation['commission_currency']->value,
+                'paid_amount' => $this->initial_customer_pay_amount,
+                'remaining_amount' => $this->calculation['customer_payable_amount'] - $this->initial_customer_pay_amount,
             ]);
 
             $transfer->reference_number = Str::upper('TRF-' . now()->format('Ymd') . '-' . Str::random(6));
             $transfer->created_by = auth()->id();
             $transfer->status = TransferStatus::PENDING;
+
+
+            if($this->initial_customer_pay_amount >= 0) {
+
+                if($this->initial_customer_pay_amount == 0) {
+                    $transfer->payment_status = PaymentStatus::UNPAID;
+                    $transfer->remaining_amount = $this->calculation['customer_payable_amount'];
+                } elseif (round($this->initial_customer_pay_amount - $this->calculation['customer_payable_amount'], 2) === 0.0) {
+                    $transfer->payment_status = PaymentStatus::PAID;
+                    $transfer->remaining_amount = 0;
+
+                } elseif ($this->initial_customer_pay_amount < $this->calculation['customer_payable_amount']) {
+                    $transfer->payment_status = PaymentStatus::PARTIALLY_PAID;
+                    $transfer->remaining_amount = $this->calculation['customer_payable_amount'] - $this->initial_customer_pay_amount;
+                }
+
+            }
+
             $transfer->save();
+            if ($this->initial_customer_pay_amount > 0){
+                $transfer->payments()->create([
+                'amount' => $this->initial_customer_pay_amount,
+                'currency' => $this->customer_pay_currency,
+                'received_by' => auth()->id(),
+                'received_at' => now(),
+                'notes' => 'Initial payment for transfer creation',
+            ]);
+        }
 
         });
         session()->flash('message', 'Transfer created successfully.');
-        $this->reset(['receiver_name', 'receiver_method', 'notes', 'fee_mode', 'requested_currency', 'requested_amount', 'receiver_wallet_phone', 'receiver_account_number', 'customer_pay_currency','calculation']);
+        $this->reset(['receiver_name', 'receiver_method', 'notes', 'fee_mode', 'requested_currency', 'requested_amount', 'receiver_wallet_phone', 'receiver_account_number', 'customer_pay_currency','calculation', 'initial_customer_pay_amount']);
         return redirect()->route('transfers.index');
     }
 };
@@ -229,14 +263,22 @@ class extends Component {
 
             <div>
                 <label>Customer Pay Currency</label>
-                <select wire:model.live="customer_pay_currency">
+                <select wire:model.live="customer_payable_currency">
                     <option value="">Select Customer Pay Currency</option>
                     @foreach(CurrencyType::cases() as $currency)
                         <option value="{{ $currency->value }}">{{ $currency->name }}</option>
                     @endforeach
                 </select>
-                @error('customer_pay_currency') <span>{{ $message }}</span> @enderror
+                @error('customer_payable_currency') <span>{{ $message }}</span> @enderror
             </div>
+
+            <div>
+                <label>Customer Pay Amount</label>
+                <input type="number" step="0.01" wire:model.live="initial_customer_pay_amount">
+                @error('initial_customer_pay_amount') <span>{{ $message }}</span> @enderror
+            </div>
+
+
             <div>
                 <label>Notes</label>
                 <textarea wire:model="notes"></textarea>
@@ -244,15 +286,28 @@ class extends Component {
             </div>
 
 
+
             <button type="submit">Create Transfer</button>
 
         </form>
-        <div>Customer Pays:
-            {{ $this->calculation['customer_payable_amount'] ?? 0 }}
-            {{ $this->calculation['customer_payable_currency'] ?? '' }}
-        </div>
-        <div>Commission Amount:
-            {{ $this->calculation['commission_amount'] ?? 0 }} {{  $this->calculation['commission_currency'] ?? ''  }}
-        </div>
+        @if($this->calculation)
+            <div>
+                Customer Pays:
+                {{ $this->calculation['customer_payable_amount'] }}
+                {{ $this->calculation['customer_payable_currency']->name }}
+            </div>
+
+            <div>
+                Commission:
+                {{ $this->calculation['commission_amount'] }}
+                {{ $this->calculation['commission_currency']->name }}
+            </div>
+
+            <div>
+                Transfer Amount:
+                {{ $this->calculation['transfer_amount'] }}
+                {{ CurrencyType::from($this->requested_currency)->name }}
+            </div>
+        @endif
     </div>
 </div>

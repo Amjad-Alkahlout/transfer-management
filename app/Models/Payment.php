@@ -10,7 +10,7 @@ class Payment extends Model
 {
     public function transfer(): BelongsTo
     {
-        return $this->belongsTo(Transfer::class);
+        return $this->belongsTo(Transfer::class, 'transfer_id');
     }
     public function receiver(): BelongsTo
     {
