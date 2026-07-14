@@ -1,14 +1,13 @@
 <?php
 
 use App\Models\ExchangeRate;
-use Carbon\Carbon;
 use Livewire\Component;
 
 new class extends Component {
     public $rates = [];
     public $showUpdateForm = false;
 
-    public function showUpdateForm()
+    public function openUpdateForm()
     {
         $this->showUpdateForm = true;
     }
@@ -28,12 +27,14 @@ new class extends Component {
         $this->validate([
             'rates.*.rate_to_usd' => 'required|numeric|gt:0',
         ]);
-        foreach ($this->rates as $rate) {
-            ExchangeRate::find($rate['id'])->update([
-                'rate_to_usd' => $rate['rate_to_usd'],
-            ]);
-        }
-        $this->rates = ExchangeRate::orderBy('currency')->get()->toArray();
+        DB::transaction(function () {
+            foreach ($this->rates as $rate) {
+                ExchangeRate::whereKey($rate['id'])->update([
+                    'rate_to_usd' => $rate['rate_to_usd'],
+                ]);
+            }
+        });
+        $this->rates = ExchangeRate::orderBy('currency')->get();
         session()->flash('message', 'Exchange rates updated successfully.');
         $this->showUpdateForm = false;
     }
@@ -59,14 +60,14 @@ new class extends Component {
             <tr>
                 <td>{{ $rate['currency'] }}</td>
                 <td>{{ $rate['rate_to_usd'] }}</td>
-                <td>{{ $rate->updated_at->format('d/m/Y H:i') }}</td>
+                <td>{{ $rate['updated_at']->format('d/m/Y H:i') }}</td>
             </tr>
         @endforeach
         </tbody>
     </table>
 
     <div>
-        <button type="button" wire:click="showUpdateForm">Update Rates</button>
+        <button type="button" wire:click="openUpdateForm">Update Rates</button>
     </div>
     @if($showUpdateForm)
         <div>
@@ -75,7 +76,7 @@ new class extends Component {
                     <div>
                         <label for="rate_{{ $index }}">{{ $rate['currency'] }}:</label>
                         <input type="number" step="0.0001" id="rate_{{ $index }}"
-                               wire:model="rates.{{ $index }}.rate_to_usd">
+                               wire:model.live="rates.{{ $index }}.rate_to_usd">
                     </div>
                 @endforeach
                 <button type="submit">Save Rates</button>

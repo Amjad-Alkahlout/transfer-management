@@ -8,6 +8,7 @@ use Livewire\Component;
 new class extends Component {
 
     public $currency;
+    public $showAddRuleForm = false;
 
     public $rules = [];
 
@@ -22,6 +23,20 @@ new class extends Component {
         $this->currency = CurrencyType::USD->value;
 
         $this->loadRules();
+    }
+
+    public function openAddRuleForm()
+    {
+        $this->resetValidation();
+        $this->showAddRuleForm = true;
+
+    }
+
+    public function closeAddRuleForm()
+    {
+        $this->reset('newRule');
+        $this->resetValidation();
+        $this->showAddRuleForm = false;
     }
 
     public function updatedCurrency()
@@ -80,8 +95,25 @@ new class extends Component {
             'max_amount' => null,
             'commission_amount' => null,
         ];
-
+        $this->showAddRuleForm = false;
         session()->flash('message', 'Commission rule added successfully.');
+    }
+    public function deleteRule(int $id): void
+    {
+        $rule = CommissionRule::findOrFail($id);
+
+        if ($rule->currency !== $this->currency) {
+            abort(403);
+        }
+
+        $rule->delete();
+
+        $this->loadRules();
+
+        session()->flash(
+            'message',
+            'Commission rule deleted successfully.'
+        );
     }
 };
 ?>
@@ -121,6 +153,7 @@ new class extends Component {
             <th>From</th>
             <th>To</th>
             <th>Commission</th>
+            <th>Actions</th>
         </tr>
         </thead>
 
@@ -132,6 +165,11 @@ new class extends Component {
                 <td>{{ $rule->min_amount }}</td>
                 <td>{{ $rule->max_amount }}</td>
                 <td>{{ $rule->commission_amount }}</td>
+                <td>
+                    <button wire:confirm="Delete this commission rule?" wire:click="deleteRule({{ $rule->id }})">
+                        Delete
+                    </button>
+                </td>
             </tr>
 
         @empty
@@ -150,8 +188,14 @@ new class extends Component {
 
     <hr>
 
-    <h3>Add New Rule</h3>
+    <div>
+        <button wire:click="openAddRuleForm">
+            Add New Rule
+        </button>
+    </div>
 
+@if($showAddRuleForm)
+    <div>
     <form wire:submit.prevent="addRule">
 
         <div>
@@ -196,12 +240,17 @@ new class extends Component {
             @enderror
         </div>
 
+
         <br>
 
         <button type="submit">
-            Add Rule
+            save
+        </button>
+        <button type="button" wire:click="closeAddRuleForm">
+            Cancel
         </button>
 
     </form>
-
+    </div>
+    @endif
 </div>

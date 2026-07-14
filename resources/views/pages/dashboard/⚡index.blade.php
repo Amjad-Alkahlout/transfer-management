@@ -1,14 +1,17 @@
 <?php
 
+use App\Enums\PaymentStatus;
 use App\Enums\TransferStatus;
+use App\Models\CommissionRule;
+use App\Models\ExchangeRate;
 use App\Models\Transfer;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 new #[Layout('layouts::app')]
-class extends Component {
-
+class extends Component
+{
     #[Computed]
     public function transferStats()
     {
@@ -18,15 +21,30 @@ class extends Component {
             'cancelled' => Transfer::where('status', TransferStatus::CANCELLED)->count(),
         ];
     }
+
     #[Computed]
-    public function pendingTransfers()
+    public function paymentStats()
     {
-        return Transfer::where('status', TransferStatus::PENDING)
-            ->latest()
-            ->take(5)
-            ->get();
+        return [
+            'unpaid' => Transfer::where('payment_status', PaymentStatus::UNPAID)->count(),
+            'partially_paid' => Transfer::where('payment_status', PaymentStatus::PARTIALLY_PAID)->count(),
+            'paid' => Transfer::where('payment_status', PaymentStatus::PAID)->count(),
+        ];
     }
 
+    #[Computed]
+    public function exchangeRates()
+    {
+        return ExchangeRate::orderBy('currency')->get();
+    }
+
+    #[Computed]
+    public function commissionStats()
+    {
+        return CommissionRule::selectRaw('currency, COUNT(*) as total')
+            ->groupBy('currency')
+            ->get();
+    }
 };
 ?>
 
@@ -38,17 +56,51 @@ class extends Component {
 
     <hr>
 
-    <h3>Quick Actions</h3>
+    <h2>Quick Actions</h2>
 
     <div>
-        <a href="{{ route('create-transfer') }}">Create Transfer</a> |
+        <a href="{{ route('transfers.create') }}">Create Transfer</a> |
         <a href="{{ route('transfers.index') }}">Transfers</a> |
-        <a href="{{ route('bank-accounts.index') }}">Bank Accounts</a>
+        <a href="{{ route('bank-accounts.index') }}">Bank Accounts</a> |
+        <a href="{{ route('exchange-rates.index') }}">Exchange Rates</a> |
+        <a href="{{ route('commission-rules.index') }}">Commission Rules</a>
     </div>
 
     <br>
 
-    <h3>Transfer Overview</h3>
+    <h2>Transfer Overview</h2>
+
+    <table border="1" cellpadding="8">
+        <thead>
+        <tr>
+            <th>Status</th>
+            <th>Total</th>
+        </tr>
+        </thead>
+
+        <tbody>
+
+        <tr>
+            <td>Pending</td>
+            <td>{{ $this->transferStats['pending'] }}</td>
+        </tr>
+
+        <tr>
+            <td>Completed</td>
+            <td>{{ $this->transferStats['completed'] }}</td>
+        </tr>
+
+        <tr>
+            <td>Cancelled</td>
+            <td>{{ $this->transferStats['cancelled'] }}</td>
+        </tr>
+
+        </tbody>
+    </table>
+
+    <br>
+
+    <h2>Payment Overview</h2>
 
     <table border="1" cellpadding="8">
 
@@ -62,57 +114,86 @@ class extends Component {
         <tbody>
 
         <tr>
-            <td>Pending Transfers</td>
-            <td>{{ $this->transferStats['pending'] }}</td>
-        </tr>
-
-
-        <tr>
-            <td>Completed</td>
-            <td>{{ $this->transferStats['completed'] }}</td>
+            <td>Unpaid</td>
+            <td>{{ $this->paymentStats['unpaid'] }}</td>
         </tr>
 
         <tr>
-            <td>Cancelled</td>
-            <td>{{ $this->transferStats['cancelled'] }}</td>
+            <td>Partially Paid</td>
+            <td>{{ $this->paymentStats['partially_paid'] }}</td>
+        </tr>
+
+        <tr>
+            <td>Paid</td>
+            <td>{{ $this->paymentStats['paid'] }}</td>
         </tr>
 
         </tbody>
 
     </table>
 
-    <hr>
+    <br>
 
-    <h3>Transfers Requiring Action</h3>
+    <h2>Exchange Rates</h2>
 
-    @if($this->pendingTransfers->isNotEmpty())
-        <h4>Pending Transfers</h4>
+    <table border="1" cellpadding="8">
 
-        <table border="1" cellpadding="8">
-            <thead>
+        <thead>
+        <tr>
+            <th>Currency</th>
+            <th>Rate to USD</th>
+        </tr>
+        </thead>
+
+        <tbody>
+
+        @foreach($this->exchangeRates as $rate)
             <tr>
-                <th>Reference</th>
-                <th>Receiver</th>
-                <th>Amount</th>
-                <th></th>
+                <td>{{ strtoupper($rate->currency->value) }}</td>
+                <td>{{ $rate->rate_to_usd }}</td>
             </tr>
-            </thead>
+        @endforeach
 
-            <tbody>
-            @foreach($this->pendingTransfers as $transfer)
-                <tr>
-                    <td>{{ $transfer->reference_number }}</td>
-                    <td>{{ $transfer->receiver_name }}</td>
-                    <td>{{ $transfer->requested_amount }} {{ $transfer->requested_currency->name }}</td>
-                    <td>
-                        <a href="{{ route('transfers.show', $transfer) }}">Open</a>
-                    </td>
-                </tr>
-            @endforeach
-            </tbody>
-        </table>
+        </tbody>
 
-        <br>
-    @endif
+    </table>
+
+    <br>
+
+    <a href="{{ route('exchange-rates.index') }}">
+        Manage Exchange Rates
+    </a>
+
+    <br><br>
+
+    <h2>Commission Rules</h2>
+
+    <table border="1" cellpadding="8">
+
+        <thead>
+        <tr>
+            <th>Currency</th>
+            <th>Total Rules</th>
+        </tr>
+        </thead>
+
+        <tbody>
+
+         @foreach($this->commissionStats as $rule)
+            <tr>
+                <td>{{ $rule->currency->name }}</td>
+                <td>{{ $rule->total }}</td>
+            </tr>
+         @endforeach
+
+        </tbody>
+
+    </table>
+
+    <br>
+
+    <a href="{{ route('commission-rules.index') }}">
+        Manage Commission Rules
+    </a>
 
 </div>
