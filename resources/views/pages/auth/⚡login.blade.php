@@ -39,49 +39,54 @@ new #[Layout('layouts::guest')] class extends Component {
 };
 ?>
 
-<div>
-    <form wire:submit="login">
+<x-ui.card
+    title="Login"
+    description="Sign in to your account."
+>
 
-        <div>
-            <label>Email</label>
+    <form
+        wire:submit="login"
+        class="space-y-6"
+    >
+
+        <x-ui.input
+            label="Email"
+            name="email"
+            type="email"
+            wire:model="email"
+        />
+
+        <x-ui.input
+            label="Password"
+            name="password"
+            type="password"
+            wire:model="password"
+        />
+
+        <div class="flex items-center gap-2">
 
             <input
-                type="email"
-                wire:model="email"
+                id="remember"
+                type="checkbox"
+                wire:model="remember"
+                class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             >
 
-            @error('email')
-            <p>{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div>
-            <label>Password</label>
-
-            <input
-                type="password"
-                wire:model="password"
+            <label
+                for="remember"
+                class="text-sm text-gray-700"
             >
-
-            @error('password')
-            <p>{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div>
-            <label>
-                <input
-                    type="checkbox"
-                    wire:model="remember"
-                >
-
                 Remember me
             </label>
+
         </div>
 
-        <button type="submit">
+        <x-ui.button
+            type="submit"
+            class="w-full"
+        >
             Login
-        </button>
+        </x-ui.button>
 
     </form>
-</div>
+</x-ui.card>

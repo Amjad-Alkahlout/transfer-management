@@ -13,6 +13,7 @@ return new class extends Migration
             $table->decimal('transfer_amount', 12, 2)
                 ->after('requested_amount');
 
+            $table->index('payment_status');
         });
     }
 

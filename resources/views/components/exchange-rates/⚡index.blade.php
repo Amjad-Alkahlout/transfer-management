@@ -2,6 +2,7 @@
 
 use App\Models\ExchangeRate;
 use Livewire\Component;
+use Illuminate\Support\Facades\DB;
 
 new class extends Component {
     public $rates = [];
@@ -9,6 +10,7 @@ new class extends Component {
 
     public function openUpdateForm()
     {
+        $this->loadRates();
         $this->showUpdateForm = true;
     }
 
@@ -17,9 +19,21 @@ new class extends Component {
         $this->showUpdateForm = false;
     }
 
+    private function loadRates(): void
+    {
+        $this->rates = ExchangeRate::orderBy('currency')->get()->map(function ($rate) {
+            return [
+                'id' => $rate->id,
+                'currency' => $rate->currency,
+                'rate_to_usd' => $rate->rate_to_usd,
+                'updated_at' => $rate->updated_at,
+            ];
+        })->toArray();
+    }
+
     public function mount()
     {
-        $this->rates = ExchangeRate::orderBy('currency')->get();
+        $this->loadRates();
     }
 
     public function saveRates()
@@ -29,60 +43,106 @@ new class extends Component {
         ]);
         DB::transaction(function () {
             foreach ($this->rates as $rate) {
-                ExchangeRate::whereKey($rate['id'])->update([
+                ExchangeRate::find($rate['id'])->update([
                     'rate_to_usd' => $rate['rate_to_usd'],
                 ]);
             }
         });
-        $this->rates = ExchangeRate::orderBy('currency')->get();
+        $this->loadRates();
         session()->flash('message', 'Exchange rates updated successfully.');
-        $this->showUpdateForm = false;
+        $this->hideUpdateForm();
     }
 };
 ?>
 
 <div>
-<h1>Exchange Rates</h1>
-    @if(session('message'))
-        <div>{{ session('message') }}</div>
+    <x-ui.page-header
+        title="Exchange Rates"
+        description="Manage currency exchange rates."
+    >
+        <x-slot:actions>
+
+            <x-ui.button
+                wire:click="openUpdateForm"
+            >
+                Update Rates
+            </x-ui.button>
+
+        </x-slot:actions>
+
+    </x-ui.page-header>
+    @if(session()->has('message'))
+
+        <x-ui.alert color="success">
+            {{ session('message') }}
+        </x-ui.alert>
+
     @endif
 
-    <table>
-        <thead>
-        <tr>
-            <th>Currency</th>
-            <th>Rate to USD</th>
-            <th>Last Updated</th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach ($rates as $rate)
-            <tr>
-                <td>{{ $rate['currency'] }}</td>
-                <td>{{ $rate['rate_to_usd'] }}</td>
-                <td>{{ $rate['updated_at']->format('d/m/Y H:i') }}</td>
-            </tr>
-        @endforeach
-        </tbody>
-    </table>
+    <x-ui.card
+        title="Exchange Rates"
+        description="Current exchange rates against USD."
+    >
 
-    <div>
-        <button type="button" wire:click="openUpdateForm">Update Rates</button>
-    </div>
+        <x-ui.table>
+        <x-UI.table-header>
+        <x-UI.table-row>
+            <x-UI.table-head>Currency</x-UI.table-head>
+            <x-UI.table-head>Rate to USD</x-UI.table-head>
+            <x-UI.table-head>Last Updated</x-UI.table-head>
+        </x-UI.table-row>
+            </x-UI.table-header>
+        <x-UI.table-body>
+        @foreach ($rates as $rate)
+                <x-UI.table-row>
+                <x-UI.table-cell>{{ $rate['currency'] }}</x-UI.table-cell>
+                <x-UI.table-cell>{{ number_format($rate['rate_to_usd'],4) }}</x-UI.table-cell>
+                <x-UI.table-cell>{{ $rate['updated_at']->format('d/m/Y H:i') }}</x-UI.table-cell>
+            </x-UI.table-row>
+        @endforeach
+        </x-UI.table-body>
+        </x-ui.table>
+    </x-ui.card>
+
     @if($showUpdateForm)
-        <div>
-            <form wire:submit.prevent="saveRates">
+
+        <x-ui.card
+            title="Update Exchange Rates"
+            description="Update exchange rates relative to USD."
+        >
+
+            <form
+                wire:submit.prevent="saveRates"
+                class="space-y-6"
+            >
                 @foreach ($rates as $index => $rate)
-                    <div>
-                        <label for="rate_{{ $index }}">{{ $rate['currency'] }}:</label>
-                        <input type="number" step="0.0001" id="rate_{{ $index }}"
-                               wire:model.live="rates.{{ $index }}.rate_to_usd">
-                    </div>
+                    <x-ui.input
+                        :label="$rate['currency']"
+                        :name="'rates.'.$index.'.rate_to_usd'"
+                        type="number"
+                        step="0.0001"
+                        wire:model.live="rates.{{ $index }}.rate_to_usd"
+                    />
                 @endforeach
-                <button type="submit">Save Rates</button>
-                <button type="button" wire:click="hideUpdateForm">Cancel</button>
+                    <div class="flex justify-end gap-3">
+
+                        <x-ui.button
+                            type="button"
+                            variant="secondary"
+                            wire:click="hideUpdateForm"
+                        >
+                            Cancel
+                        </x-ui.button>
+
+                        <x-ui.button
+                            type="submit"
+                        >
+                            Save Rates
+                        </x-ui.button>
+
+                    </div>
             </form>
-        </div>
+        </x-ui.card>
     @endif
 
 </div>

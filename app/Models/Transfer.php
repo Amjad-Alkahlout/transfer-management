@@ -6,6 +6,7 @@ use App\Enums\CurrencyType;
 use App\Enums\FeeMode;
 use App\Enums\PaymentStatus;
 use App\Enums\ReceiverMethod;
+use App\Enums\TransferCalculationMode;
 use App\Enums\TransferStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -42,6 +43,11 @@ class Transfer extends Model
     {
         return $this->belongsTo(User::class, 'cancelled_by');
     }
+
+    public function profitTransactions()
+    {
+        return $this->hasMany(ProfitAccountTransaction::class);
+    }
     protected $fillable = [
         'receiver_name',
         'receiver_method',
@@ -66,6 +72,11 @@ class Transfer extends Model
         'remaining_amount',
         'payment_status',
         'transfer_amount',
+        'calculation_mode',
+        'status',
+        'completed_by',
+        'completed_at',
+        'transfer_proof_path',
     ];
 
     protected function casts(): array
@@ -85,6 +96,7 @@ class Transfer extends Model
             'currency' => CurrencyType::class,
             'created_at' => 'datetime',
             'customer_payable_currency' => CurrencyType::class,
+            'calculation_mode' => TransferCalculationMode::class,
 
 
         ];

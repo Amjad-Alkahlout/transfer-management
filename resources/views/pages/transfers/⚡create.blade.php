@@ -4,9 +4,11 @@ use App\Enums\FeeMode;
 use App\Enums\CurrencyType;
 use App\Enums\PaymentStatus;
 use App\Enums\ReceiverMethod;
+use App\Enums\TransferCalculationMode;
 use App\Enums\TransferStatus;
 use App\Models\Payment;
 use App\Models\Transfer;
+use App\Services\ReceivePaymentService;
 use App\Services\TransferCalculatorService;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -25,20 +27,40 @@ class extends Component {
     public $receiver_wallet_phone;
     public $receiver_account_number;
     public $customer_payable_currency;
-    public $initial_customer_pay_amount=0;
+    public $customer_payable_amount;
+    public $initial_customer_pay_amount = 0;
+    public TransferCalculationMode $calculationMode =
+        TransferCalculationMode::RECEIVER_AMOUNT;
     public array|null $calculation = null;
 
 
     public function updated($property)
     {
+
         if (in_array($property, [
             'requested_amount',
             'requested_currency',
-            'customer_pay_currency',
+            'customer_payable_currency',
             'fee_mode',
+            'calculationMode',
+            'customer_payable_amount'
         ])) {
             $this->calculateIfReady();
         }
+    }
+
+    public function updatedCalculationMode()
+    {
+        $this->resetErrorBag();
+
+        $this->calculation = null;
+        $this->requested_currency = null;
+        $this->customer_payable_currency = null;
+        $this->requested_amount = null;
+        $this->customer_payable_amount = null;
+        $this->initial_customer_pay_amount = 0;
+
+        $this->fee_mode = FeeMode::INCLUDED->value;
     }
 
 
@@ -54,10 +76,26 @@ class extends Component {
 
     private function calculateIfReady(): void
     {
+        if ($this->calculationMode === TransferCalculationMode::CUSTOMER_PAYMENT) {
+
+            if (
+                !$this->customer_payable_amount ||
+                !$this->customer_payable_currency ||
+                !$this->requested_currency
+            ) {
+                $this->calculation = null;
+                return;
+            }
+
+            $this->calculateTransfer();
+
+            return;
+        }
+
         if (
             !$this->requested_amount ||
             !$this->requested_currency ||
-            !$this->customer_payable_currency||
+            !$this->customer_payable_currency ||
             !$this->fee_mode
         ) {
             $this->calculation = null;
@@ -68,32 +106,60 @@ class extends Component {
     }
 
 
-
     public function calculateTransfer()
     {
+        $this->resetErrorBag([
+            'requested_amount',
+            'customer_payable_amount',
+        ]);
+
+        $this->calculation = null;
+
         try {
-            $this->calculation = app(TransferCalculatorService::class)->calculate(
-                $this->requested_amount,
-                CurrencyType::from($this->requested_currency),
-                CurrencyType::from($this->customer_payable_currency),
-                FeeMode::from($this->fee_mode)
-            );
+
+            if ($this->calculationMode === TransferCalculationMode::CUSTOMER_PAYMENT) {
+
+                $this->calculation = app(TransferCalculatorService::class)
+                    ->calculateFromCustomerPayment(
+                        $this->customer_payable_amount,
+                        CurrencyType::from($this->customer_payable_currency),
+                        CurrencyType::from($this->requested_currency),
+                    );
+
+            } else {
+
+                $this->calculation = app(TransferCalculatorService::class)
+                    ->calculateFromReceiverAmount(
+                        $this->requested_amount,
+                        CurrencyType::from($this->requested_currency),
+                        CurrencyType::from($this->customer_payable_currency),
+                        FeeMode::from($this->fee_mode),
+                    );
+            }
+
         } catch (\Throwable $e) {
+
             $this->calculation = null;
-            $this->addError('requested_amount', $e->getMessage());
+
+            if ($this->calculationMode === TransferCalculationMode::CUSTOMER_PAYMENT) {
+                $this->addError('customer_payable_amount', $e->getMessage());
+            } else {
+                $this->addError('requested_amount', $e->getMessage());
+            }
         }
     }
-
 
 
     public function createTransfer()
     {
         $this->calculateIfReady();
+
         if ($this->calculation === null) {
-            $this->addError(
-                'requested_amount',
-                'Unable to calculate the transfer.'
-            );
+            $field = $this->calculationMode === TransferCalculationMode::CUSTOMER_PAYMENT
+                ? 'customer_payable_amount'
+                : 'requested_amount';
+
+            $this->addError($field, 'Unable to calculate the transfer.');
 
             return;
         }
@@ -113,7 +179,12 @@ class extends Component {
                 'required',
                 Rule::enum(CurrencyType::class),
             ],
-            'requested_amount' => 'required|numeric|min:0.01',
+            'requested_amount' => [
+                Rule::requiredIf($this->calculationMode === TransferCalculationMode::RECEIVER_AMOUNT),
+                'nullable',
+                'numeric',
+                'min:0.01'],
+
             'receiver_wallet_phone' => [
                 Rule::requiredIf($this->receiver_method === ReceiverMethod::WALLET->value),
                 'nullable',
@@ -130,20 +201,31 @@ class extends Component {
                 'required',
                 Rule::enum(CurrencyType::class),
             ],
+            'customer_payable_amount' => [
+                Rule::requiredIf($this->calculationMode === TransferCalculationMode::CUSTOMER_PAYMENT),
+                'nullable',
+                'numeric',
+                'min:0.01',
+            ],
             'initial_customer_pay_amount' => 'nullable|numeric|min:0|max:' . $this->calculation['customer_payable_amount'],
 
         ]);
 
-            DB::transaction(function () {
+
+        DB::transaction(function () {
 
             $transfer = new Transfer();
             $transfer->fill([
                 'receiver_name' => $this->receiver_name,
                 'receiver_method' => $this->receiver_method,
                 'notes' => $this->notes,
-                'fee_mode' => $this->fee_mode,
+                'fee_mode' => $this->calculationMode === TransferCalculationMode::RECEIVER_AMOUNT
+                    ? $this->fee_mode
+                    : FeeMode::INCLUDED,
                 'requested_currency' => $this->requested_currency,
-                'requested_amount' => $this->requested_amount,
+                'requested_amount' => $this->calculationMode === TransferCalculationMode::RECEIVER_AMOUNT
+                    ? $this->requested_amount
+                    : $this->calculation['requested_amount'],
                 'receiver_wallet_phone' => $this->receiver_wallet_phone,
                 'receiver_account_number' => $this->receiver_account_number,
                 'transfer_amount' => $this->calculation['transfer_amount'],
@@ -151,163 +233,354 @@ class extends Component {
                 'customer_payable_currency' => $this->calculation['customer_payable_currency']->value,
                 'commission_amount' => $this->calculation['commission_amount'],
                 'commission_currency' => $this->calculation['commission_currency']->value,
-                'paid_amount' => $this->initial_customer_pay_amount,
-                'remaining_amount' => $this->calculation['customer_payable_amount'] - $this->initial_customer_pay_amount,
+                'paid_amount' => 0,
+                'calculation_mode' => $this->calculationMode,
             ]);
 
             $transfer->reference_number = Str::upper('TRF-' . now()->format('Ymd') . '-' . Str::random(6));
             $transfer->created_by = auth()->id();
             $transfer->status = TransferStatus::PENDING;
 
+            $transfer->payment_status = PaymentStatus::UNPAID;
+            $transfer->remaining_amount =
+                $this->calculation['customer_payable_amount'];
 
-            if($this->initial_customer_pay_amount >= 0) {
+            $transfer->save();
 
-                if($this->initial_customer_pay_amount == 0) {
-                    $transfer->payment_status = PaymentStatus::UNPAID;
-                    $transfer->remaining_amount = $this->calculation['customer_payable_amount'];
-                } elseif (round($this->initial_customer_pay_amount - $this->calculation['customer_payable_amount'], 2) === 0.0) {
-                    $transfer->payment_status = PaymentStatus::PAID;
-                    $transfer->remaining_amount = 0;
+            try{
+            if ($this->initial_customer_pay_amount > 0) {
 
-                } elseif ($this->initial_customer_pay_amount < $this->calculation['customer_payable_amount']) {
-                    $transfer->payment_status = PaymentStatus::PARTIALLY_PAID;
-                    $transfer->remaining_amount = $this->calculation['customer_payable_amount'] - $this->initial_customer_pay_amount;
-                }
+                app(ReceivePaymentService::class)->receive(
+                    $transfer,
+                    $this->initial_customer_pay_amount,
+                    'Initial payment',
+                );
 
             }
 
-            $transfer->save();
-            if ($this->initial_customer_pay_amount > 0){
-                $transfer->payments()->create([
-                'amount' => $this->initial_customer_pay_amount,
-                'currency' => $this->customer_pay_currency,
-                'received_by' => auth()->id(),
-                'received_at' => now(),
-                'notes' => 'Initial payment for transfer creation',
-            ]);
-        }
+            } catch (\Throwable $e) {
+                $this->addError('initial_customer_pay_amount', $e->getMessage());
+                throw $e;
+            }
 
         });
         session()->flash('message', 'Transfer created successfully.');
-        $this->reset(['receiver_name', 'receiver_method', 'notes', 'fee_mode', 'requested_currency', 'requested_amount', 'receiver_wallet_phone', 'receiver_account_number', 'customer_pay_currency','calculation', 'initial_customer_pay_amount']);
+        $this->reset(['receiver_name', 'receiver_method', 'notes', 'fee_mode', 'requested_currency', 'requested_amount', 'receiver_wallet_phone', 'receiver_account_number', 'customer_payable_currency', 'calculation', 'initial_customer_pay_amount', 'customer_payable_amount']);
+        $this->calculationMode = TransferCalculationMode::RECEIVER_AMOUNT;
+        $this->fee_mode = FeeMode::INCLUDED->value;
         return redirect()->route('transfers.index');
     }
 };
 ?>
 
-<div>
-    <div>
-        <h1>create Transfer</h1>
-        <form wire:submit="createTransfer">
+ <div>
+    <x-ui.page-header
+        title="Create New Transfer"
+        description="Create a new customer transfer."
+    >
+        <x-slot:actions>
 
-            <div>
-                <label>Receiver Name</label>
-                <input type="text" wire:model="receiver_name">
-                @error('receiver_name') <span>{{ $message }}</span> @enderror
-            </div>
+            <x-ui.button
+                :href="route('transfers.index')"
+                variant="secondary"
+            >
+                ← Back
+            </x-ui.button>
 
-            <div>
-                <label>Receiver Method</label>
-                <select wire:model.live="receiver_method">
-                    <option value="">Select Receiver Method</option>
-                    @foreach(ReceiverMethod::cases() as $method)
-                        <option value="{{ $method->value }}">{{ $method->name }}</option>
-                    @endforeach
-                </select>
-                @error('receiver_method') <span>{{ $message }}</span> @enderror
-            </div>
+        </x-slot:actions>
+    </x-ui.page-header>
+
+    <form
+        wire:submit.prevent="createTransfer"
+        class="space-y-6"
+    >
+
+        <x-ui.form-section
+            title="Receiver Information"
+            description="Receiver details and delivery method."
+        >
+
+            <x-ui.select
+                label="Calculation Mode"
+                name="calculationMode"
+                wire:model.live="calculationMode"
+            >
+
+                @foreach(TransferCalculationMode::cases() as $mode)
+
+                    <option value="{{ $mode->value }}">
+                        {{ $mode->name }}
+                    </option>
+
+                @endforeach
+
+            </x-ui.select>
+
+            <x-ui.input
+                label="Receiver Name"
+                name="receiver_name"
+                wire:model="receiver_name"
+            />
+
+            <x-ui.select
+                label="Receiver Method"
+                name="receiver_method"
+                wire:model.live="receiver_method"
+            >
+
+                <option value="">
+                    Select Receiver Method
+                </option>
+
+                @foreach(ReceiverMethod::cases() as $method)
+
+                    <option value="{{ $method->value }}">
+                        {{ $method->name }}
+                    </option>
+
+                @endforeach
+
+            </x-ui.select>
 
             @if($receiver_method === ReceiverMethod::BANK->value)
-                <div>
-                    <label>Receiver Bank Account Number</label>
-                    <input type="text" wire:model="receiver_account_number">
-                    @error('receiver_account_number') <span>{{ $message }}</span> @enderror
-                </div>
-            @endif
-            @if($receiver_method === ReceiverMethod::WALLET->value)
-                <div>
-                    <label>Receiver Wallet Number</label>
-                    <input type="text" wire:model="receiver_wallet_phone">
-                    @error('receiver_wallet_phone') <span>{{ $message }}</span> @enderror
-                </div>
+
+                <x-ui.input
+                    label="Receiver Bank Account Number"
+                    name="receiver_account_number"
+                    wire:model="receiver_account_number"
+                />
+
+            @elseif($receiver_method === ReceiverMethod::WALLET->value)
+
+                <x-ui.input
+                    label="Receiver Wallet Number"
+                    name="receiver_wallet_phone"
+                    wire:model="receiver_wallet_phone"
+                />
+
             @endif
 
+        </x-ui.form-section>
 
-            <div>
-                <label>Fee Mode</label>
-                <select wire:model.live="fee_mode">
-                    <option value="">Select Fee Mode</option>
+        <x-ui.form-section
+            title="Transfer Information"
+            description="Transfer calculation settings."
+        >
+
+            <x-ui.select
+                label="Requested Currency"
+                name="requested_currency"
+                wire:model.live="requested_currency"
+            >
+
+                <option value="">
+                    Select Requested Currency
+                </option>
+
+                @foreach(CurrencyType::cases() as $currency)
+
+                    <option value="{{ $currency->value }}">
+                        {{ $currency->name }}
+                    </option>
+
+                @endforeach
+
+            </x-ui.select>
+
+            @if($calculationMode === TransferCalculationMode::RECEIVER_AMOUNT)
+
+                <x-ui.input
+                    label="Requested Amount"
+                    name="requested_amount"
+                    type="number"
+                    step="0.01"
+                    wire:model.live="requested_amount"
+                />
+
+                <x-ui.select
+                    label="Fee Mode"
+                    name="fee_mode"
+                    wire:model.live="fee_mode"
+                >
+
+                    <option value="">
+                        Select Fee Mode
+                    </option>
+
                     @foreach(FeeMode::cases() as $mode)
-                        <option value="{{ $mode->value }}">{{ $mode->name }}</option>
+
+                        <option value="{{ $mode->value }}">
+                            {{ $mode->name }}
+                        </option>
+
                     @endforeach
-                </select>
-                @error('fee_mode') <span>{{ $message }}</span> @enderror
+
+                </x-ui.select>
+
+            @else
+
+                <x-ui.input
+                    label="Customer Pay Amount"
+                    name="customer_payable_amount"
+                    type="number"
+                    step="0.01"
+                    wire:model.live="customer_payable_amount"
+                />
+
+            @endif
+
+            <x-ui.select
+                label="Customer Pay Currency"
+                name="customer_payable_currency"
+                wire:model.live="customer_payable_currency"
+            >
+
+                <option value="">
+                    Select Customer Pay Currency
+                </option>
+
+                @foreach(CurrencyType::cases() as $currency)
+
+                    <option value="{{ $currency->value }}">
+                        {{ $currency->name }}
+                    </option>
+
+                @endforeach
+
+            </x-ui.select>
+
+        </x-ui.form-section>
+
+        <x-ui.form-section
+            title="Payment"
+            description="Record an optional payment received during transfer creation."
+            class="grid-cols-1"
+        >
+
+            <x-ui.input
+                label="Initial Payment"
+                name="initial_customer_pay_amount"
+                type="number"
+                step="0.01"
+                wire:model.live="initial_customer_pay_amount"
+            />
+
+        </x-ui.form-section>
+
+
+        <x-ui.form-section
+            title="Additional Information"
+            class="grid-cols-1"
+        >
+
+            <x-ui.textarea
+                label="Notes"
+                name="notes"
+                rows="4"
+                wire:model="notes"
+            />
+
+        </x-ui.form-section>
+
+        @if($calculation)
+
+            <x-ui.card
+                title="Calculation Preview"
+                description="Live calculation based on the current values."
+            >
+
+                @if($calculationMode === TransferCalculationMode::RECEIVER_AMOUNT->value)
+
+                    <div class="grid grid-cols-2 gap-y-4">
+
+                        <div class="text-sm font-medium text-gray-500">
+                            Receiver Gets
+                        </div>
+
+                        <div class="font-semibold">
+                            {{ $this->calculation['transfer_amount'] }}
+                            {{ CurrencyType::from($requested_currency)->symbol() }}
+                        </div>
+
+                        <div class="text-sm font-medium text-gray-500">
+                            Customer Pays
+                        </div>
+
+                        <div class="font-semibold">
+                            {{ $calculation['customer_payable_amount'] }}
+                            {{ $calculation['customer_payable_currency']->symbol() }}
+                        </div>
+
+                        <div class="text-sm font-medium text-gray-500">
+                            Commission
+                        </div>
+
+                        <div class="font-semibold text-green-600">
+                            {{ $calculation['commission_amount'] }}
+                            {{ $calculation['commission_currency']->symbol() }}
+                        </div>
+
+                    </div>
+
+                @else
+
+                    <div class="grid grid-cols-2 gap-y-4">
+
+                        <div class="text-sm font-medium text-gray-500">
+                            Customer Pays
+                        </div>
+
+                        <div class="font-semibold">
+                            {{ $calculation['customer_payable_amount'] }}
+                            {{ $calculation['customer_payable_currency']->symbol() }}
+                        </div>
+
+                        <div class="text-sm font-medium text-gray-500">
+                            Receiver Gets
+                        </div>
+
+                        <div class="font-semibold">
+                            {{ $this->calculation['transfer_amount'] }}
+                            {{ CurrencyType::from($requested_currency)->symbol() }}
+                        </div>
+
+                        <div class="text-sm font-medium text-gray-500">
+                            Commission
+                        </div>
+
+                        <div class="font-semibold text-green-600">
+                            {{ $calculation['commission_amount'] }}
+                            {{ $calculation['commission_currency']->symbol() }}
+                        </div>
+
+                    </div>
+
+                @endif
+            </x-ui.card>
+
+        @endif
+
+
+
+
+            <div class="flex justify-end gap-3">
+
+                <x-ui.button
+                    :href="route('transfers.index')"
+                    variant="secondary"
+                >
+                    Cancel
+                </x-ui.button>
+
+                <x-ui.button
+                    type="submit"
+                >
+                    Create Transfer
+                </x-ui.button>
+
             </div>
 
-            <div>
-                <label>Requested Currency</label>
-                <select wire:model.live="requested_currency">
-                    <option value="">Select Requested Currency</option>
-                    @foreach(CurrencyType::cases() as $currency)
-                        <option value="{{ $currency->value }}">{{ $currency->name }}</option>
-                    @endforeach
-                </select>
-                @error('requested_currency') <span>{{ $message }}</span> @enderror
-            </div>
 
-            <div>
-                <label>Requested Amount</label>
-                <input type="number" step="0.01" wire:model.live="requested_amount">
-                @error('requested_amount') <span>{{ $message }}</span> @enderror
-            </div>
-
-            <div>
-                <label>Customer Pay Currency</label>
-                <select wire:model.live="customer_payable_currency">
-                    <option value="">Select Customer Pay Currency</option>
-                    @foreach(CurrencyType::cases() as $currency)
-                        <option value="{{ $currency->value }}">{{ $currency->name }}</option>
-                    @endforeach
-                </select>
-                @error('customer_payable_currency') <span>{{ $message }}</span> @enderror
-            </div>
-
-            <div>
-                <label>Customer Pay Amount</label>
-                <input type="number" step="0.01" wire:model.live="initial_customer_pay_amount">
-                @error('initial_customer_pay_amount') <span>{{ $message }}</span> @enderror
-            </div>
-
-
-            <div>
-                <label>Notes</label>
-                <textarea wire:model="notes"></textarea>
-                @error('notes') <span>{{ $message }}</span> @enderror
-            </div>
-
-
-
-            <button type="submit">Create Transfer</button>
 
         </form>
-        @if($this->calculation)
-            <div>
-                Customer Pays:
-                {{ $this->calculation['customer_payable_amount'] }}
-                {{ $this->calculation['customer_payable_currency']->name }}
-            </div>
-
-            <div>
-                Commission:
-                {{ $this->calculation['commission_amount'] }}
-                {{ $this->calculation['commission_currency']->name }}
-            </div>
-
-            <div>
-                Transfer Amount:
-                {{ $this->calculation['transfer_amount'] }}
-                {{ CurrencyType::from($this->requested_currency)->name }}
-            </div>
-        @endif
-    </div>
 </div>

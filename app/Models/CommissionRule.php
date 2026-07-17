@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Enums\CurrencyType;
 use Illuminate\Database\Eloquent\Model;
-
+// Commission amount is always stored in AED.
 class CommissionRule extends Model
 {
     protected $fillable = [

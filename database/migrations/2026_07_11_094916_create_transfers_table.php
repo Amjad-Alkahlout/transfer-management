@@ -26,10 +26,6 @@ return new class extends Migration
 
             $table->string('fee_mode');
 
-
-            $table->decimal('amount_due', 15, 2)->nullable();
-            $table->string('due_currency', 3)->nullable();
-
             // Workflow
             $table->string('status')
                 ->default('pending');
@@ -61,6 +57,7 @@ return new class extends Migration
 
             // Other
             $table->text('notes')->nullable();
+            $table->string('calculation_mode');
 
             $table->timestamps();
 

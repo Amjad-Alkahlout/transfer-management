@@ -12,28 +12,35 @@ class TransferCalculatorService
         protected CommissionService $commissionService,
     ) {}
 
-    public function calculate(
+    public function calculateFromReceiverAmount(
         float $requestedAmount,
         CurrencyType $requestedCurrency,
         CurrencyType $payCurrency,
         FeeMode $feeMode,
     ): array {
 
-        $commissionAmount = $this->commissionService->getCommission(
+        $commissionInOperationCurrency = $this->commissionService->getCommission(
             $requestedAmount,
             $requestedCurrency,
         );
+
+        $commissionRule = $this->commissionService->getCommissionRule(
+            $requestedAmount,
+            $requestedCurrency,
+        );
+
         if (
             $feeMode === FeeMode::INCLUDED &&
-            $commissionAmount >= $requestedAmount
+            $commissionInOperationCurrency >= $requestedAmount
         ) {
-            throw new \Exception(
-                'Commission cannot be greater than or equal to the transfer amount.'
+            throw new \InvalidArgumentException(
+                'The commission fee for this amount exceeds the amount itself. Please enter a higher amount or switch Fee Mode to EXCLUDED.'
             );
         }
+
         if ($feeMode === FeeMode::INCLUDED) {
 
-            $transferAmount = $requestedAmount - $commissionAmount;
+            $transferAmount = $requestedAmount - $commissionInOperationCurrency;
 
             $customerPayableBaseAmount = $requestedAmount;
 
@@ -41,7 +48,7 @@ class TransferCalculatorService
 
             $transferAmount = $requestedAmount;
 
-            $customerPayableBaseAmount = $requestedAmount + $commissionAmount;
+            $customerPayableBaseAmount = $requestedAmount + $commissionInOperationCurrency;
         }
 
         $customerPayableAmount = $this->converter->convert(
@@ -52,13 +59,58 @@ class TransferCalculatorService
 
         return [
             'transfer_amount' => round($transferAmount, 2),
-            'customer_payable_amount' => round($customerPayableAmount, 2),
 
+            'customer_payable_amount' => round($customerPayableAmount, 2),
             'customer_payable_currency' => $payCurrency,
 
-            'commission_amount' => round($commissionAmount, 2),
+            // Stored in DB (always AED)
+            'commission_amount' => round($commissionRule->commission_amount, 2),
+            'commission_currency' => CurrencyType::AED,
+        ];
+    }
 
-            'commission_currency' => $requestedCurrency,
+    public function calculateFromCustomerPayment(
+        float $customerPayableAmount,
+        CurrencyType $payCurrency,
+        CurrencyType $requestedCurrency,
+    ): array {
+
+        $commissionInOperationCurrency = $this->commissionService->getCommission(
+            $customerPayableAmount,
+            $payCurrency,
+        );
+
+        $commissionRule = $this->commissionService->getCommissionRule(
+            $customerPayableAmount,
+            $payCurrency,
+        );
+
+        if ($commissionInOperationCurrency >= $customerPayableAmount) {
+            throw new \InvalidArgumentException(
+                'The commission fee for this amount exceeds the amount itself.'
+            );
+        }
+
+        $amountAfterCommission = $customerPayableAmount - $commissionInOperationCurrency;
+
+        $requestedAmount = $this->converter->convert(
+            $amountAfterCommission,
+            $payCurrency,
+            $requestedCurrency
+        );
+
+        return [
+            'requested_amount' => round($requestedAmount, 2),
+            'requested_currency' => $requestedCurrency,
+
+            'transfer_amount' => round($requestedAmount, 2),
+
+            'customer_payable_amount' => round($customerPayableAmount, 2),
+            'customer_payable_currency' => $payCurrency,
+
+            // Stored in DB (always AED)
+            'commission_amount' => round($commissionRule->commission_amount, 2),
+            'commission_currency' => CurrencyType::AED,
         ];
     }
 }

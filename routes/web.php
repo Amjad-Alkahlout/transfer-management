@@ -16,8 +16,8 @@ Route::middleware('auth')->group(function () {
         ->name('logout');
 
 
-    Route::livewire('/bank-accounts', 'pages::bank-accounts.index')
-        ->name('bank-accounts.index')
+    Route::livewire('/capital-accounts', 'pages::capital-accounts.index')
+        ->name('capital-accounts.index')
         ->middleware('throttle:10,1');
 
     Route::livewire('/transfers/create', 'pages::transfers.create')
@@ -46,6 +46,8 @@ Route::middleware('auth')->group(function () {
     Route::livewire('/exchange-rates', 'exchange-rates.index')
         ->name('exchange-rates.index');
 
+    Route::livewire('/capital-transfers', 'capital-transfers.index')
+        ->name('capital-transfers.index');
 
     Route::livewire('/commission-rules', 'commission-rules.index')
         ->name('commission-rules.index');

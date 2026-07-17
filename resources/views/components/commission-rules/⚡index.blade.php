@@ -90,19 +90,14 @@ new class extends Component {
 
         $this->loadRules();
 
-        $this->newRule = [
-            'min_amount' => null,
-            'max_amount' => null,
-            'commission_amount' => null,
-        ];
-        $this->showAddRuleForm = false;
+        $this->closeAddRuleForm();
         session()->flash('message', 'Commission rule added successfully.');
     }
     public function deleteRule(int $id): void
     {
         $rule = CommissionRule::findOrFail($id);
 
-        if ($rule->currency !== $this->currency) {
+        if ($rule->currency->value !== $this->currency) {
             abort(403);
         }
 
@@ -120,18 +115,38 @@ new class extends Component {
 
 <div>
 
-    <h1>Commission Rules</h1>
+    <x-ui.page-header
+        title="Commission Rules"
+        description="Manage commission rules by currency."
+    >
+        <x-slot:actions>
+
+            <x-ui.button
+                wire:click="openAddRuleForm"
+            >
+                Add Rule
+            </x-ui.button>
+
+        </x-slot:actions>
+
+    </x-ui.page-header>
 
     @if(session()->has('message'))
-        <div>
+
+        <x-ui.alert color="success">
             {{ session('message') }}
-        </div>
+        </x-ui.alert>
+
     @endif
+    <x-ui.card
+        title="Currency Filter"
+    >
 
-    <div>
-        <label>Currency</label>
-
-        <select wire:model.live="currency">
+        <x-ui.select
+            label="Currency"
+            name="currency"
+            wire:model.live="currency"
+        >
 
             @foreach(CurrencyType::cases() as $currency)
 
@@ -141,116 +156,129 @@ new class extends Component {
 
             @endforeach
 
-        </select>
-    </div>
+        </x-ui.select>
 
-    <br>
+    </x-ui.card>
 
-    <table>
 
-        <thead>
-        <tr>
-            <th>From</th>
-            <th>To</th>
-            <th>Commission</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
+    <x-ui.card
+        title="Commission Rules"
+        description="Configured commission ranges."
+    >
 
-        <tbody>
+        <x-ui.table>
+
+        <x-UI.table-header>
+        <x-UI.table-row>
+            <x-UI.table-head>From</x-UI.table-head>
+            <x-UI.table-head>To</x-UI.table-head>
+            <x-UI.table-head>Commission (AED)</x-UI.table-head>
+            <x-UI.table-head>Actions</x-UI.table-head>
+        </x-UI.table-row>
+        </x-UI.table-header>
+
+        <x-UI.table-body>
 
         @forelse($rules as $rule)
 
-            <tr>
-                <td>{{ $rule->min_amount }}</td>
-                <td>{{ $rule->max_amount }}</td>
-                <td>{{ $rule->commission_amount }}</td>
-                <td>
-                    <button wire:confirm="Delete this commission rule?" wire:click="deleteRule({{ $rule->id }})">
+            <x-UI.table-row>
+                <x-UI.table-cell>{{ $rule->min_amount }}</x-UI.table-cell>
+                <x-UI.table-cell>{{ $rule->max_amount }}</x-UI.table-cell>
+                <x-UI.table-cell>{{ $rule->commission_amount }} AED</x-UI.table-cell>
+                <x-UI.table-cell>
+                    <x-ui.button
+                        variant="danger"
+                        wire:confirm="Delete this commission rule?"
+                        wire:click="deleteRule({{ $rule->id }})"
+                    >
                         Delete
-                    </button>
-                </td>
-            </tr>
+                    </x-ui.button>
+                </x-UI.table-cell>
+            </x-UI.table-row>
 
         @empty
 
-            <tr>
-                <td colspan="3">
-                    No commission rules found.
-                </td>
-            </tr>
+                <x-ui.table-row>
+
+                    <x-ui.table-cell
+                        colspan="4"
+                        class="p-0"
+                    >
+
+                        <x-ui.empty-state
+                            title="No commission rules"
+                            description="Create your first commission rule."
+                        />
+
+                    </x-ui.table-cell>
+
+                </x-ui.table-row>
 
         @endforelse
 
-        </tbody>
+        </x-UI.table-body>
 
-    </table>
+    </x-ui.table>
+    </x-ui.card>
 
-    <hr>
 
-    <div>
-        <button wire:click="openAddRuleForm">
-            Add New Rule
-        </button>
-    </div>
+    @if($showAddRuleForm)
 
-@if($showAddRuleForm)
-    <div>
-    <form wire:submit.prevent="addRule">
+        <x-ui.card
+            title="Add Commission Rule"
+            description="Create a new commission range."
+        >
 
-        <div>
-            <label>From</label>
-
-            <input
-                type="number"
-                step="0.01"
-                wire:model="newRule.min_amount"
+            <form
+                wire:submit.prevent="addRule"
+                class="space-y-6"
             >
 
-            @error('newRule.min_amount')
-            <span>{{ $message }}</span>
-            @enderror
-        </div>
+                <x-ui.input
+                    label="From"
+                    name="newRule.min_amount"
+                    type="number"
+                    step="0.01"
+                    wire:model="newRule.min_amount"
+                />
 
-        <div>
-            <label>To</label>
+                <x-ui.input
+                    label="To"
+                    name="newRule.max_amount"
+                    type="number"
+                    step="0.01"
+                    wire:model="newRule.max_amount"
+                />
 
-            <input
-                type="number"
-                step="0.01"
-                wire:model="newRule.max_amount"
-            >
-
-            @error('newRule.max_amount')
-            <span>{{ $message }}</span>
-            @enderror
-        </div>
-
-        <div>
-            <label>Commission</label>
-
-            <input
-                type="number"
-                step="0.01"
-                wire:model="newRule.commission_amount"
-            >
-
-            @error('newRule.commission_amount')
-            <span>{{ $message }}</span>
-            @enderror
-        </div>
+                <x-ui.input
+                    label="Commission (AED)"
+                    name="newRule.commission_amount"
+                    type="number"
+                    step="0.01"
+                    wire:model="newRule.commission_amount"
+                />
 
 
-        <br>
 
-        <button type="submit">
-            save
-        </button>
-        <button type="button" wire:click="closeAddRuleForm">
-            Cancel
-        </button>
+                <div class="flex justify-end gap-3">
+
+                    <x-ui.button
+                        type="button"
+                        variant="secondary"
+                        wire:click="closeAddRuleForm"
+                    >
+                        Cancel
+                    </x-ui.button>
+
+                    <x-ui.button
+                        type="submit"
+                    >
+                        Save Rule
+                    </x-ui.button>
+
+                </div>
 
     </form>
-    </div>
+    </x-ui.card>
     @endif
 </div>
