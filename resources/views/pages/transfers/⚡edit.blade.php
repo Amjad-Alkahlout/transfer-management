@@ -10,8 +10,9 @@ use App\Models\Transfer;
 use App\Services\TransferCalculatorService;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Livewire\Attributes\Layout;
 
-new class extends Component {
+new #[Layout('layouts::app')] class extends Component {
     public Transfer $transfer;
     public $receiver_name;
     public $receiver_method;
@@ -28,6 +29,7 @@ new class extends Component {
 
     public function mount(Transfer $transfer)
     {
+        Gate::authorize('update-transfer');
         $this->transfer = $transfer;
         if ($this->transfer->status !== TransferStatus::PENDING || $this->transfer->payment_status !== PaymentStatus::UNPAID) {
             abort(403, 'Only transfers with status "Pending " and "unpaid" can be updated.');
@@ -141,7 +143,7 @@ new class extends Component {
                     );
 
             }
-        }catch( \Exception $e) {
+        } catch (\Throwable $e) {
             $this->calculation = null;
             $this->addError($field, $e->getMessage());
         }
@@ -150,7 +152,12 @@ new class extends Component {
     public function updateTransfer()
     {
         if ($this->transfer->status !== TransferStatus::PENDING || $this->transfer->payment_status !== PaymentStatus::UNPAID) {
-            abort(403, 'Only transfers with status "Pending " and "unpaid" can be updated.');
+            $this->addError(
+                'general',
+                'Only pending unpaid transfers can be updated.'
+            );
+
+            return;
         }
 
         $this->validate([
@@ -237,8 +244,11 @@ new class extends Component {
         ]);
 
         $this->transfer->save();
-        session()->flash('message', 'Transfer updated successfully.');
-        return redirect()->route('transfers.index');
+        session()->flash('success', 'Transfer updated successfully.');
+        return redirect()->route(
+            'transfers.show',
+            $this->transfer
+        );
     }
 
     public function updatedReceiverMethod()
@@ -271,9 +281,7 @@ new class extends Component {
         </x-slot:actions>
     </x-ui.page-header>
 
-    @if(session()->has('message'))
-        <div>{{ session('message') }}</div>
-    @endif
+
 
     <form
         wire:submit.prevent="updateTransfer"
@@ -439,6 +447,7 @@ new class extends Component {
             <x-ui.card
                 title="Calculation Preview"
                 description="Live calculation based on the current values."
+                class="mt-6"
             >
 
                 @if($calculation_mode === TransferCalculationMode::RECEIVER_AMOUNT->value)

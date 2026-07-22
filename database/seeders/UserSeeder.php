@@ -34,5 +34,13 @@ class UserSeeder extends Seeder
             'password' => 'password',
             'role' => UserRole::EXECUTOR,
         ]);
+
+
+        User::create([
+            'name' => 'Transfer Executor',
+            'email' => 'transfer-executor@example.com',
+            'password' => 'password',
+            'role' => UserRole::TRANSFER_EXECUTOR,
+        ]);
     }
 }

@@ -33,8 +33,14 @@ class extends Component {
 
     public ?string $withdrawNotes = null;
 
+    public function mount()
+    {
+        Gate::authorize('view-capital-accounts');
+    }
+
     public function openWithdrawProfitForm(int $accountId)
     {
+        Gate::authorize('manage-capital-accounts');
         $this->selectedAccount = CapitalAccount::findOrFail($accountId);
 
         $this->withdrawProfitForm = true;
@@ -52,6 +58,7 @@ class extends Component {
 
     public function openAddAccountForm()
     {
+        Gate::authorize('manage-capital-accounts');
         $this->resetValidation();
         $this->showAddAccountForm = true;
     }
@@ -66,6 +73,7 @@ class extends Component {
 
     public function openEditAccountForm($id)
     {
+        Gate::authorize('manage-capital-accounts');
         $account = CapitalAccount::findOrFail($id);
         $this->resetValidation();
         $this->showEditAccountForm = true;
@@ -84,6 +92,7 @@ class extends Component {
 
     public function withdrawProfit()
     {
+        Gate::authorize('manage-capital-accounts');
         $this->validate([
             'withdrawAmount' => 'required|numeric|min:0.01|max:' . $this->selectedAccount->balance,
             'withdrawNotes' => 'nullable|string|max:255',
@@ -102,13 +111,14 @@ class extends Component {
 
             return;
         }
-        session()->flash('message', 'Profit withdrawn successfully.');
+        session()->flash('success', 'Profit withdrawn successfully.');
         $this->closeWithdrawProfitForm();
         unset($this->accounts);
     }
 
     public function addCapitalAccount()
     {
+        Gate::authorize('manage-capital-accounts');
         $this->validate([
             'name' => 'required|string|max:255',
             'branch' => [
@@ -185,12 +195,13 @@ class extends Component {
         });
         $this->closeAddAccountForm();
         unset($this->accounts);
-        session()->flash('message', 'Capital account added successfully.');
+        session()->flash('success', 'Capital account added successfully.');
     }
 
 
     public function toggleActiveStatus($id)
     {
+        Gate::authorize('manage-capital-accounts');
 
         $account = CapitalAccount::findOrFail($id);
         $account->is_active = !$account->is_active;
@@ -199,14 +210,14 @@ class extends Component {
             ? 'Capital account activated successfully.'
             : 'Capital account deactivated successfully.';
 
-        session()->flash('message', $message);
+        session()->flash('success', $message);
         unset($this->accounts);
 
     }
 
     public function editCapitalAccount()
     {
-
+        Gate::authorize('manage-capital-accounts');
         $this->validate([
             'name' => 'required|string|max:255',
             'notes' => 'nullable|string|max:255',
@@ -218,7 +229,7 @@ class extends Component {
         ]);
         $this->closeEditAccountForm();
         unset($this->accounts);
-        session()->flash('message', 'Capital account updated successfully.');
+        session()->flash('success', 'Capital account updated successfully.');
     }
 
 
@@ -241,24 +252,19 @@ class extends Component {
         >
 
             <x-slot:actions>
-
+               @can('manage-capital-accounts')
                 <x-ui.button
                     wire:click="openAddAccountForm"
                 >
                     Add Capital Account
                 </x-ui.button>
+                @endcan
 
             </x-slot:actions>
 
         </x-ui.page-header>
 
-        @if(session()->has('message'))
 
-            <x-ui.alert color="success">
-                {{ session('message') }}
-            </x-ui.alert>
-
-        @endif
 
         <div class="mb-6">
 
@@ -277,7 +283,7 @@ class extends Component {
 
             <x-ui.table>
                 <x-ui.table-header>
-              <x-UI.table-row>
+                    <x-ui.table-row>
                 <x-ui.table-head>Name</x-ui.table-head>
                     <x-ui.table-head>Branch</x-ui.table-head>
                 <x-ui.table-head>Currency</x-ui.table-head>
@@ -285,16 +291,17 @@ class extends Component {
                 <x-ui.table-head>Account Type</x-ui.table-head>
                 <x-ui.table-head>Is Active</x-ui.table-head>
                 <x-ui.table-head>Actions</x-ui.table-head>
-              </x-UI.table-row>
+              </x-ui.table-row>
               </x-ui.table-header>
                 <x-ui.table-body>
                 @foreach ($this->accounts as $account)
                         <x-ui.table-row>
                             <x-ui.table-cell>{{ $account->name }}</x-ui.table-cell>
                             <x-ui.table-cell>{{ $account->branch->name }}</x-ui.table-cell>
-                            <x-ui.table-cell>{{ $account->currency->name }}</x-ui.table-cell>
-                            <x-ui.table-cell>{{ $account->balance }}</x-ui.table-cell>
-                            <x-ui.table-cell>{{ $account->account_type->name }}</x-ui.table-cell>
+                            <x-ui.table-cell>{{ $account->currency->symbol() }}</x-ui.table-cell>
+                            <x-ui.table-cell>{{ number_format($account->balance,2) }}
+                                {{ $account->currency->symbol() }}</x-ui.table-cell>
+                            <x-ui.table-cell>{{ str($account->account_type->value)->replace('_',' ')->title() }}</x-ui.table-cell>
                             <x-ui.table-cell>
 
                                 @if($account->is_active)
@@ -316,10 +323,11 @@ class extends Component {
 
                                 <div class="flex flex-wrap gap-2">
 
-
+                                    @can('manage-capital-accounts')
                                         <x-ui.button
                                             variant="secondary"
                                             wire:click="toggleActiveStatus({{ $account->id }})"
+                                            class="justify-center"
                                         >
                                             @if($account->is_active)
                                                 Deactivate
@@ -327,19 +335,27 @@ class extends Component {
                                                 Activate
                                             @endif
                                         </x-ui.button>
+
+
                                         <x-ui.button
                                             variant="secondary"
-                                            wire:click="openEditAccountForm({{ $account->id }})">
+                                            wire:click="openEditAccountForm({{ $account->id }})"
+                                            class="justify-center"
+                                        >
                                             Edit
                                         </x-ui.button>
+
+
                                         @if($account->account_type === \App\Enums\CapitalAccountType::PROFIT&& $account->balance > 0)
                                             <x-ui.button
                                                 variant="success"
                                                 wire:click="openWithdrawProfitForm({{ $account->id }})"
+                                                class="justify-center"
                                             >
                                                 Withdraw Profit
                                             </x-ui.button>
                                         @endif
+                                    @endcan
 
                                 </div>
                             </x-ui.table-cell>
@@ -351,12 +367,13 @@ class extends Component {
         </x-ui.card>
     </div>
 
-
+@can('manage-capital-accounts')
     @if($withdrawProfitForm)
 
         <x-ui.card
             title="Withdraw Profit"
             :description="'Withdraw profit from '.$selectedAccount->name"
+            class="mt-6"
         >
 
             <form
@@ -406,6 +423,7 @@ class extends Component {
         <x-ui.card
             title="Add Capital Account"
             description="Create a new capital account."
+            class="mt-6"
         >
 
             <form
@@ -518,6 +536,7 @@ class extends Component {
         <x-ui.card
             title="Edit Capital Account"
             description="Update account information."
+            class="mt-6"
         >
 
             <form
@@ -557,6 +576,7 @@ class extends Component {
         </x-ui.card>
 
     @endif
+    @endcan
 
 
 </div>

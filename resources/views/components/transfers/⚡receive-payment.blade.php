@@ -16,6 +16,7 @@ new class extends Component {
 
     public function mount(Transfer $transfer)
     {
+        Gate::authorize('receive-payment');
         $this->transfer = $transfer;
     }
 
@@ -28,6 +29,7 @@ new class extends Component {
 
     public function receivePayment()
     {
+        Gate::authorize('receive-payment');
 
         $this->validate([
             'payment_amount' => 'required|numeric|min:0.01',
@@ -54,7 +56,7 @@ new class extends Component {
             'payment_amount',
             'notes',
         ]);
-        session()->flash('message', 'Payment received successfully.');
+        session()->flash('success', 'Payment received successfully.');
         return redirect()->route('transfers.show', $this->transfer);
     }
 };
@@ -77,18 +79,12 @@ new class extends Component {
 
         </x-slot:actions>
     </x-ui.page-header>
-
-    @if(session()->has('message'))
-
-        <x-ui.alert color="success">
-            {{ session('message') }}
-        </x-ui.alert>
-
-    @endif
+    <x-ui.flash/>
 
     <x-ui.card
         title="Payment Summary"
         description="Current payment status for this transfer."
+        class="mb-2"
     >
 
         <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -133,9 +129,10 @@ new class extends Component {
     <x-ui.form-section
         title="Receive Payment"
         description="Record a customer payment."
-        class="grid-cols-1"
     >
+        <div class="col-span-1 md:col-span-2 flex justify-center">
 
+            <div class="w-full max-w-2xl">
         <form
             wire:submit.prevent="receivePayment"
             class="space-y-5"
@@ -172,12 +169,15 @@ new class extends Component {
             </div>
 
         </form>
+        </div>
+        </div>
 
     </x-ui.form-section>
 
     <x-ui.card
         title="Payment History"
         description="All recorded payments for this transfer."
+        class="mt-2"
     >
 
         <x-ui.table>

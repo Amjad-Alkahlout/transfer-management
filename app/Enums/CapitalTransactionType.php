@@ -14,4 +14,6 @@ enum CapitalTransactionType: string
     case TRANSFER_EXPENSE='transfer_expense';
 
     case PROFIT_WITHDRAWAL = 'profit_withdrawal';
+
+    case TRANSFER_CANCELLATION = 'transfer_cancellation';
 }

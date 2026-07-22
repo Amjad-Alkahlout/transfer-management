@@ -6,6 +6,7 @@ use App\Enums\PaymentStatus;
 use App\Enums\ReceiverMethod;
 use App\Enums\TransferCalculationMode;
 use App\Enums\TransferStatus;
+use App\Events\TransferCreated;
 use App\Models\Payment;
 use App\Models\Transfer;
 use App\Services\ReceivePaymentService;
@@ -33,6 +34,10 @@ class extends Component {
         TransferCalculationMode::RECEIVER_AMOUNT;
     public array|null $calculation = null;
 
+    public function mount()
+    {
+        Gate::authorize('create-transfer');
+    }
 
     public function updated($property)
     {
@@ -210,9 +215,9 @@ class extends Component {
             'initial_customer_pay_amount' => 'nullable|numeric|min:0|max:' . $this->calculation['customer_payable_amount'],
 
         ]);
+        $transfer = null;
 
-
-        DB::transaction(function () {
+        DB::transaction(function () use (&$transfer) {
 
             $transfer = new Transfer();
             $transfer->fill([
@@ -237,7 +242,7 @@ class extends Component {
                 'calculation_mode' => $this->calculationMode,
             ]);
 
-            $transfer->reference_number = Str::upper('TRF-' . now()->format('Ymd') . '-' . Str::random(6));
+            $transfer->reference_number = Str::upper('TRF- ' . Str::random(6));
             $transfer->created_by = auth()->id();
             $transfer->status = TransferStatus::PENDING;
 
@@ -247,33 +252,42 @@ class extends Component {
 
             $transfer->save();
 
-            try{
-            if ($this->initial_customer_pay_amount > 0) {
+            try {
+                if ($this->initial_customer_pay_amount > 0) {
 
-                app(ReceivePaymentService::class)->receive(
-                    $transfer,
-                    $this->initial_customer_pay_amount,
-                    'Initial payment',
-                );
+                    app(ReceivePaymentService::class)->receive(
+                        $transfer,
+                        $this->initial_customer_pay_amount,
+                        'Initial payment',
+                    );
 
-            }
+                }
 
             } catch (\Throwable $e) {
-                $this->addError('initial_customer_pay_amount', $e->getMessage());
-                throw $e;
+                $this->addError(
+                    'initial_customer_pay_amount',
+                    $e->getMessage()
+                );
+
+                return;
             }
 
         });
-        session()->flash('message', 'Transfer created successfully.');
-        $this->reset(['receiver_name', 'receiver_method', 'notes', 'fee_mode', 'requested_currency', 'requested_amount', 'receiver_wallet_phone', 'receiver_account_number', 'customer_payable_currency', 'calculation', 'initial_customer_pay_amount', 'customer_payable_amount']);
-        $this->calculationMode = TransferCalculationMode::RECEIVER_AMOUNT;
-        $this->fee_mode = FeeMode::INCLUDED->value;
-        return redirect()->route('transfers.index');
+
+        event(new TransferCreated($transfer));
+        session()->flash(
+            'success',
+            'Transfer created successfully.'
+        );
+
+        return redirect()->route(
+            'transfers.show', $transfer
+        );
     }
 };
 ?>
 
- <div>
+<div>
     <x-ui.page-header
         title="Create New Transfer"
         description="Create a new customer transfer."
@@ -290,6 +304,7 @@ class extends Component {
         </x-slot:actions>
     </x-ui.page-header>
 
+
     <form
         wire:submit.prevent="createTransfer"
         class="space-y-6"
@@ -305,6 +320,7 @@ class extends Component {
                 name="calculationMode"
                 wire:model.live="calculationMode"
             >
+
 
                 @foreach(TransferCalculationMode::cases() as $mode)
 
@@ -487,6 +503,7 @@ class extends Component {
             <x-ui.card
                 title="Calculation Preview"
                 description="Live calculation based on the current values."
+                class="mt-6"
             >
 
                 @if($calculationMode === TransferCalculationMode::RECEIVER_AMOUNT->value)
@@ -561,26 +578,23 @@ class extends Component {
         @endif
 
 
+        <div class="flex justify-end gap-3">
+
+            <x-ui.button
+                :href="route('transfers.index')"
+                variant="secondary"
+            >
+                Cancel
+            </x-ui.button>
+
+            <x-ui.button
+                type="submit"
+            >
+                Create Transfer
+            </x-ui.button>
+
+        </div>
 
 
-            <div class="flex justify-end gap-3">
-
-                <x-ui.button
-                    :href="route('transfers.index')"
-                    variant="secondary"
-                >
-                    Cancel
-                </x-ui.button>
-
-                <x-ui.button
-                    type="submit"
-                >
-                    Create Transfer
-                </x-ui.button>
-
-            </div>
-
-
-
-        </form>
+    </form>
 </div>

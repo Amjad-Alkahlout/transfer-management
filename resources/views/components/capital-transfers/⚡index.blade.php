@@ -23,6 +23,11 @@ new class extends Component {
 
     public bool $showTransferForm = false;
 
+    public function mount()
+    {
+        Gate::authorize('view-capital-transfers');
+    }
+
     public function updated($property)
     {
 
@@ -39,6 +44,7 @@ new class extends Component {
 
     public function openTransferForm()
     {
+        Gate::authorize('create-capital-transfer');
         $this->resetValidation();
 
         $this->reset([
@@ -137,6 +143,7 @@ new class extends Component {
 
     public function createTransfer()
     {
+        Gate::authorize('create-capital-transfer');
         $this->validate([
             'from_account_id' => 'required|exists:capital_accounts,id',
             'to_account_id' => 'required|exists:capital_accounts,id|different:from_account_id',
@@ -173,7 +180,7 @@ new class extends Component {
         unset($this->transfers);
 
         session()->flash(
-            'message',
+            'success',
             'Capital transfer completed successfully.'
         );
     }
@@ -186,24 +193,18 @@ new class extends Component {
         description="Transfer funds between company accounts."
     >
         <x-slot:actions>
-
+            @can('create-capital-transfer')
             <x-ui.button
                 wire:click="openTransferForm"
             >
                 New Capital Transfer
             </x-ui.button>
+            @endcan
 
         </x-slot:actions>
 
     </x-ui.page-header>
-
-    @if(session()->has('message'))
-
-        <x-ui.alert color="success">
-            {{ session('message') }}
-        </x-ui.alert>
-
-    @endif
+<x-ui.flash/>
 
     <div class="mb-6">
 

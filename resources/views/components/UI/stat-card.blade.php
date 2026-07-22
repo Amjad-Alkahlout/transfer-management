@@ -27,6 +27,14 @@
             'text' => 'text-emerald-600',
             'bg' => 'bg-emerald-100',
         ],
+        'amber' => [
+    'text' => 'text-amber-600',
+    'bg' => 'bg-amber-100',
+        ],'gray' => [
+            'text' => 'text-gray-900',
+            'bg' => 'bg-gray-100',
+        ],
+
     ];
 
     $theme = $colors[$color] ?? $colors['blue'];
@@ -48,7 +56,7 @@
 
             @if($subtitle)
                 <p class="mt-2 text-sm text-gray-400">
-                    Current Balance
+                    {{ $subtitle }}
                 </p>
             @endif
 

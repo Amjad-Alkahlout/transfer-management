@@ -4,7 +4,8 @@ use App\Enums\CurrencyType;
 use App\Enums\PaymentStatus;
 use App\Enums\ReceiverMethod;
 use App\Enums\TransferStatus;
-use App\Models\BankAccount;
+use App\Events\TransferCancelled;
+use App\Events\TransferExecuted;
 use App\Models\Transfer;
 use App\Services\TransferExecutionService;
 use Illuminate\Validation\Rule;
@@ -14,24 +15,41 @@ use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Enums\TransferCalculationMode;
+use App\Services\TransferCancellationService;
+use Livewire\Attributes\Layout;
+use Illuminate\Support\Facades\Gate;
 
-
-new class extends Component {
+new #[Layout('layouts::app')]
+class extends Component {
 
     use WithFileUploads;
 
     public Transfer $transfer;
     public $transfer_proof_path;
     public $show_transfer_proof_form = false;
+    public bool $showProofModal = false;
 
 
     public function mount(Transfer $transfer)
     {
+        Gate::authorize('view-transfers');
         $this->transfer = $transfer;
     }
 
+    public function openProofModal(): void
+    {
+        $this->showProofModal = true;
+    }
+
+    public function closeProofModal(): void
+    {
+        $this->showProofModal = false;
+    }
+
+
     public function openTransferProofForm()
     {
+        Gate::authorize('execute-transfer');
         $this->show_transfer_proof_form = true;
     }
 
@@ -43,8 +61,10 @@ new class extends Component {
 
     public function executeTransfer()
     {
+        Gate::authorize('execute-transfer');
         if ($this->transfer->status !== TransferStatus::PENDING) {
-            abort(403, 'This transfer cannot be executed in its current state.');
+            $this->addError('general', 'This transfer cannot be executed in its current state.');
+            return;
         }
 
         $this->validate([
@@ -62,28 +82,58 @@ new class extends Component {
 
             Storage::disk('public')->delete($path);
 
-            throw $e;
+            $this->addError(
+                'general',
+                $e->getMessage()
+            );
+
+            return;
         }
 
         $this->hideTransferProofForm();
+        event(new TransferExecuted($this->transfer));
 
         session()->flash(
-            'complete_message',
+            'success',
             'Transfer completed successfully.'
+        );
+        return redirect()->route(
+            'transfers.show',
+            $this->transfer
         );
     }
 
     public function cancelTransfer()
     {
+        Gate::authorize('cancel-transfer');
         if ($this->transfer->status !== TransferStatus::PENDING) {
-            abort(403, 'This transfer cannot be cancelled in its current state.');
+            $this->addError('general', 'This transfer cannot be cancelled in its current state.');
+            return;
         }
-        $this->transfer->status = TransferStatus::CANCELLED;
-        $this->transfer->cancelled_by = auth()->id();
-        $this->transfer->cancelled_at = now();
-        $this->transfer->save();
+        try {
 
-        session()->flash('cancel_message', 'Transfer cancelled successfully.');
+            app(TransferCancellationService::class)
+                ->cancel($this->transfer);
+
+        } catch (\Throwable $e) {
+
+            $this->addError(
+                'general',
+                $e->getMessage()
+            );
+
+            return;
+        }
+        event(new TransferCancelled($this->transfer));
+        session()->flash(
+            'success',
+            'Transfer cancelled successfully.'
+        );
+
+        return redirect()->route(
+            'transfers.show',
+            $this->transfer
+        );
 
     }
 
@@ -158,228 +208,224 @@ new class extends Component {
 
     </x-ui.page-header>
 
+
     {{-- Status --}}
 
-    <x-ui.card title="Actions">
+    @if($transfer->status !== TransferStatus::CANCELLED)
 
-        <div class="flex flex-wrap gap-3">
+        <x-ui.card title="Actions">
 
-            @if($transfer->payment_status !== PaymentStatus::PAID && $transfer->status !== TransferStatus::CANCELLED)
-
-                <x-ui.button
-                    :href="route('transfers.receive-payment',$transfer)"
-                >
-                    Receive Payment
-                </x-ui.button>
-
-            @endif
-
-            @if($transfer->status === TransferStatus::PENDING)
-
-                @if($transfer->payment_status === PaymentStatus::UNPAID)
+            <div class="flex flex-wrap gap-3">
+                @can('receive-payment')
+                    @if($transfer->payment_status !== PaymentStatus::PAID && $transfer->status !== TransferStatus::CANCELLED)
 
                         <x-ui.button
-                            :href="route('transfers.edit',$transfer)"
-                            variant="secondary"
+                            :href="route('transfers.receive-payment',$transfer)"
                         >
-                            Edit
+                            Receive Payment
                         </x-ui.button>
+
+                    @endif
+                @endcan
+
+                @if($transfer->transfer_proof_path)
+                    <x-ui.button
+                        wire:click="openProofModal"
+                    >
+                        View Proof
+                    </x-ui.button>
+                @endif
+
+                @if($transfer->status === TransferStatus::PENDING)
+                    @can('update-transfer')
+                        @if($transfer->payment_status === PaymentStatus::UNPAID)
+
+                            <x-ui.button
+                                :href="route('transfers.edit',$transfer)"
+                                variant="secondary"
+                            >
+                                Edit
+                            </x-ui.button>
+
+                        @endif
+                    @endcan
+                    @can('execute-transfer')
+                        <x-ui.button
+                            wire:click="openTransferProofForm"
+                            variant="success"
+                        >
+                            Execute Transfer
+                        </x-ui.button>
+                    @endcan
+                    @can('cancel-transfer')
+                        <x-ui.button
+                            wire:click="cancelTransfer"
+                            variant="danger"
+                        >
+                            Cancel Transfer
+                        </x-ui.button>
+                    @endcan
 
                 @endif
 
-                    <x-ui.button
-                        wire:click="openTransferProofForm"
-                        variant="success"
-                    >
-                        Execute Transfer
-                    </x-ui.button>
-
-                    <x-ui.button
-                        wire:click="cancelTransfer"
-                        variant="danger"
-                    >
-                        Cancel Transfer
-                    </x-ui.button>
-
-            @endif
-
-        </div>
-    </x-ui.card>
-
-
-    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-    {{-- Receiver --}}
-        <x-ui.card title="Receiver Information">
-
-        <p>
-            <strong>Reference:</strong>
-            {{ $transfer->reference_number }}
-        </p>
-
-        <p>
-            <strong>Name:</strong>
-            {{ $transfer->receiver_name }}
-        </p>
-
-        <p>
-            <strong>Method:</strong>
-            {{ str($transfer->receiver_method->value)->replace('_', ' ')->title() }}
-        </p>
-
-        @if($transfer->receiver_method === ReceiverMethod::BANK)
-
-            <p>
-                <strong>Bank Account:</strong>
-                {{ $transfer->receiver_account_number }}
-            </p>
-
-        @else
-
-            <p>
-                <strong>Wallet Number:</strong>
-                {{ $transfer->receiver_wallet_phone }}
-            </p>
-
-        @endif
-        </x-ui.card>
-
-
-    {{-- Transfer --}}
-        <x-ui.card title="Transfer Information">
-
-        <p>
-            <strong>Receiver Gets:</strong>
-            {{ $transfer->transfer_amount }}
-            {{ $transfer->requested_currency->symbol() }}
-        </p>
-
-        <p>
-            <strong>Customer Pays:</strong>
-            {{ $transfer->customer_payable_amount }}
-            {{ $transfer->customer_payable_currency->symbol() }}
-        </p>
-
-        <p>
-            <strong>Commission:</strong>
-            {{ $transfer->commission_amount }}
-            {{ $transfer->commission_currency->symbol() }}
-        </p>
-        @if($transfer->calculation_mode === TransferCalculationMode::RECEIVER_AMOUNT)
-            <p>
-                <strong>Fee Mode:</strong>
-                {{ $transfer->fee_mode->name }}
-            </p>
-        @endif
-
-        <p>
-            <strong>Calculation Mode:</strong>
-
-            {{ str($transfer->calculation_mode->value)->replace('_', ' ')->title() }}
-        </p>
-
-        </x-ui.card>
-    </div>
-
-
-
-    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-    {{-- Payment --}}
-        <x-ui.card title="Payment">
-
-        <p>
-            <strong>Paid:</strong>
-
-            {{ $transfer->paid_amount }}
-            {{ $transfer->customer_payable_currency->symbol() }}
-        </p>
-
-        <p>
-            <strong>Remaining:</strong>
-
-            {{ $transfer->remaining_amount }}
-            {{ $transfer->customer_payable_currency->symbol() }}
-        </p>
-
-        </x-ui.card>
-
-
-
-
-    {{-- Audit --}}
-        <x-ui.card title="Audit">
-
-        <p>
-            <strong>Created By:</strong>
-
-            {{ $transfer->creator?->name }}
-        </p>
-
-        <p>
-            <strong>Created At:</strong>
-
-            {{ $transfer->created_at->format('d/m/Y H:i') }}
-        </p>
-
-        @if($transfer->completed_at)
-
-            <p>
-                <strong>Completed At:</strong>
-
-                {{ $transfer->completed_at->format('d/m/Y H:i') }}
-            </p>
-
-        @endif
-
-        @if($transfer->cancelled_at)
-
-            <p>
-                <strong>Cancelled At:</strong>
-
-                {{ $transfer->cancelled_at->format('d/m/Y H:i') }}
-            </p>
-
-         @endif
-
-        </x-ui.card>
-    </div>
-
-    @if($transfer->transfer_proof_path)
-
-
-        <x-ui.card title="Transfer Proof">
-
-            <x-ui.button
-                :href="Storage::url($transfer->transfer_proof_path)"
-                target="_blank"
-            >
-                View Proof
-            </x-ui.button>
-
+            </div>
         </x-ui.card>
 
     @endif
 
 
+    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {{-- Receiver --}}
+        <x-ui.card title="Receiver Information">
+
+            <p>
+                <strong>Reference:</strong>
+                {{ $transfer->reference_number }}
+            </p>
+
+            <p>
+                <strong>Name:</strong>
+                {{ $transfer->receiver_name }}
+            </p>
+
+            <p>
+                <strong>Method:</strong>
+                {{ str($transfer->receiver_method->value)->replace('_', ' ')->title() }}
+            </p>
+
+            @if($transfer->receiver_method === ReceiverMethod::BANK)
+
+                <p>
+                    <strong>Bank Account:</strong>
+                    {{ $transfer->receiver_account_number }}
+                </p>
+
+            @else
+
+                <p>
+                    <strong>Wallet Number:</strong>
+                    {{ $transfer->receiver_wallet_phone }}
+                </p>
+
+            @endif
+        </x-ui.card>
+
+
+        {{-- Transfer --}}
+        <x-ui.card title="Transfer Information">
+
+            <p>
+                <strong>Receiver Gets:</strong>
+                {{ $transfer->transfer_amount }}
+                {{ $transfer->requested_currency->symbol() }}
+            </p>
+
+            <p>
+                <strong>Customer Pays:</strong>
+                {{ $transfer->customer_payable_amount }}
+                {{ $transfer->customer_payable_currency->symbol() }}
+            </p>
+
+            <p>
+                <strong>Commission:</strong>
+                {{ $transfer->commission_amount }}
+                {{ $transfer->commission_currency->symbol() }}
+            </p>
+            @if($transfer->calculation_mode === TransferCalculationMode::RECEIVER_AMOUNT)
+                <p>
+                    <strong>Fee Mode:</strong>
+                    {{ $transfer->fee_mode->name }}
+                </p>
+            @endif
+
+            <p>
+                <strong>Calculation Mode:</strong>
+
+                {{ str($transfer->calculation_mode->value)->replace('_', ' ')->title() }}
+            </p>
+
+        </x-ui.card>
+    </div>
+
+
+    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2 mb-4">
+        {{-- Payment --}}
+        <x-ui.card title="Payment">
+
+            <p>
+                <strong>Paid:</strong>
+
+                {{ $transfer->paid_amount }}
+                {{ $transfer->customer_payable_currency->symbol() }}
+            </p>
+
+            <p>
+                <strong>Remaining:</strong>
+
+                {{ $transfer->remaining_amount }}
+                {{ $transfer->customer_payable_currency->symbol() }}
+            </p>
+
+        </x-ui.card>
+
+
+        {{-- Audit --}}
+        <x-ui.card title="Audit">
+
+            <p>
+                <strong>Created By:</strong>
+
+                {{ $transfer->creator?->name }}
+            </p>
+
+            <p>
+                <strong>Created At:</strong>
+
+                {{ $transfer->created_at->format('d/m/Y H:i') }}
+            </p>
+
+            @if($transfer->completed_at)
+
+                <p>
+                    <strong>Completed At:</strong>
+
+                    {{ $transfer->completed_at->format('d/m/Y H:i') }}
+                </p>
+
+            @endif
+
+            @if($transfer->cancelled_at)
+
+                <p>
+                    <strong>Cancelled At:</strong>
+
+                    {{ $transfer->cancelled_at->format('d/m/Y H:i') }}
+                </p>
+
+            @endif
+
+        </x-ui.card>
+    </div>
+
     @if($show_transfer_proof_form)
 
         <x-ui.card title="Execute Transfer">
 
+            @error('general')
+            <x-ui.alert color="danger">
+                {{ $message }}
+            </x-ui.alert>
+            @enderror
+
             <form wire:submit.prevent="executeTransfer">
 
-                <div>
-                    <label>Transfer Proof</label>
-
-                    <input
-                        type="file"
-                        wire:model="transfer_proof_path"
-                    >
-
-                    @error('transfer_proof_path')
-                    <span>{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <br>
+                <x-ui.input
+                    type="file"
+                    label="Transfer Proof"
+                    name="transfer_proof_path"
+                    wire:model="transfer_proof_path"
+                    class="mb-2"
+                />
 
                 <x-ui.button
                     type="submit"
@@ -399,7 +445,49 @@ new class extends Component {
             </form>
 
 
-       </x-ui.card>
+        </x-ui.card>
 
     @endif
+
+    <x-ui.modal
+        :show="$showProofModal"
+        close="$set('showProofModal', false)"
+        title="Transfer Proof"
+        maxWidth="6xl"
+    >
+
+        <img
+            src="{{ Storage::url($transfer->transfer_proof_path) }}"
+            class="mx-auto max-h-[80vh] max-w-full rounded-lg object-contain"
+        >
+
+        <x-slot:footer>
+
+            <div class="flex justify-end">
+
+                @php
+                    $extension = pathinfo($transfer->transfer_proof_path, PATHINFO_EXTENSION);
+                @endphp
+
+                <x-ui.button
+                    :href="Storage::url($transfer->transfer_proof_path)"
+                    :download="'Transfer-Proof: '.$transfer->receiver_name.'.'.$extension"
+                    variant="secondary"
+                    class="mr-2"
+                >
+                    Download
+                </x-ui.button>
+
+                <x-ui.button
+                    variant="secondary"
+                    wire:click="$set('showProofModal', false)"
+                >
+                    Close
+                </x-ui.button>
+
+            </div>
+
+        </x-slot:footer>
+
+    </x-ui.modal>
 </div>

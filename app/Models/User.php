@@ -12,7 +12,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Enums\UserRole;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password','telegram_chat_id', 'telegram_notifications_enabled','telegram_link_code',
+    'telegram_link_expires_at',])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -39,6 +40,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(Transfer::class, 'cancelled_by');
     }
+
     protected function casts(): array
     {
         return [
@@ -46,6 +48,27 @@ class User extends Authenticatable
             'password' => 'hashed',
             'role' => UserRole::class,
             'is_active' => 'boolean',
+            'telegram_link_expires_at' => 'datetime',
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === UserRole::ADMIN;
+    }
+
+    public function isCoordinator(): bool
+    {
+        return $this->role === UserRole::COORDINATOR;
+    }
+
+    public function isExecutor(): bool
+    {
+        return $this->role === UserRole::EXECUTOR;
+    }
+
+    public function isTransferExecutor(): bool
+    {
+        return $this->role === UserRole::TRANSFER_EXECUTOR;
     }
 }

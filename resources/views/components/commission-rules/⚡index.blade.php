@@ -20,6 +20,7 @@ new class extends Component {
 
     public function mount()
     {
+        Gate::authorize('manage-commission-rules');
         $this->currency = CurrencyType::USD->value;
 
         $this->loadRules();
@@ -91,7 +92,7 @@ new class extends Component {
         $this->loadRules();
 
         $this->closeAddRuleForm();
-        session()->flash('message', 'Commission rule added successfully.');
+        session()->flash('success', 'Commission rule added successfully.');
     }
     public function deleteRule(int $id): void
     {
@@ -106,7 +107,7 @@ new class extends Component {
         $this->loadRules();
 
         session()->flash(
-            'message',
+            'success',
             'Commission rule deleted successfully.'
         );
     }
@@ -130,16 +131,10 @@ new class extends Component {
         </x-slot:actions>
 
     </x-ui.page-header>
-
-    @if(session()->has('message'))
-
-        <x-ui.alert color="success">
-            {{ session('message') }}
-        </x-ui.alert>
-
-    @endif
+    <x-ui.flash/>
     <x-ui.card
         title="Currency Filter"
+        class="mb-2 mt-2"
     >
 
         <x-ui.select
@@ -164,6 +159,7 @@ new class extends Component {
     <x-ui.card
         title="Commission Rules"
         description="Configured commission ranges."
+        class="mb-2 mt-2"
     >
 
         <x-ui.table>
@@ -181,20 +177,20 @@ new class extends Component {
 
         @forelse($rules as $rule)
 
-            <x-UI.table-row>
-                <x-UI.table-cell>{{ $rule->min_amount }}</x-UI.table-cell>
-                <x-UI.table-cell>{{ $rule->max_amount }}</x-UI.table-cell>
-                <x-UI.table-cell>{{ $rule->commission_amount }} AED</x-UI.table-cell>
-                <x-UI.table-cell>
-                    <x-ui.button
-                        variant="danger"
-                        wire:confirm="Delete this commission rule?"
-                        wire:click="deleteRule({{ $rule->id }})"
-                    >
-                        Delete
-                    </x-ui.button>
-                </x-UI.table-cell>
-            </x-UI.table-row>
+                <x-UI.table-row wire:key="commission-rule-{{ $rule->id }}">
+                    <x-UI.table-cell>{{ $rule->min_amount }}</x-UI.table-cell>
+                    <x-UI.table-cell>{{ $rule->max_amount }}</x-UI.table-cell>
+                    <x-UI.table-cell>{{ $rule->commission_amount }} AED</x-UI.table-cell>
+                    <x-UI.table-cell>
+                        <x-ui.button
+                            variant="danger"
+                            wire:confirm="Delete this commission rule?"
+                            wire:click="deleteRule({{ $rule->id }})"
+                        >
+                            Delete
+                        </x-ui.button>
+                    </x-UI.table-cell>
+                </x-UI.table-row>
 
         @empty
 

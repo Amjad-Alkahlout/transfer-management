@@ -6,17 +6,41 @@ use App\Models\Transfer;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use App\Enums\PaymentStatus;
+use Livewire\Attributes\Layout;
 
-new class extends Component {
+new #[Layout('layouts::app')] class extends Component {
+
+    public ?string $status = null;
+    public ?string $paymentStatus = null;
+
+    public function mount()
+    {
+        $this->status = request('status');
+        $this->paymentStatus = request('payment_status');
+    }
+
     #[Computed]
     public function transfers()
     {
-        return Transfer::query()
-            ->with([
-                'creator',
-            ])
+        $query = Transfer::query()
+            ->with('creator');
+
+        if ($this->status) {
+            $query->where('status', $this->status);
+        }
+
+        if ($this->paymentStatus) {
+            $query->where('payment_status', $this->paymentStatus);
+        }
+
+        return $query
             ->latest()
             ->paginate(15);
+    }
+
+    public function goToTransfer(Transfer $transfer)
+    {
+        return redirect()->route('transfers.show', $transfer);
     }
 };
 ?>
@@ -27,18 +51,19 @@ new class extends Component {
         description="Manage customer transfers."
     >
         <x-slot:actions>
-
+            @can('create-transfer')
             <x-ui.button
                 :href="route('transfers.create')"
             >
                 Create Transfer
             </x-ui.button>
+            @endcan
 
         </x-slot:actions>
 
     </x-ui.page-header>
 
-    <div class="mb-6">
+    <x-ui.card class="mb-6">
 
         <x-ui.button
             :href="route('dashboard')"
@@ -47,7 +72,36 @@ new class extends Component {
             ← Dashboard
         </x-ui.button>
 
-    </div>
+    </x-ui.card>
+
+    @if($status || $paymentStatus)
+
+        <div class="mb-6 flex items-center justify-between">
+
+            <x-ui.alert color="blue">
+
+                Showing:
+
+                @if($status)
+                    {{ str($status)->replace('_', ' ')->title() }} Transfers
+                @endif
+
+                @if($paymentStatus)
+                    {{ str($paymentStatus)->replace('_', ' ')->title() }} Payments
+                @endif
+
+            </x-ui.alert>
+
+            <x-ui.button
+                :href="route('transfers.index')"
+                variant="secondary"
+            >
+                Clear Filter
+            </x-ui.button>
+
+        </div>
+
+    @endif
 
     <x-ui.card
         title="Transfers"
@@ -64,7 +118,6 @@ new class extends Component {
 
                 <x-ui.table-head>Method</x-ui.table-head>
 
-                <x-ui.table-head>Calculation</x-ui.table-head>
 
                 <x-ui.table-head>Receiver Gets</x-ui.table-head>
 
@@ -80,7 +133,6 @@ new class extends Component {
 
                 <x-ui.table-head>Created</x-ui.table-head>
 
-                <x-ui.table-head>Actions</x-ui.table-head>
 
             </x-ui.table-header>
 
@@ -97,10 +149,11 @@ new class extends Component {
                             >
 
                                 <x-slot:actions>
-
+                                    @can('create-transfer')
                                     <x-ui.button :href="route('transfers.create')">
                                         Create Transfer
                                     </x-ui.button>
+                                    @endcan
 
                                 </x-slot:actions>
 
@@ -113,7 +166,10 @@ new class extends Component {
                 @else
 
                 @foreach($this->transfers as $transfer)
-                    <x-ui.table-row>
+                        <x-ui.table-row
+                            wire:click="goToTransfer({{ $transfer->id }})"
+                            class="cursor-pointer hover:bg-gray-50 transition"
+                        >
 
                         <x-ui.table-cell>
                             {{ $transfer->reference_number }}
@@ -135,9 +191,6 @@ new class extends Component {
                             @endif
                         </x-ui.table-cell>
 
-                        <x-ui.table-cell>
-                            {{ str($transfer->calculation_mode->value)->replace('_', ' ')->title() }}
-                        </x-ui.table-cell>
 
                         <x-ui.table-cell>
                             {{ number_format($transfer->transfer_amount,2) }} {{ $transfer->requested_currency->symbol() }}
@@ -223,14 +276,6 @@ new class extends Component {
                             {{ $transfer->created_at->format('d/m/Y H:i') }}
                         </x-ui.table-cell>
 
-                        <x-ui.table-cell>
-                            <x-ui.button
-                                :href="route('transfers.show',$transfer)"
-                                variant="secondary"
-                            >
-                                View Details
-                            </x-ui.button>
-                        </x-ui.table-cell>
 
                     </x-ui.table-row>
                 @endforeach

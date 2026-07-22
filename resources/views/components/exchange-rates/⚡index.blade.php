@@ -25,7 +25,7 @@ new class extends Component {
             return [
                 'id' => $rate->id,
                 'currency' => $rate->currency,
-                'rate_to_usd' => $rate->rate_to_usd,
+                'rate_to_usd' => (float) $rate->rate_to_usd,
                 'updated_at' => $rate->updated_at,
             ];
         })->toArray();
@@ -33,6 +33,7 @@ new class extends Component {
 
     public function mount()
     {
+        Gate::authorize('manage-exchange-rates');
         $this->loadRates();
     }
 
@@ -49,7 +50,7 @@ new class extends Component {
             }
         });
         $this->loadRates();
-        session()->flash('message', 'Exchange rates updated successfully.');
+        session()->flash('success', 'Exchange rates updated successfully.');
         $this->hideUpdateForm();
     }
 };
@@ -71,17 +72,12 @@ new class extends Component {
         </x-slot:actions>
 
     </x-ui.page-header>
-    @if(session()->has('message'))
-
-        <x-ui.alert color="success">
-            {{ session('message') }}
-        </x-ui.alert>
-
-    @endif
+    <x-ui.flash/>
 
     <x-ui.card
         title="Exchange Rates"
         description="Current exchange rates against USD."
+        class="mb-4"
     >
 
         <x-ui.table>
@@ -96,7 +92,7 @@ new class extends Component {
         @foreach ($rates as $rate)
                 <x-UI.table-row>
                 <x-UI.table-cell>{{ $rate['currency'] }}</x-UI.table-cell>
-                <x-UI.table-cell>{{ number_format($rate['rate_to_usd'],4) }}</x-UI.table-cell>
+                <x-UI.table-cell>{{ number_format((float) $rate['rate_to_usd'], 4) }}</x-UI.table-cell>
                 <x-UI.table-cell>{{ $rate['updated_at']->format('d/m/Y H:i') }}</x-UI.table-cell>
             </x-UI.table-row>
         @endforeach
