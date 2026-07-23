@@ -6,6 +6,8 @@ services:
         container_name: transfer-app
         restart: unless-stopped
         working_dir: /var/www/html
+        env_file:
+            - .env
         expose:
             - "9000"
         environment:
