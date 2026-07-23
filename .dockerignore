@@ -1,4 +1,6 @@
 .git
+.gitignore
+
 .idea
 .vscode
 
@@ -8,12 +10,15 @@ vendor
 .env
 .env.*
 
-storage/logs
-storage/framework/cache
-storage/framework/sessions
-storage/framework/testing
-storage/framework/views
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/framework/testing/*
 
-tests
+bootstrap/cache/*.php
+
+docker-compose.override.yml
 
 README.md
+storage/*.key
