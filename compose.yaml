@@ -3,29 +3,37 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
+        container_name: transfer-app
         restart: unless-stopped
         working_dir: /var/www/html
         expose:
             - "9000"
+        environment:
+            APP_ENV: production
+            APP_DEBUG: "false"
+        depends_on:
+            mysql:
+                condition: service_healthy
         networks:
             - transfer-network
-        depends_on:
-            - mysql
 
     nginx:
-        image: nginx:latest
+        build:
+            context: .
+            dockerfile: docker/nginx/Dockerfile
+        container_name: transfer-nginx
         restart: unless-stopped
         ports:
             - "80:80"
-        volumes:
-            - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+        depends_on:
+            app:
+                condition: service_started
         networks:
             - transfer-network
-        depends_on:
-            - app
 
     mysql:
         image: mysql:8.4
+        container_name: transfer-mysql
         restart: unless-stopped
         environment:
             MYSQL_DATABASE: money-transfer-management
@@ -36,6 +44,12 @@ services:
             - "3306"
         volumes:
             - mysql-data:/var/lib/mysql
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+            interval: 10s
+            timeout: 5s
+            retries: 10
+            start_period: 20s
         networks:
             - transfer-network
 
@@ -44,3 +58,4 @@ volumes:
 
 networks:
     transfer-network:
+        driver: bridge
