@@ -164,24 +164,24 @@ new class extends Component {
 
         <x-ui.table>
 
-        <x-UI.table-header>
-        <x-UI.table-row>
-            <x-UI.table-head>From</x-UI.table-head>
-            <x-UI.table-head>To</x-UI.table-head>
-            <x-UI.table-head>Commission (AED)</x-UI.table-head>
-            <x-UI.table-head>Actions</x-UI.table-head>
-        </x-UI.table-row>
-        </x-UI.table-header>
+        <x-ui.table-header>
+        <x-ui.table-row>
+            <x-ui.table-head>From</x-ui.table-head>
+            <x-ui.table-head>To</x-ui.table-head>
+            <x-ui.table-head>Commission (AED)</x-ui.table-head>
+            <x-ui.table-head>Actions</x-ui.table-head>
+        </x-ui.table-row>
+        </x-ui.table-header>
 
-        <x-UI.table-body>
+        <x-ui.table-body>
 
         @forelse($rules as $rule)
 
-                <x-UI.table-row wire:key="commission-rule-{{ $rule->id }}">
-                    <x-UI.table-cell>{{ $rule->min_amount }}</x-UI.table-cell>
-                    <x-UI.table-cell>{{ $rule->max_amount }}</x-UI.table-cell>
-                    <x-UI.table-cell>{{ $rule->commission_amount }} AED</x-UI.table-cell>
-                    <x-UI.table-cell>
+                <x-ui.table-row wire:key="commission-rule-{{ $rule->id }}">
+                    <x-ui.table-cell>{{ $rule->min_amount }}</x-ui.table-cell>
+                    <x-ui.table-cell>{{ $rule->max_amount }}</x-ui.table-cell>
+                    <x-ui.table-cell>{{ $rule->commission_amount }} AED</x-ui.table-cell>
+                    <x-ui.table-cell>
                         <x-ui.button
                             variant="danger"
                             wire:confirm="Delete this commission rule?"
@@ -189,8 +189,8 @@ new class extends Component {
                         >
                             Delete
                         </x-ui.button>
-                    </x-UI.table-cell>
-                </x-UI.table-row>
+                    </x-ui.table-cell>
+                </x-ui.table-row>
 
         @empty
 
@@ -212,7 +212,7 @@ new class extends Component {
 
         @endforelse
 
-        </x-UI.table-body>
+        </x-ui.table-body>
 
     </x-ui.table>
     </x-ui.card>

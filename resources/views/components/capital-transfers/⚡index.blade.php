@@ -225,7 +225,7 @@ new class extends Component {
         <x-ui.table>
 
             <x-ui.table-header>
-                <x-UI.table-row>
+                <x-ui.table-row>
 
                 <x-ui.table-head>From Account</x-ui.table-head>
 
@@ -244,7 +244,7 @@ new class extends Component {
                 <x-ui.table-head>Created At</x-ui.table-head>
 
                 <x-ui.table-head>Notes</x-ui.table-head>
-                </x-UI.table-row>
+                </x-ui.table-row>
 
             </x-ui.table-header>
             <x-ui.table-body>
@@ -307,7 +307,7 @@ new class extends Component {
 
                 </x-ui.select>
 
-                <x-UI.select
+                <x-ui.select
                     label="To Account"
                     name="to_account_id"
                     wire:model.live="to_account_id"
@@ -320,7 +320,7 @@ new class extends Component {
                                 -
                                 {{ $account->currency->name }}</option>
                         @endforeach
-                </x-UI.select>
+                </x-ui.select>
 
 
 

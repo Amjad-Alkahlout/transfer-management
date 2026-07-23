@@ -81,22 +81,22 @@ new class extends Component {
     >
 
         <x-ui.table>
-        <x-UI.table-header>
-        <x-UI.table-row>
-            <x-UI.table-head>Currency</x-UI.table-head>
-            <x-UI.table-head>Rate to USD</x-UI.table-head>
-            <x-UI.table-head>Last Updated</x-UI.table-head>
-        </x-UI.table-row>
-            </x-UI.table-header>
-        <x-UI.table-body>
+        <x-ui.table-header>
+        <x-ui.table-row>
+            <x-ui.table-head>Currency</x-ui.table-head>
+            <x-ui.table-head>Rate to USD</x-ui.table-head>
+            <x-ui.table-head>Last Updated</x-ui.table-head>
+        </x-ui.table-row>
+            </x-ui.table-header>
+        <x-ui.table-body>
         @foreach ($rates as $rate)
-                <x-UI.table-row>
-                <x-UI.table-cell>{{ $rate['currency'] }}</x-UI.table-cell>
-                <x-UI.table-cell>{{ number_format((float) $rate['rate_to_usd'], 4) }}</x-UI.table-cell>
-                <x-UI.table-cell>{{ $rate['updated_at']->format('d/m/Y H:i') }}</x-UI.table-cell>
-            </x-UI.table-row>
+                <x-ui.table-row>
+                <x-ui.table-cell>{{ $rate['currency'] }}</x-ui.table-cell>
+                <x-ui.table-cell>{{ number_format((float) $rate['rate_to_usd'], 4) }}</x-ui.table-cell>
+                <x-ui.table-cell>{{ $rate['updated_at']->format('d/m/Y H:i') }}</x-ui.table-cell>
+            </x-ui.table-row>
         @endforeach
-        </x-UI.table-body>
+        </x-ui.table-body>
         </x-ui.table>
     </x-ui.card>
 
