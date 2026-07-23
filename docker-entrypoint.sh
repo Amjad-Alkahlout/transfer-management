@@ -28,10 +28,6 @@ done
 
 echo "MySQL is ready."
 
-if [ ! -f .env ]; then
-    echo ".env file not found!"
-    exit 1
-fi
 
 php artisan optimize:clear
 
