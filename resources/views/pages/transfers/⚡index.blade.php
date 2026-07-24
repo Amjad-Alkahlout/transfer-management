@@ -47,15 +47,16 @@ new #[Layout('layouts::app')] class extends Component {
 
 <div>
     <x-ui.page-header
-        title="Transfers"
-        description="Manage customer transfers."
+        :title="__('transfers.page.index_title')"
+
+        :description="__('transfers.page.index_description')"
     >
         <x-slot:actions>
             @can('create-transfer')
             <x-ui.button
                 :href="route('transfers.create')"
             >
-                Create Transfer
+                {{ __('transfers.buttons.create') }}
             </x-ui.button>
             @endcan
 
@@ -69,7 +70,7 @@ new #[Layout('layouts::app')] class extends Component {
             :href="route('dashboard')"
             variant="secondary"
         >
-            ← Dashboard
+            ← {{ __('capital_accounts.buttons.back') }}
         </x-ui.button>
 
     </x-ui.card>
@@ -80,14 +81,14 @@ new #[Layout('layouts::app')] class extends Component {
 
             <x-ui.alert color="blue">
 
-                Showing:
+                {{ __('transfers.filters.showing') }}
 
                 @if($status)
-                    {{ str($status)->replace('_', ' ')->title() }} Transfers
+                    {{ str($status)->replace('_', ' ')->title() }} {{ __('transfers.filters.transfers') }}
                 @endif
 
                 @if($paymentStatus)
-                    {{ str($paymentStatus)->replace('_', ' ')->title() }} Payments
+                    {{ str($paymentStatus)->replace('_', ' ')->title() }} {{ __('transfers.filters.payments') }}
                 @endif
 
             </x-ui.alert>
@@ -96,7 +97,7 @@ new #[Layout('layouts::app')] class extends Component {
                 :href="route('transfers.index')"
                 variant="secondary"
             >
-                Clear Filter
+                {{ __('transfers.filters.clear') }}
             </x-ui.button>
 
         </div>
@@ -104,34 +105,35 @@ new #[Layout('layouts::app')] class extends Component {
     @endif
 
     <x-ui.card
-        title="Transfers"
-        description="All customer transfers."
+        :title="__('transfers.table.title')"
+
+        :description="__('transfers.table.description')"
     >
 
         <x-ui.table>
 
             <x-ui.table-header>
 
-                <x-ui.table-head>Reference</x-ui.table-head>
+                <x-ui.table-head>{{ __('transfers.table.reference') }}</x-ui.table-head>
 
-                <x-ui.table-head>Receiver</x-ui.table-head>
+                <x-ui.table-head>{{ __('transfers.table.receiver') }}</x-ui.table-head>
 
-                <x-ui.table-head>Method</x-ui.table-head>
+                <x-ui.table-head>{{ __('transfers.table.method') }}</x-ui.table-head>
 
 
-                <x-ui.table-head>Receiver Gets</x-ui.table-head>
+                <x-ui.table-head>{{ __('transfers.table.receiver_gets') }}</x-ui.table-head>
 
-                <x-ui.table-head>Customer Pays</x-ui.table-head>
+                <x-ui.table-head>{{ __('transfers.table.customer_pays') }}</x-ui.table-head>
 
-                <x-ui.table-head>Commission</x-ui.table-head>
+                <x-ui.table-head>{{ __('transfers.table.commission') }}</x-ui.table-head>
 
-                <x-ui.table-head>Transfer Status</x-ui.table-head>
+                <x-ui.table-head>{{ __('transfers.table.transfer_status') }}</x-ui.table-head>
 
-                <x-ui.table-head>Payment Status</x-ui.table-head>
+                <x-ui.table-head>{{ __('transfers.table.payment_status') }}</x-ui.table-head>
 
-                <x-ui.table-head>Created By</x-ui.table-head>
+                <x-ui.table-head>{{ __('transfers.table.created_by') }}</x-ui.table-head>
 
-                <x-ui.table-head>Created</x-ui.table-head>
+                <x-ui.table-head>{{ __('transfers.table.created') }}</x-ui.table-head>
 
 
             </x-ui.table-header>
@@ -144,14 +146,15 @@ new #[Layout('layouts::app')] class extends Component {
                         <x-ui.table-cell colspan="12" class="p-0">
 
                             <x-ui.empty-state
-                                title="No transfers found"
-                                description="Create your first transfer."
+                                :title="__('transfers.empty_state.title')"
+
+                                :description="__('transfers.empty_state.description')"
                             >
 
                                 <x-slot:actions>
                                     @can('create-transfer')
                                     <x-ui.button :href="route('transfers.create')">
-                                        Create Transfer
+                                        {{ __('transfers.buttons.create') }}
                                     </x-ui.button>
                                     @endcan
 
@@ -181,7 +184,7 @@ new #[Layout('layouts::app')] class extends Component {
 
                         <x-ui.table-cell>
                             @if($transfer->receiver_method === ReceiverMethod::BANK)
-                                {{ str($transfer->receiver_method->value)->replace('_',' ')->title() }}
+                                {{ $transfer->receiver_method->label() }}
                                 <br>
                                 {{ $transfer->receiver_account_number }}
                             @else
@@ -211,7 +214,7 @@ new #[Layout('layouts::app')] class extends Component {
                                 @case(TransferStatus::PENDING)
 
                                     <x-ui.badge color="yellow">
-                                        Pending
+                                        {{ TransferStatus::PENDING->label() }}
                                     </x-ui.badge>
 
                                     @break
@@ -219,7 +222,7 @@ new #[Layout('layouts::app')] class extends Component {
                                 @case(TransferStatus::COMPLETED)
 
                                     <x-ui.badge color="green">
-                                        Completed
+                                        {{ TransferStatus::COMPLETED->label() }}
                                     </x-ui.badge>
 
                                     @break
@@ -227,7 +230,7 @@ new #[Layout('layouts::app')] class extends Component {
                                 @case(TransferStatus::CANCELLED)
 
                                     <x-ui.badge color="red">
-                                        Cancelled
+                                        {{ TransferStatus::CANCELLED->label() }}
                                     </x-ui.badge>
 
                                     @break
@@ -243,7 +246,7 @@ new #[Layout('layouts::app')] class extends Component {
                                 @case(PaymentStatus::UNPAID)
 
                                     <x-ui.badge color="red">
-                                        Unpaid
+                                        {{ PaymentStatus::UNPAID->label() }}
                                     </x-ui.badge>
 
                                     @break
@@ -251,7 +254,7 @@ new #[Layout('layouts::app')] class extends Component {
                                 @case(PaymentStatus::PARTIALLY_PAID)
 
                                     <x-ui.badge color="orange">
-                                        Partially Paid
+                                        {{ PaymentStatus::PARTIALLY_PAID->label() }}
                                     </x-ui.badge>
 
                                     @break
@@ -259,7 +262,7 @@ new #[Layout('layouts::app')] class extends Component {
                                 @case(PaymentStatus::PAID)
 
                                     <x-ui.badge color="green">
-                                        Paid
+                                        {{ PaymentStatus::PAID->label() }}
                                     </x-ui.badge>
 
                                     @break

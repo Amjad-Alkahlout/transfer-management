@@ -28,25 +28,25 @@ class ProfitWithdrawalService
 
             if ($profitAccount->account_type !== CapitalAccountType::PROFIT) {
                 throw new \RuntimeException(
-                    'Selected account is not a profit account.'
+                    __('services.profit_withdrawal.invalid_account')
                 );
             }
 
             if (! $profitAccount->is_active) {
                 throw new \RuntimeException(
-                    'Profit account is inactive.'
+                    __('services.profit_withdrawal.inactive_account')
                 );
             }
 
             if ($amount <= 0) {
                 throw new \InvalidArgumentException(
-                    'Amount must be greater than zero.'
+                    __('services.profit_withdrawal.amount_must_be_positive')
                 );
             }
 
             if ($profitAccount->balance < $amount) {
                 throw new \RuntimeException(
-                    'Insufficient balance.'
+                    __('services.profit_withdrawal.insufficient_balance')
                 );
             }
 

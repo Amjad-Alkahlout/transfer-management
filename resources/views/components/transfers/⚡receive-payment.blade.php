@@ -56,7 +56,10 @@ new class extends Component {
             'payment_amount',
             'notes',
         ]);
-        session()->flash('success', 'Payment received successfully.');
+        session()->flash(
+            'success',
+            __('receive_payment.messages.received')
+        );
         return redirect()->route('transfers.show', $this->transfer);
     }
 };
@@ -65,7 +68,7 @@ new class extends Component {
 <div>
 
     <x-ui.page-header
-        title="Receive Payment"
+        :title="__('receive_payment.page.title')"
         :description="$transfer->reference_number"
     >
         <x-slot:actions>
@@ -74,7 +77,7 @@ new class extends Component {
                 :href="route('transfers.show', $transfer)"
                 variant="secondary"
             >
-                ← Back
+                ← {{ __('receive_payment.buttons.back') }}
             </x-ui.button>
 
         </x-slot:actions>
@@ -82,8 +85,8 @@ new class extends Component {
     <x-ui.flash/>
 
     <x-ui.card
-        title="Payment Summary"
-        description="Current payment status for this transfer."
+        :title="__('receive_payment.summary.title')"
+        :description="__('receive_payment.summary.description')"
         class="mb-2"
     >
 
@@ -91,7 +94,7 @@ new class extends Component {
 
             <div>
                 <div class="text-sm text-gray-500">
-                    Requested Amount
+                    {{ __('receive_payment.summary.requested_amount') }}
                 </div>
 
                 <div class="text-lg font-semibold">
@@ -102,7 +105,7 @@ new class extends Component {
 
             <div>
                 <div class="text-sm text-gray-500">
-                    Paid
+                    {{ __('receive_payment.summary.paid') }}
                 </div>
 
                 <div class="text-lg font-semibold text-green-600">
@@ -113,7 +116,7 @@ new class extends Component {
 
             <div>
                 <div class="text-sm text-gray-500">
-                    Remaining
+                    {{ __('receive_payment.summary.remaining') }}
                 </div>
 
                 <div class="text-lg font-semibold text-red-600">
@@ -127,8 +130,8 @@ new class extends Component {
     </x-ui.card>
 
     <x-ui.form-section
-        title="Receive Payment"
-        description="Record a customer payment."
+        :title="__('receive_payment.form.title')"
+        :description="__('receive_payment.form.description')"
     >
         <div class="col-span-1 md:col-span-2 flex justify-center">
 
@@ -139,7 +142,7 @@ new class extends Component {
         >
 
             <x-ui.input
-                label="Payment Amount"
+                :label="__('receive_payment.fields.payment_amount')"
                 name="payment_amount"
                 type="number"
                 step="0.01"
@@ -147,7 +150,7 @@ new class extends Component {
             />
 
             <x-ui.textarea
-                label="Notes"
+                :label="__('receive_payment.fields.notes')"
                 name="notes"
                 rows="3"
                 wire:model="notes"
@@ -159,11 +162,11 @@ new class extends Component {
                     :href="route('transfers.show',$transfer)"
                     variant="secondary"
                 >
-                    Cancel
+                    {{ __('receive_payment.buttons.cancel') }}
                 </x-ui.button>
 
                 <x-ui.button type="submit">
-                    Receive Payment
+                    {{ __('receive_payment.buttons.receive') }}
                 </x-ui.button>
 
             </div>
@@ -175,8 +178,8 @@ new class extends Component {
     </x-ui.form-section>
 
     <x-ui.card
-        title="Payment History"
-        description="All recorded payments for this transfer."
+        :title="__('receive_payment.history.title')"
+        :description="__('receive_payment.history.description')"
         class="mt-2"
     >
 
@@ -185,19 +188,19 @@ new class extends Component {
             <x-ui.table-header>
 
                 <x-ui.table-head>
-                    Amount
+                    {{ __('receive_payment.history.amount') }}
                 </x-ui.table-head>
 
                 <x-ui.table-head>
-                    Received By
+                    {{ __('receive_payment.history.received_by') }}
                 </x-ui.table-head>
 
                 <x-ui.table-head>
-                    Date
+                    {{ __('receive_payment.history.date') }}
                 </x-ui.table-head>
 
                 <x-ui.table-head>
-                    Notes
+                    {{ __('receive_payment.history.notes') }}
                 </x-ui.table-head>
 
             </x-ui.table-header>
@@ -234,8 +237,8 @@ new class extends Component {
                         <x-ui.table-cell colspan="4" class="p-0">
 
                             <x-ui.empty-state
-                                title="No payments recorded"
-                                description="Payments will appear here after they are received."
+                                :title="__('receive_payment.empty_state.title')"
+                                :description="__('receive_payment.empty_state.description')"
                             />
 
                         </x-ui.table-cell>

@@ -126,7 +126,7 @@ class extends Component {
 
         session()->flash(
             'success',
-            'Telegram disconnected successfully.'
+            __('dashboard.messages.telegram_disconnected')
         );
     }
 
@@ -164,7 +164,7 @@ class extends Component {
 
         session()->flash(
             'success',
-            'Telegram linked successfully.'
+            __('dashboard.messages.telegram_linked')
         );
     }
 };
@@ -173,8 +173,8 @@ class extends Component {
 <div>
 
     <x-ui.page-header
-        title="Dashboard"
-        description="Money Transfer System Overview"
+        :title="__('dashboard.page.title')"
+        :description="__('dashboard.page.description')"
     >
 
         <x-slot:actions>
@@ -182,18 +182,18 @@ class extends Component {
 
                 @if(auth()->user()->telegram_chat_id)
 
-                    🟢 Telegram
+                    🟢 {{ __('dashboard.telegram.connected') }}
 
                 @else
 
-                    🔗 Link Telegram
+                    🔗 {{ __('dashboard.telegram.link') }}
 
                 @endif
 
             </x-ui.button>
             @can('create-transfer')
             <x-ui.button :href="route('transfers.create')">
-                Create Transfer
+                {{ __('dashboard.quick_actions.create_transfer') }}
             </x-ui.button>
             @endcan
         </x-slot:actions>
@@ -206,20 +206,20 @@ class extends Component {
 
         <div class="mb-5">
             <h2 class="text-xl font-semibold text-gray-900">
-                Financial Overview
+                {{ __('dashboard.financial.title') }}
             </h2>
 
             <p class="mt-1 text-sm text-gray-500">
-                Current balances across company accounts.
+                {{ __('dashboard.financial.description') }}
             </p>
         </div>
 
         <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
 
             <x-ui.stat-card
-                title="Gaza Capital"
+                :title="__('dashboard.financial.gaza_capital')"
                 :value="'$'.number_format($this->financialOverview['gaza_usd'],2)"
-                subtitle="current balance"
+                :subtitle="__('dashboard.financial.current_balance')"
                 color="gray"
             >
                 <x-slot:icon>
@@ -228,9 +228,9 @@ class extends Component {
             </x-ui.stat-card>
 
             <x-ui.stat-card
-                title="UAE Capital (USD)"
+                :title="__('dashboard.financial.uae_capital_usd')"
                 :value="'$'.number_format($this->financialOverview['uae_usd'],2)"
-                subtitle="current balance"
+                :subtitle="__('dashboard.financial.current_balance')"
                 color="gray"
             >
                 <x-slot:icon>
@@ -239,9 +239,9 @@ class extends Component {
             </x-ui.stat-card>
 
             <x-ui.stat-card
-                title="UAE Capital (AED)"
+                :title="__('dashboard.financial.uae_capital_aed')"
                 :value="number_format($this->financialOverview['uae_aed'],2)"
-                subtitle="current balance"
+                :subtitle="__('dashboard.financial.current_balance')"
                 color="gray"
             >
                 <x-slot:icon>
@@ -251,9 +251,9 @@ class extends Component {
 
 
             <x-ui.stat-card
-                title="Profit"
+                :title="__('dashboard.financial.profit')"
                 :value="'$'.number_format($this->financialOverview['profit'],2)"
-                subtitle="Net profit"
+                :subtitle="__('dashboard.financial.net_profit')"
                 color="emerald"
             >
                 <x-slot:icon>
@@ -263,9 +263,9 @@ class extends Component {
 
 
             <x-ui.stat-card
-                title="Customer Receivables (AED)"
+                :title="__('dashboard.financial.customer_receivables')"
                 :value="number_format($this->financialOverview['outstanding_receivables'],2)"
-                subtitle="Outstanding Amount"
+                :subtitle="__('dashboard.financial.outstanding_amount')"
                 color="red"
             >
                 <x-slot:icon>
@@ -281,7 +281,7 @@ class extends Component {
 
     <div class="mb-8">
 
-        <x-ui.card title="Quick Actions">
+        <x-ui.card :title="__('dashboard.quick_actions.title')">
 
             <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
 
@@ -290,7 +290,7 @@ class extends Component {
                     :href="route('transfers.index')"
                     variant="secondary"
                 >
-                    Transfers
+                    {{ __('dashboard.quick_actions.transfers') }}
                 </x-ui.button>
                 @can('view-capital-transfers')
                 <x-ui.button
@@ -298,7 +298,7 @@ class extends Component {
                     :href="route('capital-transfers.index')"
                     variant="secondary"
                 >
-                    Capital Transfers
+                    {{ __('dashboard.quick_actions.capital_transfers') }}
                 </x-ui.button>
                 @endcan
                 @can('view-capital-accounts')
@@ -308,7 +308,7 @@ class extends Component {
                     :href="route('capital-accounts.index')"
                     variant="secondary"
                 >
-                    Capital Accounts
+                    {{ __('dashboard.quick_actions.capital_accounts') }}
                 </x-ui.button>
                 @endcan
                 @can('manage-exchange-rates')
@@ -317,7 +317,7 @@ class extends Component {
                     :href="route('exchange-rates.index')"
                     variant="secondary"
                 >
-                    Exchange Rates
+                    {{ __('dashboard.quick_actions.exchange_rates') }}
                 </x-ui.button>
                 @endcan
                 @can('manage-commission-rules')
@@ -326,7 +326,7 @@ class extends Component {
                     :href="route('commission-rules.index')"
                     variant="secondary"
                 >
-                    Commission Rules
+                    {{ __('dashboard.quick_actions.commission_rules') }}
                 </x-ui.button>
                 @endcan
 
@@ -339,17 +339,17 @@ class extends Component {
     <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
         <x-ui.card
-            title="Transfer Overview"
-            description="Current transfer status summary."
+            :title="__('dashboard.transfers.title')"
+            :description="__('dashboard.transfers.description')"
         >
 
             <x-ui.table>
 
                 <x-ui.table-header>
 
-                    <x-ui.table-head>Status</x-ui.table-head>
+                    <x-ui.table-head>{{ __('dashboard.transfers.status') }}</x-ui.table-head>
 
-                    <x-ui.table-head>Total</x-ui.table-head>
+                    <x-ui.table-head>{{ __('dashboard.transfers.total') }}</x-ui.table-head>
 
                 </x-ui.table-header>
 
@@ -361,7 +361,7 @@ class extends Component {
 
                         <x-ui.table-cell>
                             <x-ui.badge color="yellow">
-                                Pending
+                                {{ \App\Enums\TransferStatus::PENDING->label() }}
                             </x-ui.badge>
                         </x-ui.table-cell>
 
@@ -376,7 +376,7 @@ class extends Component {
 
                         <x-ui.table-cell>
                             <x-ui.badge color="green">
-                                Completed
+                                {{ \App\Enums\TransferStatus::COMPLETED->label() }}
                             </x-ui.badge>
                         </x-ui.table-cell>
 
@@ -391,7 +391,7 @@ class extends Component {
 
                         <x-ui.table-cell>
                             <x-ui.badge color="red">
-                                Cancelled
+                                {{ \App\Enums\TransferStatus::CANCELLED->label() }}
                             </x-ui.badge>
                         </x-ui.table-cell>
 
@@ -408,16 +408,17 @@ class extends Component {
         </x-ui.card>
 
         <x-ui.card
-            title="Payment Overview"
-            description="Current payment status summary."
+            :title="__('dashboard.payments.title')"
+
+            :description="__('dashboard.payments.description')"
         >
 
             <x-ui.table>
 
                 <x-ui.table-header>
 
-                    <x-ui.table-head>Status</x-ui.table-head>
-                    <x-ui.table-head>Total</x-ui.table-head>
+                    <x-ui.table-head>{{ __('dashboard.payments.status') }}</x-ui.table-head>
+                    <x-ui.table-head>{{ __('dashboard.payments.total') }}</x-ui.table-head>
 
                 </x-ui.table-header>
 
@@ -428,7 +429,7 @@ class extends Component {
 
                         <x-ui.table-cell>
                             <x-ui.badge color="red">
-                                Unpaid
+                                {{ \App\Enums\PaymentStatus::UNPAID->label() }}
                             </x-ui.badge>
                         </x-ui.table-cell>
 
@@ -443,7 +444,7 @@ class extends Component {
 
                         <x-ui.table-cell>
                             <x-ui.badge color="orange">
-                                Partially Paid
+                                {{ \App\Enums\PaymentStatus::PARTIALLY_PAID->label() }}
                             </x-ui.badge>
                         </x-ui.table-cell>
 
@@ -458,7 +459,7 @@ class extends Component {
 
                         <x-ui.table-cell>
                             <x-ui.badge color="green">
-                                Paid
+                                {{ \App\Enums\PaymentStatus::PAID->label() }}
                             </x-ui.badge>
                         </x-ui.table-cell>
 
@@ -478,8 +479,8 @@ class extends Component {
     <div class="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
 
         <x-ui.card
-            title="Exchange Rates"
-            description="Current exchange rates."
+            :title="__('dashboard.exchange_rates.title')"
+            :description="__('dashboard.exchange_rates.description')"
         >
 
             <x-ui.table>
@@ -487,11 +488,11 @@ class extends Component {
                 <x-ui.table-header>
 
                     <x-ui.table-head>
-                        Currency
+                        {{ __('dashboard.exchange_rates.currency') }}
                     </x-ui.table-head>
 
                     <x-ui.table-head>
-                        Rate to USD
+                        {{ __('dashboard.exchange_rates.rate_to_usd') }}
                     </x-ui.table-head>
 
                 </x-ui.table-header>
@@ -503,7 +504,7 @@ class extends Component {
                         <x-ui.table-row>
 
                             <x-ui.table-cell>
-                                {{ strtoupper($rate->currency->value) }}
+                                {{ $rate->currency->label() }}
                             </x-ui.table-cell>
 
                             <x-ui.table-cell>
@@ -521,8 +522,8 @@ class extends Component {
         </x-ui.card>
 
         <x-ui.card
-            title="Commission Rules"
-            description="Configured commission rules."
+            :title="__('dashboard.commission_rules.title')"
+            :description="__('dashboard.commission_rules.description')"
         >
 
             <x-ui.table>
@@ -530,11 +531,11 @@ class extends Component {
                 <x-ui.table-header>
 
                     <x-ui.table-head>
-                        Currency
+                        {{ __('dashboard.commission_rules.currency') }}
                     </x-ui.table-head>
 
                     <x-ui.table-head>
-                        Total Rules
+                        {{ __('dashboard.commission_rules.total_rules') }}
                     </x-ui.table-head>
 
                 </x-ui.table-header>
@@ -546,7 +547,7 @@ class extends Component {
                         <x-ui.table-row>
 
                             <x-ui.table-cell>
-                                {{ strtoupper($rule->currency->value) }}
+                                {{ $rule->currency->label() }}
                             </x-ui.table-cell>
 
                             <x-ui.table-cell>
@@ -566,7 +567,7 @@ class extends Component {
 
     <x-ui.modal
         :show="$showTelegramModal"
-        title="Telegram Notifications"
+        :title="__('dashboard.telegram.modal_title')"
         maxWidth="lg"
     >
         <div
@@ -599,12 +600,11 @@ class extends Component {
                     </div>
 
                     <h3 class="mt-4 text-xl font-semibold">
-                        Telegram Connected
+                        {{ __('dashboard.telegram.connected_title') }}
                     </h3>
 
                     <p class="mt-2 text-sm text-gray-500">
-                        Your Telegram account is connected and will receive
-                        transfer notifications.
+                        {{ __('dashboard.telegram.connected_description') }}
                     </p>
 
                 </div>
@@ -614,11 +614,11 @@ class extends Component {
                     <div class="flex items-center justify-between">
 
                     <span class="text-gray-600">
-                        Status
+                        {{ __('dashboard.telegram.status') }}
                     </span>
 
                         <span class="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
-                        Enabled
+                        {{ __('dashboard.telegram.enabled') }}
                     </span>
 
                     </div>
@@ -635,7 +635,7 @@ class extends Component {
                         variant="danger"
                         wire:click="disconnectTelegram"
                     >
-                        Disconnect
+                        {{ __('dashboard.telegram.disconnect') }}
                     </x-ui.button>
 
                     <div class="flex gap-3">
@@ -643,14 +643,14 @@ class extends Component {
                         <x-ui.button
                             wire:click="relinkTelegram"
                         >
-                            Relink
+                            {{ __('dashboard.telegram.relink') }}
                         </x-ui.button>
 
                         <x-ui.button
                             variant="secondary"
                             wire:click="closeTelegramModal"
                         >
-                            Close
+                            {{ __('dashboard.telegram.close') }}
                         </x-ui.button>
 
                     </div>
@@ -679,12 +679,11 @@ class extends Component {
                     </div>
 
                     <h3 class="mt-4 text-xl font-semibold">
-                        Link Telegram
+                        {{ __('dashboard.telegram.link_title') }}
                     </h3>
 
                     <p class="mt-2 text-sm text-gray-500">
-                        Connect your Telegram account to receive instant
-                        notifications whenever a transfer requires your action.
+                        {{ __('dashboard.telegram.link_description') }}
                     </p>
 
                 </div>
@@ -696,11 +695,11 @@ class extends Component {
                         <div>
 
                             <h4 class="font-medium">
-                                Step 1
+                                {{ __('dashboard.telegram.step_1') }}
                             </h4>
 
                             <p class="mt-1 text-sm text-gray-500">
-                                Open our Telegram bot.
+                                {{ __('dashboard.telegram.open_bot_description') }}
                             </p>
 
                         </div>
@@ -710,7 +709,7 @@ class extends Component {
                             target="_blank"
                             class="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700"
                         >
-                            Open Bot
+                            {{ __('dashboard.telegram.open_bot') }}
                         </a>
 
                     </div>
@@ -720,11 +719,11 @@ class extends Component {
                 <div class="rounded-xl border bg-gray-50 p-5">
 
                     <h4 class="font-medium">
-                        Step 2
+                        {{ __('dashboard.telegram.step_2') }}
                     </h4>
 
                     <p class="mt-1 text-sm text-gray-500">
-                        Send the following command:
+                        {{ __('dashboard.telegram.send_command') }}
                     </p>
 
                     <div
@@ -745,7 +744,7 @@ class extends Component {
                         "
                             class="mt-4 w-full rounded-lg border px-4 py-2 font-medium hover:bg-gray-100"
                         >
-                            📋 Copy Command
+                            📋 {{ __('dashboard.telegram.copy_command') }}
                         </button>
 
                     </div>
@@ -754,7 +753,7 @@ class extends Component {
 
                 <div class="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-700">
 
-                    ⏳ This code expires in 10 minutes.
+                    ⏳ {{ __('dashboard.telegram.code_expire') }}
 
                 </div>
 

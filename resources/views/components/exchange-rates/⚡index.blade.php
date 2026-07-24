@@ -50,7 +50,10 @@ new class extends Component {
             }
         });
         $this->loadRates();
-        session()->flash('success', 'Exchange rates updated successfully.');
+        session()->flash(
+            'success',
+            __('exchange_rates.messages.updated')
+        );
         $this->hideUpdateForm();
     }
 };
@@ -58,15 +61,15 @@ new class extends Component {
 
 <div>
     <x-ui.page-header
-        title="Exchange Rates"
-        description="Manage currency exchange rates."
+        :title="__('exchange_rates.page.title')"
+        :description="__('exchange_rates.page.description')"
     >
         <x-slot:actions>
 
             <x-ui.button
                 wire:click="openUpdateForm"
             >
-                Update Rates
+                {{ __('exchange_rates.buttons.update') }}
             </x-ui.button>
 
         </x-slot:actions>
@@ -75,23 +78,23 @@ new class extends Component {
     <x-ui.flash/>
 
     <x-ui.card
-        title="Exchange Rates"
-        description="Current exchange rates against USD."
+        :title="__('exchange_rates.table.title')"
+        :description="__('exchange_rates.table.description')"
         class="mb-4"
     >
 
         <x-ui.table>
         <x-ui.table-header>
         <x-ui.table-row>
-            <x-ui.table-head>Currency</x-ui.table-head>
-            <x-ui.table-head>Rate to USD</x-ui.table-head>
-            <x-ui.table-head>Last Updated</x-ui.table-head>
+            <x-ui.table-head>{{ __('exchange_rates.table.currency') }}</x-ui.table-head>
+            <x-ui.table-head>{{ __('exchange_rates.table.rate_to_usd') }}</x-ui.table-head>
+            <x-ui.table-head>{{ __('exchange_rates.table.last_updated') }}</x-ui.table-head>
         </x-ui.table-row>
             </x-ui.table-header>
         <x-ui.table-body>
         @foreach ($rates as $rate)
                 <x-ui.table-row>
-                <x-ui.table-cell>{{ $rate['currency'] }}</x-ui.table-cell>
+                <x-ui.table-cell>{{  $rate['currency']->label()  }}</x-ui.table-cell>
                 <x-ui.table-cell>{{ number_format((float) $rate['rate_to_usd'], 4) }}</x-ui.table-cell>
                 <x-ui.table-cell>{{ $rate['updated_at']->format('d/m/Y H:i') }}</x-ui.table-cell>
             </x-ui.table-row>
@@ -103,8 +106,9 @@ new class extends Component {
     @if($showUpdateForm)
 
         <x-ui.card
-            title="Update Exchange Rates"
-            description="Update exchange rates relative to USD."
+            :title="__('exchange_rates.form.title')"
+
+            :description="__('exchange_rates.form.description')"
         >
 
             <form
@@ -113,7 +117,7 @@ new class extends Component {
             >
                 @foreach ($rates as $index => $rate)
                     <x-ui.input
-                        :label="$rate['currency']"
+                        :label="$rate['currency']->label()"
                         :name="'rates.'.$index.'.rate_to_usd'"
                         type="number"
                         step="0.0001"
@@ -127,13 +131,13 @@ new class extends Component {
                             variant="secondary"
                             wire:click="hideUpdateForm"
                         >
-                            Cancel
+                            {{ __('exchange_rates.buttons.cancel') }}
                         </x-ui.button>
 
                         <x-ui.button
                             type="submit"
                         >
-                            Save Rates
+                            {{ __('exchange_rates.buttons.save') }}
                         </x-ui.button>
 
                     </div>

@@ -76,7 +76,7 @@ new class extends Component {
 
             $this->addError(
                 'newRule.min_amount',
-                'This range overlaps with an existing commission rule.'
+                __('commission_rules.errors.overlap')
             );
 
             return;
@@ -92,7 +92,10 @@ new class extends Component {
         $this->loadRules();
 
         $this->closeAddRuleForm();
-        session()->flash('success', 'Commission rule added successfully.');
+        session()->flash(
+            'success',
+            __('commission_rules.messages.created')
+        );
     }
     public function deleteRule(int $id): void
     {
@@ -108,7 +111,7 @@ new class extends Component {
 
         session()->flash(
             'success',
-            'Commission rule deleted successfully.'
+            __('commission_rules.messages.deleted')
         );
     }
 };
@@ -117,15 +120,15 @@ new class extends Component {
 <div>
 
     <x-ui.page-header
-        title="Commission Rules"
-        description="Manage commission rules by currency."
+        :title="__('commission_rules.page.title')"
+        :description="__('commission_rules.page.description')"
     >
         <x-slot:actions>
 
             <x-ui.button
                 wire:click="openAddRuleForm"
             >
-                Add Rule
+                {{ __('commission_rules.buttons.add') }}
             </x-ui.button>
 
         </x-slot:actions>
@@ -133,12 +136,12 @@ new class extends Component {
     </x-ui.page-header>
     <x-ui.flash/>
     <x-ui.card
-        title="Currency Filter"
+        :title="__('commission_rules.filter.title')"
         class="mb-2 mt-2"
     >
 
         <x-ui.select
-            label="Currency"
+            :label="__('commission_rules.fields.currency')"
             name="currency"
             wire:model.live="currency"
         >
@@ -146,7 +149,7 @@ new class extends Component {
             @foreach(CurrencyType::cases() as $currency)
 
                 <option value="{{ $currency->value }}">
-                    {{ $currency->name }}
+                    {{ $currency->label() }}
                 </option>
 
             @endforeach
@@ -157,8 +160,9 @@ new class extends Component {
 
 
     <x-ui.card
-        title="Commission Rules"
-        description="Configured commission ranges."
+        :title="__('commission_rules.table.title')"
+
+        :description="__('commission_rules.table.description')"
         class="mb-2 mt-2"
     >
 
@@ -166,10 +170,10 @@ new class extends Component {
 
         <x-ui.table-header>
         <x-ui.table-row>
-            <x-ui.table-head>From</x-ui.table-head>
-            <x-ui.table-head>To</x-ui.table-head>
-            <x-ui.table-head>Commission (AED)</x-ui.table-head>
-            <x-ui.table-head>Actions</x-ui.table-head>
+            <x-ui.table-head>{{ __('commission_rules.table.from') }}</x-ui.table-head>
+            <x-ui.table-head>{{ __('commission_rules.table.to') }}</x-ui.table-head>
+            <x-ui.table-head>{{ __('commission_rules.table.commission') }}</x-ui.table-head>
+            <x-ui.table-head>{{ __('commission_rules.table.actions') }}</x-ui.table-head>
         </x-ui.table-row>
         </x-ui.table-header>
 
@@ -184,10 +188,10 @@ new class extends Component {
                     <x-ui.table-cell>
                         <x-ui.button
                             variant="danger"
-                            wire:confirm="Delete this commission rule?"
+                            wire:confirm="{{ __('commission_rules.confirmations.delete') }}"
                             wire:click="deleteRule({{ $rule->id }})"
                         >
-                            Delete
+                            {{ __('commission_rules.buttons.delete') }}
                         </x-ui.button>
                     </x-ui.table-cell>
                 </x-ui.table-row>
@@ -202,8 +206,9 @@ new class extends Component {
                     >
 
                         <x-ui.empty-state
-                            title="No commission rules"
-                            description="Create your first commission rule."
+                            :title="__('commission_rules.empty_state.title')"
+
+                            :description="__('commission_rules.empty_state.description')"
                         />
 
                     </x-ui.table-cell>
@@ -221,8 +226,9 @@ new class extends Component {
     @if($showAddRuleForm)
 
         <x-ui.card
-            title="Add Commission Rule"
-            description="Create a new commission range."
+            :title="__('commission_rules.form.title')"
+
+            :description="__('commission_rules.form.description')"
         >
 
             <form
@@ -231,7 +237,7 @@ new class extends Component {
             >
 
                 <x-ui.input
-                    label="From"
+                    :label="__('commission_rules.fields.from')"
                     name="newRule.min_amount"
                     type="number"
                     step="0.01"
@@ -239,7 +245,7 @@ new class extends Component {
                 />
 
                 <x-ui.input
-                    label="To"
+                    :label="__('commission_rules.fields.to')"
                     name="newRule.max_amount"
                     type="number"
                     step="0.01"
@@ -247,7 +253,7 @@ new class extends Component {
                 />
 
                 <x-ui.input
-                    label="Commission (AED)"
+                    :label="__('commission_rules.fields.commission')"
                     name="newRule.commission_amount"
                     type="number"
                     step="0.01"
@@ -263,13 +269,13 @@ new class extends Component {
                         variant="secondary"
                         wire:click="closeAddRuleForm"
                     >
-                        Cancel
+                        {{ __('commission_rules.buttons.cancel') }}
                     </x-ui.button>
 
                     <x-ui.button
                         type="submit"
                     >
-                        Save Rule
+                        {{ __('commission_rules.buttons.save') }}
                     </x-ui.button>
 
                 </div>

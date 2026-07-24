@@ -15,5 +15,10 @@ enum CurrencyType: string
             self::ILS => 'ILS',
         };
     }
+
+    public function label(): string
+    {
+        return __("enums.currency.$this->value");
+    }
 }
 

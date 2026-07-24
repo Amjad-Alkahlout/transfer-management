@@ -26,7 +26,7 @@ new #[Layout('layouts::guest')] class extends Component {
 
             $this->addError(
                 'email',
-                'The provided credentials are incorrect or the account is inactive.'
+                __('auth.errors.invalid_credentials')
             );
 
             return;
@@ -40,8 +40,8 @@ new #[Layout('layouts::guest')] class extends Component {
 ?>
 
 <x-ui.card
-    title="Login"
-    description="Sign in to your account."
+    :title="__('auth.pages.login.title')"
+    :description="__('auth.pages.login.description')"
 >
 
     <form
@@ -50,14 +50,14 @@ new #[Layout('layouts::guest')] class extends Component {
     >
 
         <x-ui.input
-            label="Email"
+            :label="__('auth.pages.login.email')"
             name="email"
             type="email"
             wire:model="email"
         />
 
         <x-ui.input
-            label="Password"
+            :label="__('auth.pages.login.password')"
             name="password"
             type="password"
             wire:model="password"
@@ -76,7 +76,7 @@ new #[Layout('layouts::guest')] class extends Component {
                 for="remember"
                 class="text-sm text-gray-700"
             >
-                Remember me
+                {{ __('auth.pages.login.remember') }}
             </label>
 
         </div>
@@ -85,7 +85,7 @@ new #[Layout('layouts::guest')] class extends Component {
             type="submit"
             class="w-full"
         >
-            Login
+            {{ __('auth.pages.login.button') }}
         </x-ui.button>
 
     </form>

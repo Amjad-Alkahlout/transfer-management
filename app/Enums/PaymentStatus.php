@@ -7,4 +7,9 @@ enum PaymentStatus: string
     case UNPAID = 'unpaid';
     case PARTIALLY_PAID = 'partially_paid';
     case PAID = 'paid';
+
+    public function label(): string
+    {
+        return __("enums.payment_status.$this->value");
+    }
 }

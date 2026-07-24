@@ -34,7 +34,7 @@ class TransferCalculatorService
             $commissionInOperationCurrency >= $requestedAmount
         ) {
             throw new \InvalidArgumentException(
-                'The commission fee for this amount exceeds the amount itself. Please enter a higher amount or switch Fee Mode to EXCLUDED.'
+                __('services.transfer_calculator.included_fee_exceeds_amount')
             );
         }
 
@@ -87,7 +87,7 @@ class TransferCalculatorService
 
         if ($commissionInOperationCurrency >= $customerPayableAmount) {
             throw new \InvalidArgumentException(
-                'The commission fee for this amount exceeds the amount itself.'
+                __('services.transfer_calculator.fee_exceeds_amount')
             );
         }
 

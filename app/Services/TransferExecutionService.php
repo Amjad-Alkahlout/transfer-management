@@ -56,7 +56,7 @@ class TransferExecutionService
 
             if ($gazaCapital->balance < $totalDeduction) {
                 throw new \RuntimeException(
-                    'Insufficient balance in Gaza capital account.'
+                    __('services.transfer_execution.insufficient_gaza_capital')
                 );
             }
 

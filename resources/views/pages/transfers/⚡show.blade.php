@@ -63,7 +63,10 @@ class extends Component {
     {
         Gate::authorize('execute-transfer');
         if ($this->transfer->status !== TransferStatus::PENDING) {
-            $this->addError('general', 'This transfer cannot be executed in its current state.');
+            $this->addError(
+                'general',
+                __('transfers.errors.cannot_execute')
+            );
             return;
         }
 
@@ -95,7 +98,7 @@ class extends Component {
 
         session()->flash(
             'success',
-            'Transfer completed successfully.'
+            __('transfers.messages.completed')
         );
         return redirect()->route(
             'transfers.show',
@@ -107,7 +110,10 @@ class extends Component {
     {
         Gate::authorize('cancel-transfer');
         if ($this->transfer->status !== TransferStatus::PENDING) {
-            $this->addError('general', 'This transfer cannot be cancelled in its current state.');
+            $this->addError(
+                'general',
+                __('transfers.errors.cannot_cancel')
+            );
             return;
         }
         try {
@@ -127,7 +133,7 @@ class extends Component {
         event(new TransferCancelled($this->transfer));
         session()->flash(
             'success',
-            'Transfer cancelled successfully.'
+            __('transfers.messages.cancelled')
         );
 
         return redirect()->route(
@@ -143,7 +149,7 @@ class extends Component {
 
 <div>
     <x-ui.page-header
-        title="Transfer Details"
+        :title="__('transfers.page.show_title')"
         :description="$transfer->reference_number"
     >
 
@@ -155,19 +161,19 @@ class extends Component {
 
                     @case(TransferStatus::PENDING)
                         <x-ui.badge color="yellow">
-                            Pending
+                            {{ TransferStatus::PENDING->label() }}
                         </x-ui.badge>
                         @break
 
                     @case(TransferStatus::COMPLETED)
                         <x-ui.badge color="green">
-                            Completed
+                            {{ TransferStatus::COMPLETED->label() }}
                         </x-ui.badge>
                         @break
 
                     @case(TransferStatus::CANCELLED)
                         <x-ui.badge color="red">
-                            Cancelled
+                            {{ TransferStatus::CANCELLED->label() }}
                         </x-ui.badge>
                         @break
 
@@ -177,19 +183,19 @@ class extends Component {
 
                     @case(PaymentStatus::UNPAID)
                         <x-ui.badge color="red">
-                            Unpaid
+                            {{ PaymentStatus::UNPAID->label() }}
                         </x-ui.badge>
                         @break
 
                     @case(PaymentStatus::PARTIALLY_PAID)
                         <x-ui.badge color="orange">
-                            Partially Paid
+                            {{ PaymentStatus::PARTIALLY_PAID->label() }}
                         </x-ui.badge>
                         @break
 
                     @case(PaymentStatus::PAID)
                         <x-ui.badge color="green">
-                            Paid
+                            {{ PaymentStatus::PAID->label() }}
                         </x-ui.badge>
                         @break
 
@@ -199,7 +205,7 @@ class extends Component {
                     :href="route('transfers.index')"
                     variant="secondary"
                 >
-                    ← Back
+                    ← {{ __('transfers.buttons.back') }}
                 </x-ui.button>
 
             </div>
@@ -213,7 +219,7 @@ class extends Component {
 
     @if($transfer->status !== TransferStatus::CANCELLED)
 
-        <x-ui.card title="Actions">
+        <x-ui.card :title="__('transfers.sections.actions')">
 
             <div class="flex flex-wrap gap-3">
                 @can('receive-payment')
@@ -222,7 +228,7 @@ class extends Component {
                         <x-ui.button
                             :href="route('transfers.receive-payment',$transfer)"
                         >
-                            Receive Payment
+                            {{ __('transfers.buttons.receive_payment') }}
                         </x-ui.button>
 
                     @endif
@@ -232,7 +238,7 @@ class extends Component {
                     <x-ui.button
                         wire:click="openProofModal"
                     >
-                        View Proof
+                        {{ __('transfers.buttons.view_proof') }}
                     </x-ui.button>
                 @endif
 
@@ -244,7 +250,7 @@ class extends Component {
                                 :href="route('transfers.edit',$transfer)"
                                 variant="secondary"
                             >
-                                Edit
+                                {{ __('transfers.buttons.edit') }}
                             </x-ui.button>
 
                         @endif
@@ -254,7 +260,7 @@ class extends Component {
                             wire:click="openTransferProofForm"
                             variant="success"
                         >
-                            Execute Transfer
+                            {{ __('transfers.buttons.execute') }}
                         </x-ui.button>
                     @endcan
                     @can('cancel-transfer')
@@ -262,7 +268,7 @@ class extends Component {
                             wire:click="cancelTransfer"
                             variant="danger"
                         >
-                            Cancel Transfer
+                            {{ __('transfers.buttons.cancel_transfer') }}
                         </x-ui.button>
                     @endcan
 
@@ -276,34 +282,34 @@ class extends Component {
 
     <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {{-- Receiver --}}
-        <x-ui.card title="Receiver Information">
+        <x-ui.card :title="__('transfers.sections.receiver')">
 
             <p>
-                <strong>Reference:</strong>
+                <strong>{{ __('transfers.details.reference') }}:</strong>
                 {{ $transfer->reference_number }}
             </p>
 
             <p>
-                <strong>Name:</strong>
+                <strong>{{ __('transfers.details.name') }}:</strong>
                 {{ $transfer->receiver_name }}
             </p>
 
             <p>
-                <strong>Method:</strong>
-                {{ str($transfer->receiver_method->value)->replace('_', ' ')->title() }}
+                <strong>{{ __('transfers.details.method') }}:</strong>
+                {{ $transfer->receiver_method->label() }}
             </p>
 
             @if($transfer->receiver_method === ReceiverMethod::BANK)
 
                 <p>
-                    <strong>Bank Account:</strong>
+                    <strong>{{ __('transfers.details.bank_account') }}:</strong>
                     {{ $transfer->receiver_account_number }}
                 </p>
 
             @else
 
                 <p>
-                    <strong>Wallet Number:</strong>
+                    <strong>{{ __('transfers.details.wallet_number') }}:</strong>
                     {{ $transfer->receiver_wallet_phone }}
                 </p>
 
@@ -312,36 +318,36 @@ class extends Component {
 
 
         {{-- Transfer --}}
-        <x-ui.card title="Transfer Information">
+        <x-ui.card :title="__('transfers.sections.transfer')">
 
             <p>
-                <strong>Receiver Gets:</strong>
+                <strong>{{ __('transfers.details.receiver_gets') }}:</strong>
                 {{ $transfer->transfer_amount }}
                 {{ $transfer->requested_currency->symbol() }}
             </p>
 
             <p>
-                <strong>Customer Pays:</strong>
+                <strong>{{ __('transfers.details.customer_pays') }}:</strong>
                 {{ $transfer->customer_payable_amount }}
                 {{ $transfer->customer_payable_currency->symbol() }}
             </p>
 
             <p>
-                <strong>Commission:</strong>
+                <strong>{{ __('transfers.details.commission') }}:</strong>
                 {{ $transfer->commission_amount }}
                 {{ $transfer->commission_currency->symbol() }}
             </p>
             @if($transfer->calculation_mode === TransferCalculationMode::RECEIVER_AMOUNT)
                 <p>
-                    <strong>Fee Mode:</strong>
-                    {{ $transfer->fee_mode->name }}
+                    <strong>{{ __('transfers.details.fee_mode') }}:</strong>
+                    {{ $transfer->fee_mode->label() }}
                 </p>
             @endif
 
             <p>
-                <strong>Calculation Mode:</strong>
+                <strong>{{ __('transfers.details.calculation_mode') }}:</strong>
 
-                {{ str($transfer->calculation_mode->value)->replace('_', ' ')->title() }}
+                {{ $transfer->calculation_mode->label() }}
             </p>
 
         </x-ui.card>
@@ -350,17 +356,17 @@ class extends Component {
 
     <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2 mb-4">
         {{-- Payment --}}
-        <x-ui.card title="Payment">
+        <x-ui.card :title="__('transfers.sections.payment')">
 
             <p>
-                <strong>Paid:</strong>
+                <strong>{{ __('transfers.details.paid') }}:</strong>
 
                 {{ $transfer->paid_amount }}
                 {{ $transfer->customer_payable_currency->symbol() }}
             </p>
 
             <p>
-                <strong>Remaining:</strong>
+                <strong>{{ __('transfers.details.remaining') }}:</strong>
 
                 {{ $transfer->remaining_amount }}
                 {{ $transfer->customer_payable_currency->symbol() }}
@@ -370,16 +376,16 @@ class extends Component {
 
 
         {{-- Audit --}}
-        <x-ui.card title="Audit">
+        <x-ui.card :title="__('transfers.sections.audit')">
 
             <p>
-                <strong>Created By:</strong>
+                <strong>{{ __('transfers.details.created_by') }}:</strong>
 
                 {{ $transfer->creator?->name }}
             </p>
 
             <p>
-                <strong>Created At:</strong>
+                <strong>{{ __('transfers.details.created_at') }}:</strong>
 
                 {{ $transfer->created_at->format('d/m/Y H:i') }}
             </p>
@@ -387,7 +393,7 @@ class extends Component {
             @if($transfer->completed_at)
 
                 <p>
-                    <strong>Completed At:</strong>
+                    <strong>{{ __('transfers.details.completed_at') }}:</strong>
 
                     {{ $transfer->completed_at->format('d/m/Y H:i') }}
                 </p>
@@ -397,7 +403,7 @@ class extends Component {
             @if($transfer->cancelled_at)
 
                 <p>
-                    <strong>Cancelled At:</strong>
+                    <strong>{{ __('transfers.details.cancelled_at') }}:</strong>
 
                     {{ $transfer->cancelled_at->format('d/m/Y H:i') }}
                 </p>
@@ -409,7 +415,7 @@ class extends Component {
 
     @if($show_transfer_proof_form)
 
-        <x-ui.card title="Execute Transfer">
+        <x-ui.card :title="__('transfers.sections.execute_transfer')">
 
             @error('general')
             <x-ui.alert color="danger">
@@ -421,7 +427,7 @@ class extends Component {
 
                 <x-ui.input
                     type="file"
-                    label="Transfer Proof"
+                    :label="__('transfers.fields.transfer_proof')"
                     name="transfer_proof_path"
                     wire:model="transfer_proof_path"
                     class="mb-2"
@@ -431,7 +437,7 @@ class extends Component {
                     type="submit"
                     variant="success"
                 >
-                    Execute Transfer
+                    {{ __('transfers.buttons.execute') }}
                 </x-ui.button>
 
                 <x-ui.button
@@ -439,7 +445,7 @@ class extends Component {
                     variant="secondary"
                     wire:click="hideTransferProofForm"
                 >
-                    Cancel
+                    {{ __('transfers.buttons.cancel') }}
                 </x-ui.button>
 
             </form>
@@ -452,7 +458,7 @@ class extends Component {
     <x-ui.modal
         :show="$showProofModal"
         close="$set('showProofModal', false)"
-        title="Transfer Proof"
+        :title="__('transfers.modal.proof_title')"
         maxWidth="6xl"
     >
 
@@ -475,14 +481,14 @@ class extends Component {
                     variant="secondary"
                     class="mr-2"
                 >
-                    Download
+                    {{ __('transfers.buttons.download') }}
                 </x-ui.button>
 
                 <x-ui.button
                     variant="secondary"
                     wire:click="$set('showProofModal', false)"
                 >
-                    Close
+                    {{ __('transfers.buttons.close') }}
                 </x-ui.button>
 
             </div>

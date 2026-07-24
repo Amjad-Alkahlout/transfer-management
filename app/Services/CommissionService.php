@@ -24,7 +24,9 @@ class CommissionService
             ->first();
 
         if (! $rule) {
-            throw new Exception('No commission rule found for this amount.');
+            throw new Exception(
+                __('services.commission.rule_not_found')
+            );
         }
 
         return $rule;
@@ -41,7 +43,9 @@ class CommissionService
             ->first();
 
         if (! $rule) {
-            throw new Exception('No commission rule found for this amount.');
+            throw new Exception(
+                __('services.commission.rule_not_found')
+            );
         }
 
         return round(

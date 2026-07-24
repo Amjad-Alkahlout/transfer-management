@@ -33,39 +33,39 @@ class CapitalTransferService
     ): void {
         if ($fromAccount->is($toAccount)) {
             throw new RuntimeException(
-                'Source and destination accounts cannot be the same.'
+                __('services.capital_transfer.same_account')
             );
         }
         if ($fromAccount->account_type !== CapitalAccountType::CAPITAL) {
-            throw new RuntimeException('Source account must be a capital account.');
+            throw new RuntimeException(__('services.capital_transfer.source_must_be_capital'));
         }
 
         if ($toAccount->account_type !== CapitalAccountType::CAPITAL) {
-            throw new RuntimeException('Destination account must be a capital account.');
+            throw new RuntimeException(__('services.capital_transfer.destination_must_be_capital'));
         }
 
         if (! $fromAccount->is_active) {
-            throw new RuntimeException('Source account is inactive.');
+            throw new RuntimeException(__('services.capital_transfer.source_inactive'));
         }
 
         if (! $toAccount->is_active) {
-            throw new RuntimeException('Destination account is inactive.');
+            throw new RuntimeException(__('services.capital_transfer.destination_inactive'));
         }
 
         // Validate that the fromAccount has enough balance
         if ($fromAccount->balance < $sourceAmount + $transferCost) {
-            throw new RuntimeException('Insufficient balance in the source account.');
+            throw new RuntimeException(__('services.capital_transfer.insufficient_source_balance'));
         }
 
         if ($sourceAmount <= 0) {
             throw new InvalidArgumentException(
-                'Transfer amount must be greater than zero.'
+                __('services.capital_transfer.amount_must_be_positive')
             );
         }
 
         if ($transferCost < 0) {
             throw new InvalidArgumentException(
-                'Transfer cost cannot be negative.'
+                __('services.capital_transfer.cost_cannot_be_negative')
             );
         }
     }
@@ -79,7 +79,12 @@ class CapitalTransferService
             ->first();
         if (! $profitAccount) {
             throw new RuntimeException(
-                'No profit account found for currency: ' . $currency->symbol()
+                __(
+                    'services.capital_transfer.profit_account_not_found',
+                    [
+                        'currency' => $currency->symbol(),
+                    ]
+                )
             );
         }
 
@@ -110,7 +115,7 @@ class CapitalTransferService
 
         if ($destinationAmount <= 0) {
             throw new \RuntimeException(
-                'Calculated destination amount is invalid.'
+                __('services.capital_transfer.invalid_destination_amount')
             );
         }
 
@@ -192,7 +197,7 @@ class CapitalTransferService
 
         if ($destinationAmount <= 0) {
             throw new \RuntimeException(
-                'Calculated destination amount is invalid.'
+                __('services.capital_transfer.invalid_destination_amount')
             );
         }
 
@@ -221,7 +226,7 @@ class CapitalTransferService
             // Recheck after acquiring row locks to prevent race conditions.
 
             if ($fromAccount->balance < $totalDeduction) {
-                throw new RuntimeException('Insufficient balance in the source account.');
+                throw new RuntimeException(__('services.capital_transfer.insufficient_source_balance'));
             }
             $transfer = CapitalTransfer::create([
                 'from_account_id' => $fromAccount->id,
@@ -277,7 +282,7 @@ class CapitalTransferService
             $profitBefore = $profitAccount->balance;
             if ($profitBefore < $profitDeduction) {
                 throw new RuntimeException(
-                    'Insufficient balance in the Gaza profit account.'
+                    __('services.capital_transfer.insufficient_profit_balance')
                 );
             }
             $profitAfter = $profitBefore - $profitDeduction;

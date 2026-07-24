@@ -23,7 +23,7 @@ class TransferCancellationService
     {
         if ($transfer->status !== TransferStatus::PENDING) {
             throw new \RuntimeException(
-                'This transfer cannot be cancelled.'
+                __('services.transfer_cancellation.cannot_cancel')
             );
         }
 

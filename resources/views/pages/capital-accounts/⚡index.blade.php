@@ -111,7 +111,10 @@ class extends Component {
 
             return;
         }
-        session()->flash('success', 'Profit withdrawn successfully.');
+        session()->flash(
+            'success',
+            __('capital_accounts.messages.profit_withdrawn')
+        );
         $this->closeWithdrawProfitForm();
         unset($this->accounts);
     }
@@ -142,7 +145,7 @@ class extends Component {
         ) {
             $this->addError(
                 'account_type',
-                'Profit accounts can only be created for the Gaza branch.'
+                __('capital_accounts.errors.profit_branch_only')
             );
 
             return;
@@ -157,7 +160,7 @@ class extends Component {
         if ($exists) {
             $this->addError(
                 'currency',
-                'An account with the same branch, currency, and account type already exists.'
+                __('capital_accounts.errors.duplicate_account')
             );
 
             return;
@@ -195,7 +198,10 @@ class extends Component {
         });
         $this->closeAddAccountForm();
         unset($this->accounts);
-        session()->flash('success', 'Capital account added successfully.');
+        session()->flash(
+            'success',
+            __('capital_accounts.messages.created')
+        );
     }
 
 
@@ -207,8 +213,8 @@ class extends Component {
         $account->is_active = !$account->is_active;
         $account->save();
         $message = $account->is_active
-            ? 'Capital account activated successfully.'
-            : 'Capital account deactivated successfully.';
+            ? __('capital_accounts.messages.activated')
+            : __('capital_accounts.messages.deactivated');
 
         session()->flash('success', $message);
         unset($this->accounts);
@@ -229,7 +235,10 @@ class extends Component {
         ]);
         $this->closeEditAccountForm();
         unset($this->accounts);
-        session()->flash('success', 'Capital account updated successfully.');
+        session()->flash(
+            'success',
+            __('capital_accounts.messages.updated')
+        );
     }
 
 
@@ -247,8 +256,8 @@ class extends Component {
     <div>
 
         <x-ui.page-header
-            title="Capital Accounts"
-            description="Manage company capital accounts."
+            :title="__('capital_accounts.page.title')"
+            :description="__('capital_accounts.page.description')"
         >
 
             <x-slot:actions>
@@ -256,7 +265,7 @@ class extends Component {
                 <x-ui.button
                     wire:click="openAddAccountForm"
                 >
-                    Add Capital Account
+                    {{ __('capital_accounts.buttons.add') }}
                 </x-ui.button>
                 @endcan
 
@@ -272,48 +281,48 @@ class extends Component {
                 :href="route('dashboard')"
                 variant="secondary"
             >
-                ← Dashboard
+                ← {{ __('capital_accounts.buttons.back') }}
             </x-ui.button>
 
         </div>
         <x-ui.card
-            title="Capital Accounts"
-            description="All configured capital accounts."
+            :title="__('capital_accounts.table.title')"
+            :description="__('capital_accounts.table.description')"
         >
 
             <x-ui.table>
                 <x-ui.table-header>
                     <x-ui.table-row>
-                <x-ui.table-head>Name</x-ui.table-head>
-                    <x-ui.table-head>Branch</x-ui.table-head>
-                <x-ui.table-head>Currency</x-ui.table-head>
-                <x-ui.table-head>Current Balance</x-ui.table-head>
-                <x-ui.table-head>Account Type</x-ui.table-head>
-                <x-ui.table-head>Is Active</x-ui.table-head>
-                <x-ui.table-head>Actions</x-ui.table-head>
+                <x-ui.table-head>{{ __('capital_accounts.table.name') }}</x-ui.table-head>
+                    <x-ui.table-head>{{ __('capital_accounts.table.branch') }}</x-ui.table-head>
+                <x-ui.table-head>{{ __('capital_accounts.table.currency') }}</x-ui.table-head>
+                <x-ui.table-head>{{ __('capital_accounts.table.current_balance') }}</x-ui.table-head>
+                <x-ui.table-head>{{ __('capital_accounts.table.account_type') }}</x-ui.table-head>
+                <x-ui.table-head>{{ __('capital_accounts.table.is_active') }}</x-ui.table-head>
+                <x-ui.table-head>{{ __('capital_accounts.table.actions') }}</x-ui.table-head>
               </x-ui.table-row>
               </x-ui.table-header>
                 <x-ui.table-body>
                 @foreach ($this->accounts as $account)
                         <x-ui.table-row>
                             <x-ui.table-cell>{{ $account->name }}</x-ui.table-cell>
-                            <x-ui.table-cell>{{ $account->branch->name }}</x-ui.table-cell>
+                            <x-ui.table-cell>{{ $account->branch->label() }}</x-ui.table-cell>
                             <x-ui.table-cell>{{ $account->currency->symbol() }}</x-ui.table-cell>
                             <x-ui.table-cell>{{ number_format($account->balance,2) }}
                                 {{ $account->currency->symbol() }}</x-ui.table-cell>
-                            <x-ui.table-cell>{{ str($account->account_type->value)->replace('_',' ')->title() }}</x-ui.table-cell>
+                            <x-ui.table-cell>{{ $account->account_type->label() }}</x-ui.table-cell>
                             <x-ui.table-cell>
 
                                 @if($account->is_active)
 
                                     <x-ui.badge color="green">
-                                        Active
+                                        {{ __('capital_accounts.status.active') }}
                                     </x-ui.badge>
 
                                 @else
 
                                     <x-ui.badge color="red">
-                                        Inactive
+                                        {{ __('capital_accounts.status.inactive') }}
                                     </x-ui.badge>
 
                                 @endif
@@ -330,9 +339,9 @@ class extends Component {
                                             class="justify-center"
                                         >
                                             @if($account->is_active)
-                                                Deactivate
+                                                {{ __('capital_accounts.buttons.deactivate') }}
                                             @else
-                                                Activate
+                                                {{ __('capital_accounts.buttons.activate') }}
                                             @endif
                                         </x-ui.button>
 
@@ -342,7 +351,7 @@ class extends Component {
                                             wire:click="openEditAccountForm({{ $account->id }})"
                                             class="justify-center"
                                         >
-                                            Edit
+                                            {{ __('capital_accounts.buttons.edit') }}
                                         </x-ui.button>
 
 
@@ -352,7 +361,7 @@ class extends Component {
                                                 wire:click="openWithdrawProfitForm({{ $account->id }})"
                                                 class="justify-center"
                                             >
-                                                Withdraw Profit
+                                                {{ __('capital_accounts.buttons.withdraw_profit') }}
                                             </x-ui.button>
                                         @endif
                                     @endcan
@@ -371,8 +380,10 @@ class extends Component {
     @if($withdrawProfitForm)
 
         <x-ui.card
-            title="Withdraw Profit"
-            :description="'Withdraw profit from '.$selectedAccount->name"
+            :title="__('capital_accounts.forms.withdraw.title')"
+            :description="__('capital_accounts.forms.withdraw.description', [
+               'account' => $selectedAccount->name,
+              ])"
             class="mt-6"
         >
 
@@ -382,7 +393,7 @@ class extends Component {
             >
 
                 <x-ui.input
-                    label="Amount"
+                    :label="__('capital_accounts.fields.amount')"
                     name="withdrawAmount"
                     type="number"
                     step="0.01"
@@ -390,7 +401,7 @@ class extends Component {
                 />
 
                 <x-ui.textarea
-                    label="Notes"
+                    :label="__('capital_accounts.fields.notes')"
                     name="withdrawNotes"
                     rows="3"
                     wire:model="withdrawNotes"
@@ -402,14 +413,14 @@ class extends Component {
                         variant="secondary"
                         wire:click="closeWithdrawProfitForm"
                     >
-                        Cancel
+                        {{ __('general.cancel') }}
                     </x-ui.button>
 
                     <x-ui.button
                         type="submit"
                         variant="success"
                     >
-                        Withdraw Profit
+                        {{ __('capital_accounts.buttons.withdraw_profit') }}
                     </x-ui.button>
 
                 </div>
@@ -421,8 +432,8 @@ class extends Component {
     @if($showAddAccountForm)
 
         <x-ui.card
-            title="Add Capital Account"
-            description="Create a new capital account."
+            :title="__('capital_accounts.forms.add.title')"
+            :description="__('capital_accounts.forms.add.description')"
             class="mt-6"
         >
 
@@ -432,25 +443,25 @@ class extends Component {
             >
 
                 <x-ui.input
-                    label="Name"
+                    :label="__('capital_accounts.fields.name')"
                     name="name"
                     wire:model="name"
                 />
 
                 <x-ui.select
-                    label="Branch"
+                    :label="__('capital_accounts.fields.branch')"
                     name="branch"
                     wire:model="branch"
                 >
 
                     <option value="">
-                        Select Branch
+                        {{ __('capital_accounts.placeholders.select_branch') }}
                     </option>
 
                     @foreach(Branch::cases() as $case)
 
                         <option value="{{ $case->value }}">
-                            {{ $case->name }}
+                            {{ $case->label() }}
                         </option>
 
                     @endforeach
@@ -458,19 +469,19 @@ class extends Component {
                 </x-ui.select>
 
                 <x-ui.select
-                    label="Currency"
+                    :label="__('capital_accounts.fields.currency')"
                     name="currency"
                     wire:model="currency"
                 >
 
                     <option value="">
-                        Select Currency
+                        {{ __('capital_accounts.placeholders.select_currency') }}
                     </option>
 
                     @foreach(CurrencyType::cases() as $case)
 
                         <option value="{{ $case->value }}">
-                            {{ $case->name }}
+                            {{ $case->label() }}
                         </option>
 
                     @endforeach
@@ -478,19 +489,19 @@ class extends Component {
                 </x-ui.select>
 
                 <x-ui.select
-                    label="Account Type"
+                    :label="__('capital_accounts.fields.account_type')"
                     name="account_type"
                     wire:model="account_type"
                 >
 
                     <option value="">
-                        Select Account Type
+                        {{ __('capital_accounts.placeholders.select_account_type') }}
                     </option>
 
                     @foreach(CapitalAccountType::cases() as $case)
 
                         <option value="{{ $case->value }}">
-                            {{ $case->name }}
+                            {{ $case->label() }}
                         </option>
 
                     @endforeach
@@ -498,14 +509,14 @@ class extends Component {
                 </x-ui.select>
 
                 <x-ui.input
-                    label="Opening Balance"
+                    :label="__('capital_accounts.fields.opening_balance')"
                     name="opening_balance"
                     type="number"
                     step="0.01"
                     wire:model="opening_balance"
                 />
                 <x-ui.textarea
-                    label="Notes"
+                    :label="__('capital_accounts.fields.notes')"
                     name="notes"
                     rows="3"
                     wire:model="notes"
@@ -517,13 +528,13 @@ class extends Component {
                         variant="secondary"
                         wire:click="closeAddAccountForm"
                     >
-                        Cancel
+                        {{ __('general.cancel') }}
                     </x-ui.button>
 
                     <x-ui.button
                         type="submit"
                     >
-                        Add Capital Account
+                        {{ __('capital_accounts.buttons.add') }}
                     </x-ui.button>
 
                 </div>
@@ -534,8 +545,8 @@ class extends Component {
     @if($showEditAccountForm)
 
         <x-ui.card
-            title="Edit Capital Account"
-            description="Update account information."
+            :title="__('capital_accounts.forms.edit.title')"
+            :description="__('capital_accounts.forms.edit.description')"
             class="mt-6"
         >
 
@@ -544,13 +555,13 @@ class extends Component {
                 class="space-y-6"
             >
                 <x-ui.input
-                    label="Name"
+                    :label="__('capital_accounts.fields.name')"
                     name="name"
                     wire:model="name"
                 />
 
                 <x-ui.textarea
-                    label="Notes"
+                    :label="__('capital_accounts.fields.notes')"
                     name="notes"
                     rows="3"
                     wire:model="notes"
@@ -562,13 +573,13 @@ class extends Component {
                         variant="secondary"
                         wire:click="closeEditAccountForm"
                     >
-                        Cancel
+                        {{ __('general.cancel') }}
                     </x-ui.button>
 
                     <x-ui.button
                         type="submit"
                     >
-                        Update Capital Account
+                        {{ __('capital_accounts.buttons.update') }}
                     </x-ui.button>
 
                 </div>

@@ -181,7 +181,7 @@ new class extends Component {
 
         session()->flash(
             'success',
-            'Capital transfer completed successfully.'
+            __('capital_transfers.messages.completed')
         );
     }
 };
@@ -189,15 +189,15 @@ new class extends Component {
 
 <div>
     <x-ui.page-header
-        title="Capital Transfers"
-        description="Transfer funds between company accounts."
+        :title="__('capital_transfers.page.title')"
+        :description="__('capital_transfers.page.description')"
     >
         <x-slot:actions>
             @can('create-capital-transfer')
             <x-ui.button
                 wire:click="openTransferForm"
             >
-                New Capital Transfer
+                {{ __('capital_transfers.buttons.new_transfer') }}
             </x-ui.button>
             @endcan
 
@@ -212,14 +212,14 @@ new class extends Component {
             :href="route('dashboard')"
             variant="secondary"
         >
-            ← Dashboard
+            ← {{ __('capital_accounts.buttons.back') }}
         </x-ui.button>
 
     </div>
 
     <x-ui.card
-        title="Capital Transfers"
-        description="History of transfers between capital accounts."
+        :title="__('capital_transfers.table.title')"
+        :description="__('capital_transfers.table.description')"
     >
 
         <x-ui.table>
@@ -227,23 +227,23 @@ new class extends Component {
             <x-ui.table-header>
                 <x-ui.table-row>
 
-                <x-ui.table-head>From Account</x-ui.table-head>
+                <x-ui.table-head>{{ __('capital_transfers.table.from_account') }}</x-ui.table-head>
 
-                <x-ui.table-head>To Account</x-ui.table-head>
+                <x-ui.table-head>{{ __('capital_transfers.table.to_account') }}</x-ui.table-head>
 
-                <x-ui.table-head>Source Amount</x-ui.table-head>
+                <x-ui.table-head>{{ __('capital_transfers.table.source_amount') }}</x-ui.table-head>
 
-                <x-ui.table-head>Destination Amount</x-ui.table-head>
+                <x-ui.table-head>{{ __('capital_transfers.table.destination_amount') }}</x-ui.table-head>
 
-                <x-ui.table-head>Transfer Cost</x-ui.table-head>
+                <x-ui.table-head>{{ __('capital_transfers.table.transfer_cost') }}</x-ui.table-head>
 
-                <x-ui.table-head>Exchange Rate</x-ui.table-head>
+                <x-ui.table-head>{{ __('capital_transfers.table.exchange_rate') }}</x-ui.table-head>
 
-                <x-ui.table-head>Created By</x-ui.table-head>
+                <x-ui.table-head>{{ __('capital_transfers.table.created_by') }}</x-ui.table-head>
 
-                <x-ui.table-head>Created At</x-ui.table-head>
+                <x-ui.table-head>{{ __('capital_transfers.table.created_at') }}</x-ui.table-head>
 
-                <x-ui.table-head>Notes</x-ui.table-head>
+                <x-ui.table-head>{{ __('capital_transfers.table.notes') }}</x-ui.table-head>
                 </x-ui.table-row>
 
             </x-ui.table-header>
@@ -275,8 +275,8 @@ new class extends Component {
     @if($showTransferForm)
 
         <x-ui.card
-            title="New Capital Transfer"
-            description="Transfer funds between company accounts."
+            :title="__('capital_transfers.form.title')"
+            :description="__('capital_transfers.form.description')"
         >
 
             <form
@@ -284,13 +284,13 @@ new class extends Component {
                 class="space-y-6"
             >
                 <x-ui.select
-                    label="From Account"
+                    :label="__('capital_transfers.fields.from_account')"
                     name="from_account_id"
                     wire:model.live="from_account_id"
                 >
 
                     <option value="">
-                        Select Account
+                        {{ __('capital_transfers.placeholders.select_account') }}
                     </option>
 
                     @foreach($this->accounts as $account)
@@ -298,9 +298,9 @@ new class extends Component {
                         <option value="{{ $account->id }}">
                             {{ $account->name }}
                             -
-                            {{ $account->branch->name }}
+                            {{ $account->branch->label() }}
                             -
-                            {{ $account->currency->name }}
+                            {{ $account->currency->label() }}
                         </option>
 
                     @endforeach
@@ -308,24 +308,24 @@ new class extends Component {
                 </x-ui.select>
 
                 <x-ui.select
-                    label="To Account"
+                    :label="__('capital_transfers.fields.to_account')"
                     name="to_account_id"
                     wire:model.live="to_account_id"
                 >
-                        <option value="">Select Account</option>
+                        <option value="">{{ __('capital_transfers.placeholders.select_account') }}</option>
                         @foreach($this->accounts as $account)
                             <option value="{{ $account->id }}">{{ $account->name }}
                                 -
-                                {{ $account->branch->name }}
+                                {{ $account->branch->label() }}
                                 -
-                                {{ $account->currency->name }}</option>
+                                {{ $account->currency->label() }}</option>
                         @endforeach
                 </x-ui.select>
 
 
 
                 <x-ui.input
-                    label="Amount"
+                    :label="__('capital_transfers.fields.amount')"
                     name="source_amount"
                     type="number"
                     step="0.01"
@@ -333,7 +333,7 @@ new class extends Component {
                 />
 
                 <x-ui.input
-                    label="Transfer Cost"
+                    :label="__('capital_transfers.fields.transfer_cost')"
                     name="transfer_cost"
                     type="number"
                     step="0.01"
@@ -341,7 +341,7 @@ new class extends Component {
                 />
 
                 <x-ui.textarea
-                    label="Notes"
+                    :label="__('capital_transfers.fields.notes')"
                     name="notes"
                     rows="3"
                     wire:model="notes"
@@ -358,14 +358,14 @@ new class extends Component {
                 @if($preview)
 
                     <x-ui.card
-                        title="Transfer Preview"
-                        description="Review the transfer before submitting."
+                        :title="__('capital_transfers.preview.title')"
+                        :description="__('capital_transfers.preview.description')"
                     >
 
                         <div class="grid grid-cols-2 gap-y-4">
 
                             <div class="text-sm text-gray-500">
-                                From Account
+                                {{ __('capital_transfers.preview.from_account') }}
                             </div>
 
                             <div class="font-semibold">
@@ -373,7 +373,7 @@ new class extends Component {
                             </div>
 
                             <div class="text-sm text-gray-500">
-                                To Account
+                                {{ __('capital_transfers.preview.to_account') }}
                             </div>
 
                             <div class="font-semibold">
@@ -381,7 +381,7 @@ new class extends Component {
                             </div>
 
                             <div class="text-sm text-gray-500">
-                                Transfer Amount
+                                {{ __('capital_transfers.preview.transfer_amount') }}
                             </div>
 
                             <div class="font-semibold">
@@ -390,7 +390,7 @@ new class extends Component {
                             </div>
 
                             <div class="text-sm text-gray-500">
-                                Transfer Cost
+                                {{ __('capital_transfers.preview.transfer_cost') }}
                             </div>
 
                             <div class="font-semibold">
@@ -399,7 +399,7 @@ new class extends Component {
                             </div>
 
                             <div class="text-sm text-gray-500">
-                                Total Deduction
+                                {{ __('capital_transfers.preview.total_deduction') }}
                             </div>
 
                             <div class="rounded-lg bg-red-50 px-3 py-2 font-semibold text-red-700">
@@ -408,7 +408,7 @@ new class extends Component {
                             </div>
 
                             <div class="text-sm text-gray-500">
-                                Exchange Rate
+                                {{ __('capital_transfers.preview.exchange_rate') }}
                             </div>
 
                             <div class="font-semibold">
@@ -419,7 +419,7 @@ new class extends Component {
                             </div>
 
                             <div class="text-sm text-gray-500">
-                                Destination Amount
+                                {{ __('capital_transfers.preview.destination_amount') }}
                             </div>
 
                             <div class="rounded-lg bg-green-50 px-3 py-2 font-semibold text-green-700">
@@ -440,13 +440,13 @@ new class extends Component {
                         variant="secondary"
                         wire:click="closeTransferForm"
                     >
-                        Cancel
+                        {{ __('capital_transfers.buttons.cancel') }}
                     </x-ui.button>
 
                     <x-ui.button
                         type="submit"
                     >
-                        Submit Transfer
+                        {{ __('capital_transfers.buttons.submit') }}
                     </x-ui.button>
 
                 </div>

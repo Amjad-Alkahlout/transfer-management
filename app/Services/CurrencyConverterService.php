@@ -26,7 +26,9 @@ class CurrencyConverterService
         $toRate = $rates[$to->value] ?? null;
 
         if (! $fromRate || ! $toRate) {
-            throw new Exception('Exchange rate not found.');
+            throw new Exception(
+                __('services.currency_converter.exchange_rate_not_found')
+            );
         }
 
         return $fromRate->rate_to_usd / $toRate->rate_to_usd;

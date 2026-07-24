@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>{{ $title ?? 'Money Transfer System' }}</title>
+    <title>{{ $title ?? __('general.app.name') }}</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -23,15 +23,22 @@
 
             <div>
                 <h1 class="text-xl font-bold text-blue-600">
-                    Money Transfer System
+                    {{ __('general.app.name') }}
                 </h1>
             </div>
 
             <div class="flex items-center gap-4">
 
-                    <span class="text-sm text-gray-600">
-                        {{ auth()->user()->name }}
-                    </span>
+                <a
+                    href="{{ route('locale.switch', app()->getLocale() === 'ar' ? 'en' : 'ar') }}"
+                    class="text-sm font-medium text-blue-600 hover:underline"
+                >
+                    {{ app()->getLocale() === 'ar' ? 'English' : 'العربية' }}
+                </a>
+
+                <span class="text-sm text-gray-600">
+                 {{ auth()->user()->name }}
+               </span>
 
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
@@ -40,7 +47,7 @@
                         type="submit"
                         class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
                     >
-                        Logout
+                        {{ __('general.buttons.logout') }}
                     </button>
                 </form>
 

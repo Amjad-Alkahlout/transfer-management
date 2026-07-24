@@ -10,7 +10,7 @@
     >
 
     <title>
-        {{ $title ?? 'Money Transfer System' }}
+        {{ $title ?? __('general.app.name') }}
     </title>
 
     @vite([

@@ -154,7 +154,7 @@ new #[Layout('layouts::app')] class extends Component {
         if ($this->transfer->status !== TransferStatus::PENDING || $this->transfer->payment_status !== PaymentStatus::UNPAID) {
             $this->addError(
                 'general',
-                'Only pending unpaid transfers can be updated.'
+                __('transfers.errors.only_pending_unpaid')
             );
 
             return;
@@ -244,7 +244,7 @@ new #[Layout('layouts::app')] class extends Component {
         ]);
 
         $this->transfer->save();
-        session()->flash('success', 'Transfer updated successfully.');
+        session()->flash('success', __('transfers.messages.updated'));
         return redirect()->route(
             'transfers.show',
             $this->transfer
@@ -266,7 +266,7 @@ new #[Layout('layouts::app')] class extends Component {
 
 <div>
     <x-ui.page-header
-        title="Update Transfer"
+        :title="__('transfers.page.update_title')"
         :description="$transfer->reference_number"
     >
         <x-slot:actions>
@@ -275,7 +275,7 @@ new #[Layout('layouts::app')] class extends Component {
                 :href="route('transfers.show', $transfer)"
                 variant="secondary"
             >
-                ← Back
+                ← {{ __('transfers.buttons.back') }}
             </x-ui.button>
 
         </x-slot:actions>
@@ -289,12 +289,13 @@ new #[Layout('layouts::app')] class extends Component {
     >
 
         <x-ui.form-section
-            title="Receiver Information"
-            description="Receiver details and delivery method."
+            :title="__('transfers.receiver.title')"
+
+            :description="__('transfers.receiver.description')"
         >
 
             <x-ui.select
-                label="Calculation Mode"
+                :label="__('transfers.fields.calculation_mode')"
                 name="calculation_mode"
                 wire:model.live="calculation_mode"
             >
@@ -302,7 +303,7 @@ new #[Layout('layouts::app')] class extends Component {
                 @foreach(TransferCalculationMode::cases() as $mode)
 
                     <option value="{{ $mode->value }}">
-                        {{ str($mode->value)->replace('_',' ')->title() }}
+                        {{ $mode->label() }}
                     </option>
 
                 @endforeach
@@ -310,13 +311,13 @@ new #[Layout('layouts::app')] class extends Component {
             </x-ui.select>
 
             <x-ui.input
-                label="Receiver Name"
+                :label="__('transfers.fields.receiver_name')"
                 name="receiver_name"
                 wire:model="receiver_name"
             />
 
             <x-ui.select
-                label="Receiver Method"
+                :label="__('transfers.fields.receiver_method')"
                 name="receiver_method"
                 wire:model.live="receiver_method"
             >
@@ -324,7 +325,7 @@ new #[Layout('layouts::app')] class extends Component {
                 @foreach(ReceiverMethod::cases() as $method)
 
                     <option value="{{ $method->value }}">
-                        {{ $method->name }}
+                        {{ $method->label() }}
                     </option>
 
                 @endforeach
@@ -334,7 +335,7 @@ new #[Layout('layouts::app')] class extends Component {
             @if($receiver_method === ReceiverMethod::BANK->value)
 
                 <x-ui.input
-                    label="Receiver Bank Account Number"
+                    :label="__('transfers.fields.receiver_account_number')"
                     name="receiver_account_number"
                     wire:model="receiver_account_number"
                 />
@@ -342,7 +343,7 @@ new #[Layout('layouts::app')] class extends Component {
             @elseif($receiver_method === ReceiverMethod::WALLET->value)
 
                 <x-ui.input
-                    label="Receiver Wallet Number"
+                    :label="__('transfers.fields.receiver_wallet_number')"
                     name="receiver_wallet_phone"
                     wire:model="receiver_wallet_phone"
                 />
@@ -352,12 +353,12 @@ new #[Layout('layouts::app')] class extends Component {
         </x-ui.form-section>
 
         <x-ui.form-section
-            title="Transfer Information"
-            description="Transfer calculation settings."
+            :title="__('transfers.transfer.title')"
+            :description="__('transfers.transfer.description')"
         >
 
             <x-ui.select
-                label="Requested Currency"
+                :label="__('transfers.fields.requested_currency')"
                 name="requested_currency"
                 wire:model.live="requested_currency"
             >
@@ -365,7 +366,7 @@ new #[Layout('layouts::app')] class extends Component {
                 @foreach(CurrencyType::cases() as $currency)
 
                     <option value="{{ $currency->value }}">
-                        {{ $currency->name }}
+                        {{ $currency->label() }}
                     </option>
 
                 @endforeach
@@ -375,7 +376,7 @@ new #[Layout('layouts::app')] class extends Component {
             @if($calculation_mode === TransferCalculationMode::RECEIVER_AMOUNT->value)
 
                 <x-ui.select
-                    label="Fee Mode"
+                    :label="__('transfers.fields.fee_mode')"
                     name="fee_mode"
                     wire:model.live="fee_mode"
                 >
@@ -383,7 +384,7 @@ new #[Layout('layouts::app')] class extends Component {
                     @foreach(FeeMode::cases() as $feeMode)
 
                         <option value="{{ $feeMode->value }}">
-                            {{ $feeMode->name }}
+                            {{ $feeMode->label() }}
                         </option>
 
                     @endforeach
@@ -391,7 +392,7 @@ new #[Layout('layouts::app')] class extends Component {
                 </x-ui.select>
 
                 <x-ui.input
-                    label="Receiver Amount"
+                    :label="__('transfers.fields.receiver_amount')"
                     name="requested_amount"
                     type="number"
                     step="0.01"
@@ -401,7 +402,7 @@ new #[Layout('layouts::app')] class extends Component {
             @else
 
                 <x-ui.input
-                    label="Customer Pay Amount"
+                    :label="__('transfers.fields.customer_pay_amount')"
                     name="customer_payable_amount"
                     type="number"
                     step="0.01"
@@ -411,7 +412,7 @@ new #[Layout('layouts::app')] class extends Component {
             @endif
 
             <x-ui.select
-                label="Customer Payable Currency"
+                :label="__('transfers.fields.customer_payable_currency')"
                 name="customer_payable_currency"
                 wire:model.live="customer_payable_currency"
             >
@@ -419,7 +420,7 @@ new #[Layout('layouts::app')] class extends Component {
                 @foreach(CurrencyType::cases() as $currency)
 
                     <option value="{{ $currency->value }}">
-                        {{ $currency->name }}
+                        {{ $currency->label() }}
                     </option>
 
                 @endforeach
@@ -429,12 +430,12 @@ new #[Layout('layouts::app')] class extends Component {
         </x-ui.form-section>
 
         <x-ui.form-section
-            title="Additional Information"
+            :title="__('transfers.additional.title')"
             class="grid-cols-1"
         >
 
             <x-ui.textarea
-                label="Notes"
+                :label="__('transfers.fields.notes')"
                 name="notes"
                 rows="4"
                 wire:model="notes"
@@ -445,8 +446,9 @@ new #[Layout('layouts::app')] class extends Component {
         @if($calculation)
 
             <x-ui.card
-                title="Calculation Preview"
-                description="Live calculation based on the current values."
+                :title="__('transfers.preview.title')"
+
+                :description="__('transfers.preview.description')"
                 class="mt-6"
             >
 
@@ -455,7 +457,7 @@ new #[Layout('layouts::app')] class extends Component {
                     <div class="grid grid-cols-2 gap-y-4">
 
                         <div class="text-sm font-medium text-gray-500">
-                            Receiver Gets
+                            {{ __('transfers.preview.receiver_gets') }}
                         </div>
 
                         <div class="font-semibold">
@@ -464,7 +466,7 @@ new #[Layout('layouts::app')] class extends Component {
                         </div>
 
                         <div class="text-sm font-medium text-gray-500">
-                            Customer Pays
+                            {{ __('transfers.preview.customer_pays') }}
                         </div>
 
                         <div class="font-semibold">
@@ -473,7 +475,7 @@ new #[Layout('layouts::app')] class extends Component {
                         </div>
 
                         <div class="text-sm font-medium text-gray-500">
-                            Commission
+                            {{ __('transfers.preview.commission') }}
                         </div>
 
                         <div class="font-semibold text-green-600">
@@ -488,7 +490,7 @@ new #[Layout('layouts::app')] class extends Component {
                     <div class="grid grid-cols-2 gap-y-4">
 
                         <div class="text-sm font-medium text-gray-500">
-                            Customer Pays
+                            {{ __('transfers.preview.customer_pays') }}
                         </div>
 
                         <div class="font-semibold">
@@ -497,7 +499,7 @@ new #[Layout('layouts::app')] class extends Component {
                         </div>
 
                         <div class="text-sm font-medium text-gray-500">
-                            Receiver Gets
+                            {{ __('transfers.preview.receiver_gets') }}
                         </div>
 
                         <div class="font-semibold">
@@ -506,7 +508,7 @@ new #[Layout('layouts::app')] class extends Component {
                         </div>
 
                         <div class="text-sm font-medium text-gray-500">
-                            Commission
+                            {{ __('transfers.preview.commission') }}
                         </div>
 
                         <div class="font-semibold text-green-600">
@@ -530,13 +532,13 @@ new #[Layout('layouts::app')] class extends Component {
                 variant="secondary"
                 wire:click="cancelEdit"
             >
-                Cancel
+                {{ __('transfers.buttons.cancel') }}
             </x-ui.button>
 
             <x-ui.button
                 type="submit"
             >
-                Update Transfer
+                {{ __('transfers.buttons.update') }}
             </x-ui.button>
 
         </div>

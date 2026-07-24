@@ -16,4 +16,9 @@ enum CapitalTransactionType: string
     case PROFIT_WITHDRAWAL = 'profit_withdrawal';
 
     case TRANSFER_CANCELLATION = 'transfer_cancellation';
+
+    public function label(): string
+    {
+        return __("enums.capital_transaction_type.$this->value");
+    }
 }

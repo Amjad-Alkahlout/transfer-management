@@ -26,18 +26,18 @@ class ReceivePaymentService
     ): void {
         if ($transfer->payment_status === PaymentStatus::PAID) {
             throw new \RuntimeException(
-                'This transfer has already been fully paid.'
+                __('services.receive_payment.already_paid')
             );
         }
         if ($transfer->status === TransferStatus::CANCELLED) {
             throw new \RuntimeException(
-                'This transfer has been cancelled. No further payments can be received.'
+                __('services.receive_payment.transfer_cancelled')
             );
         }
 
         if ($paymentAmount > $transfer->remaining_amount) {
             throw new \RuntimeException(
-                'Payment amount cannot exceed the remaining balance.'
+                __('services.receive_payment.payment_exceeds_remaining')
             );
         }
 

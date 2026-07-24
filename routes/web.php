@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\TelegramWebhookController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\App;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -14,6 +15,21 @@ Route::livewire('/login', 'pages::auth.login')
 
 Route::post('/telegram/webhook', TelegramWebhookController::class)
     ->name('telegram.webhook');
+
+Route::get('/locale/{locale}', function (string $locale) {
+
+    if (! in_array($locale, config('app.available_locales'))) {
+        abort(404);
+    }
+
+    session()->put('locale', $locale);
+
+    App::setLocale($locale);
+
+    return back();
+
+})->name('locale.switch');
+
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])
