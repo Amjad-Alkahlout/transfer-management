@@ -77,7 +77,8 @@ new class extends Component {
                 :href="route('transfers.show', $transfer)"
                 variant="secondary"
             >
-                ← {{ __('receive_payment.buttons.back') }}
+                {{ app()->getLocale() === 'ar' ? '→' : '←' }}
+                {{ __('receive_payment.buttons.back') }}
             </x-ui.button>
 
         </x-slot:actions>

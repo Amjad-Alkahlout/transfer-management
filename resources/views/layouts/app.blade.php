@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html
+    lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+    dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}"
+>
 
 <head>
     <meta charset="UTF-8">
@@ -27,7 +30,7 @@
                 </h1>
             </div>
 
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-4 whitespace-nowrap">
 
                 <a
                     href="{{ route('locale.switch', app()->getLocale() === 'ar' ? 'en' : 'ar') }}"

@@ -212,7 +212,13 @@ new class extends Component {
             :href="route('dashboard')"
             variant="secondary"
         >
-            ← {{ __('capital_accounts.buttons.back') }}
+            @if(app()->getLocale() === 'ar')
+                →
+            @else
+                ←
+            @endif
+
+            {{ __('capital_accounts.buttons.back') }}
         </x-ui.button>
 
     </div>
@@ -362,43 +368,43 @@ new class extends Component {
                         :description="__('capital_transfers.preview.description')"
                     >
 
-                        <div class="grid grid-cols-2 gap-y-4">
+                        <div class="grid grid-cols-2 gap-y-4 items-center">
 
-                            <div class="text-sm text-gray-500">
+                            <div class="text-sm text-gray-500 text-start">
                                 {{ __('capital_transfers.preview.from_account') }}
                             </div>
 
-                            <div class="font-semibold">
+                            <div class="font-semibold text-start">
                                 {{ $this->fromAccount?->name }}
                             </div>
 
-                            <div class="text-sm text-gray-500">
+                            <div class="text-sm text-gray-500 text-start">
                                 {{ __('capital_transfers.preview.to_account') }}
                             </div>
 
-                            <div class="font-semibold">
+                            <div class="font-semibold text-start">
                                 {{ $this->toAccount?->name }}
                             </div>
 
-                            <div class="text-sm text-gray-500">
+                            <div class="text-sm text-gray-500 text-start">
                                 {{ __('capital_transfers.preview.transfer_amount') }}
                             </div>
 
-                            <div class="font-semibold">
+                            <div class="font-semibold text-start">
                                 {{ number_format($source_amount,2) }}
                                 {{ $this->fromAccount?->currency->symbol() }}
                             </div>
 
-                            <div class="text-sm text-gray-500">
+                            <div class="text-sm text-gray-500 text-start">
                                 {{ __('capital_transfers.preview.transfer_cost') }}
                             </div>
 
-                            <div class="font-semibold">
+                            <div class="font-semibold text-start">
                                 {{ number_format($transfer_cost,2) }}
                                 {{ $this->fromAccount?->currency->symbol() }}
                             </div>
 
-                            <div class="text-sm text-gray-500">
+                            <div class="text-sm text-gray-500 text-start">
                                 {{ __('capital_transfers.preview.total_deduction') }}
                             </div>
 
@@ -407,11 +413,11 @@ new class extends Component {
                                 {{ $this->fromAccount?->currency->symbol() }}
                             </div>
 
-                            <div class="text-sm text-gray-500">
+                            <div class="text-sm text-gray-500 text-start">
                                 {{ __('capital_transfers.preview.exchange_rate') }}
                             </div>
 
-                            <div class="font-semibold">
+                            <div class="font-semibold text-start">
                                 1 {{ $this->fromAccount?->currency->symbol() }}
                                 =
                                 {{ number_format($preview['exchange_rate'], 4) }}

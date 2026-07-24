@@ -281,7 +281,8 @@ class extends Component {
                 :href="route('dashboard')"
                 variant="secondary"
             >
-                ← {{ __('capital_accounts.buttons.back') }}
+                {{ app()->getLocale() === 'ar' ? '→' : '←' }}
+                {{ __('capital_accounts.buttons.back') }}
             </x-ui.button>
 
         </div>

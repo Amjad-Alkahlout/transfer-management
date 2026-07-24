@@ -767,7 +767,7 @@ class extends Component {
                         variant="secondary"
                         wire:click="closeTelegramModal"
                     >
-                        Close
+                        {{ __('dashboard.telegram.close') }}
                     </x-ui.button>
 
                 </div>

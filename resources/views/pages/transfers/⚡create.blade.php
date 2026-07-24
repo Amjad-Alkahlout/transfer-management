@@ -302,7 +302,8 @@ class extends Component {
                 :href="route('transfers.index')"
                 variant="secondary"
             >
-                ← {{ __('transfers.buttons.back') }}
+                {{ app()->getLocale() === 'ar' ? '→' : '←' }}
+                {{ __('transfers.buttons.back') }}
             </x-ui.button>
 
         </x-slot:actions>
@@ -515,27 +516,27 @@ class extends Component {
 
                 @if($calculationMode === TransferCalculationMode::RECEIVER_AMOUNT->value)
 
-                    <div class="grid grid-cols-2 gap-y-4">
+                    <div class="grid grid-cols-2 gap-y-4 items-center">
 
-                        <div class="text-sm font-medium text-gray-500">
+                        <div class="text-sm font-medium text-gray-500 text-start">
                             {{ __('transfers.preview.receiver_gets') }}
                         </div>
 
-                        <div class="font-semibold">
+                        <div class="font-semibold text-start">
                             {{ $this->calculation['transfer_amount'] }}
                             {{ CurrencyType::from($requested_currency)->symbol() }}
                         </div>
 
-                        <div class="text-sm font-medium text-gray-500">
+                        <div class="text-sm font-medium text-gray-500 text-start">
                             {{ __('transfers.preview.customer_pays') }}
                         </div>
 
-                        <div class="font-semibold">
+                        <div class="font-semibold text-start">
                             {{ $calculation['customer_payable_amount'] }}
                             {{ $calculation['customer_payable_currency']->symbol() }}
                         </div>
 
-                        <div class="text-sm font-medium text-gray-500">
+                        <div class="text-sm font-medium text-gray-500 text-start">
                             {{ __('transfers.preview.commission') }}
                         </div>
 
@@ -548,27 +549,27 @@ class extends Component {
 
                 @else
 
-                    <div class="grid grid-cols-2 gap-y-4">
+                    <div class="grid grid-cols-2 gap-y-4 items-center">
 
-                        <div class="text-sm font-medium text-gray-500">
+                        <div class="text-sm font-medium text-gray-500 text-start">
                             {{ __('transfers.preview.customer_pays') }}
                         </div>
 
-                        <div class="font-semibold">
+                        <div class="font-semibold text-start">
                             {{ $calculation['customer_payable_amount'] }}
                             {{ $calculation['customer_payable_currency']->symbol() }}
                         </div>
 
-                        <div class="text-sm font-medium text-gray-500">
+                        <div class="text-sm font-medium text-gray-500 text-start">
                             {{ __('transfers.preview.receiver_gets') }}
                         </div>
 
-                        <div class="font-semibold">
+                        <div class="font-semibold text-start">
                             {{ $this->calculation['transfer_amount'] }}
                             {{ CurrencyType::from($requested_currency)->symbol() }}
                         </div>
 
-                        <div class="text-sm font-medium text-gray-500">
+                        <div class="text-sm font-medium text-gray-500 text-start">
                             {{ __('transfers.preview.commission') }}
                         </div>
 

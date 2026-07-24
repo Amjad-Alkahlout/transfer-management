@@ -205,7 +205,8 @@ class extends Component {
                     :href="route('transfers.index')"
                     variant="secondary"
                 >
-                    ← {{ __('transfers.buttons.back') }}
+                    {{ app()->getLocale() === 'ar' ? '→' : '←' }}
+                    {{ __('transfers.buttons.back') }}
                 </x-ui.button>
 
             </div>
@@ -469,7 +470,7 @@ class extends Component {
 
         <x-slot:footer>
 
-            <div class="flex justify-end">
+            <div class="flex justify-end gap-2">
 
                 @php
                     $extension = pathinfo($transfer->transfer_proof_path, PATHINFO_EXTENSION);
@@ -479,7 +480,6 @@ class extends Component {
                     :href="Storage::url($transfer->transfer_proof_path)"
                     :download="'Transfer-Proof: '.$transfer->receiver_name.'.'.$extension"
                     variant="secondary"
-                    class="mr-2"
                 >
                     {{ __('transfers.buttons.download') }}
                 </x-ui.button>

@@ -184,7 +184,8 @@ new class extends Component {
                 <x-ui.table-row wire:key="commission-rule-{{ $rule->id }}">
                     <x-ui.table-cell>{{ $rule->min_amount }}</x-ui.table-cell>
                     <x-ui.table-cell>{{ $rule->max_amount }}</x-ui.table-cell>
-                    <x-ui.table-cell>{{ $rule->commission_amount }} AED</x-ui.table-cell>
+                    <x-ui.table-cell>{{ $rule->commission_amount }}
+                        {{ \App\Enums\CurrencyType::AED->symbol() }}</x-ui.table-cell>
                     <x-ui.table-cell>
                         <x-ui.button
                             variant="danger"
