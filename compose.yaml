@@ -21,6 +21,26 @@ services:
         networks:
             - transfer-network
 
+    queue-worker:
+       build:
+          context: .
+          dockerfile: Dockerfile
+       container_name: transfer-queue-worker
+       restart: unless-stopped
+       working_dir: /var/www/html
+       env_file:
+         - .env
+       environment:
+          CONTAINER_ROLE: queue-worker
+       depends_on:
+          mysql:
+              condition: service_healthy
+          app:
+              condition: service_started
+       networks:
+          - transfer-network
+
+
     nginx:
         build:
             context: .
