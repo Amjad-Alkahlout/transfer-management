@@ -72,7 +72,7 @@ return [
         'update' => 'تحديث الحوالة',
         'receive_payment' => 'استلام دفعة',
 
-        'view_proof' => 'عرض الإثبات',
+        'view_proof' => 'عرض اثبات التحويل',
 
         'edit' => 'تعديل',
 

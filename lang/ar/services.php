@@ -25,6 +25,7 @@ return [
         'invalid_destination_amount' => 'المبلغ المحول إلى الحساب الوجهة غير صالح.',
 
         'insufficient_profit_balance' => 'الرصيد غير كافٍ في حساب أرباح غزة.',
+        'profit_distribution_no_cost' => 'عملية توزيع الأرباح لا تقبل إضافة تكلفة تحويل.',
 
     ],
     'commission' => [
@@ -73,6 +74,11 @@ return [
 
         'insufficient_gaza_capital' => 'الرصيد غير كافٍ في حساب رأس المال - غزة.',
 
+    ],
+    'capital_account_adjustment' => [
+        'inactive_account' => 'لا يمكن تعديل رصيد حساب غير نشط.',
+        'amount_must_be_positive' => 'يجب أن يكون المبلغ أكبر من صفر.',
+        'insufficient_balance' => 'الرصيد الحالي غير كافٍ لإتمام عملية الخصم.',
     ],
 
 ];

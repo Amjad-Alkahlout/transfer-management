@@ -129,7 +129,7 @@ new class extends Component {
                     $to,
                     (float) $this->source_amount,
                     (float) $this->transfer_cost,
-            );
+                );
         } catch (\Exception $e) {
             $this->preview = null;
 
@@ -194,17 +194,17 @@ new class extends Component {
     >
         <x-slot:actions>
             @can('create-capital-transfer')
-            <x-ui.button
-                wire:click="openTransferForm"
-            >
-                {{ __('capital_transfers.buttons.new_transfer') }}
-            </x-ui.button>
+                <x-ui.button
+                    wire:click="openTransferForm"
+                >
+                    {{ __('capital_transfers.buttons.new_transfer') }}
+                </x-ui.button>
             @endcan
 
         </x-slot:actions>
 
     </x-ui.page-header>
-<x-ui.flash/>
+    <x-ui.flash/>
 
     <div class="mb-6">
 
@@ -233,28 +233,28 @@ new class extends Component {
             <x-ui.table-header>
                 <x-ui.table-row>
 
-                <x-ui.table-head>{{ __('capital_transfers.table.from_account') }}</x-ui.table-head>
+                    <x-ui.table-head>{{ __('capital_transfers.table.from_account') }}</x-ui.table-head>
 
-                <x-ui.table-head>{{ __('capital_transfers.table.to_account') }}</x-ui.table-head>
+                    <x-ui.table-head>{{ __('capital_transfers.table.to_account') }}</x-ui.table-head>
 
-                <x-ui.table-head>{{ __('capital_transfers.table.source_amount') }}</x-ui.table-head>
+                    <x-ui.table-head>{{ __('capital_transfers.table.source_amount') }}</x-ui.table-head>
 
-                <x-ui.table-head>{{ __('capital_transfers.table.destination_amount') }}</x-ui.table-head>
+                    <x-ui.table-head>{{ __('capital_transfers.table.destination_amount') }}</x-ui.table-head>
 
-                <x-ui.table-head>{{ __('capital_transfers.table.transfer_cost') }}</x-ui.table-head>
+                    <x-ui.table-head>{{ __('capital_transfers.table.transfer_cost') }}</x-ui.table-head>
 
-                <x-ui.table-head>{{ __('capital_transfers.table.exchange_rate') }}</x-ui.table-head>
+                    <x-ui.table-head>{{ __('capital_transfers.table.exchange_rate') }}</x-ui.table-head>
 
-                <x-ui.table-head>{{ __('capital_transfers.table.created_by') }}</x-ui.table-head>
+                    <x-ui.table-head>{{ __('capital_transfers.table.created_by') }}</x-ui.table-head>
 
-                <x-ui.table-head>{{ __('capital_transfers.table.created_at') }}</x-ui.table-head>
+                    <x-ui.table-head>{{ __('capital_transfers.table.created_at') }}</x-ui.table-head>
 
-                <x-ui.table-head>{{ __('capital_transfers.table.notes') }}</x-ui.table-head>
+                    <x-ui.table-head>{{ __('capital_transfers.table.notes') }}</x-ui.table-head>
                 </x-ui.table-row>
 
             </x-ui.table-header>
             <x-ui.table-body>
-        @foreach($this->transfers as $transfer)
+                @foreach($this->transfers as $transfer)
                     <x-ui.table-row>
                         <x-ui.table-cell>{{ $transfer->fromAccount->name }}</x-ui.table-cell>
                         <x-ui.table-cell>{{ $transfer->toAccount->name }}</x-ui.table-cell>
@@ -318,14 +318,14 @@ new class extends Component {
                     name="to_account_id"
                     wire:model.live="to_account_id"
                 >
-                        <option value="">{{ __('capital_transfers.placeholders.select_account') }}</option>
-                        @foreach($this->accounts as $account)
-                            <option value="{{ $account->id }}">{{ $account->name }}
-                                -
-                                {{ $account->branch->label() }}
-                                -
-                                {{ $account->currency->label() }}</option>
-                        @endforeach
+                    <option value="">{{ __('capital_transfers.placeholders.select_account') }}</option>
+                    @foreach($this->accounts as $account)
+                        <option value="{{ $account->id }}">{{ $account->name }}
+                            -
+                            {{ $account->branch->label() }}
+                            -
+                            {{ $account->currency->label() }}</option>
+                    @endforeach
                 </x-ui.select>
 
 

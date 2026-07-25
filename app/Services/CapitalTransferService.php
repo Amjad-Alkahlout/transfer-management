@@ -25,6 +25,18 @@ class CapitalTransferService
     ) {
     }
 
+    /**
+     * Special case: profit distribution from Gaza's profit account
+     * directly to the UAE capital account, with no transfer cost.
+     */
+    private function isProfitDistribution(CapitalAccount $fromAccount, CapitalAccount $toAccount): bool
+    {
+        return $fromAccount->account_type === CapitalAccountType::PROFIT
+            && $fromAccount->branch === Branch::GAZA
+            && $toAccount->account_type === CapitalAccountType::CAPITAL
+            && $toAccount->branch === Branch::UAE;
+    }
+
     private function validateTransfer(
         CapitalAccount $fromAccount,
         CapitalAccount $toAccount,
@@ -36,7 +48,10 @@ class CapitalTransferService
                 __('services.capital_transfer.same_account')
             );
         }
-        if ($fromAccount->account_type !== CapitalAccountType::CAPITAL) {
+
+        $isProfitDistribution = $this->isProfitDistribution($fromAccount, $toAccount);
+
+        if (! $isProfitDistribution && $fromAccount->account_type !== CapitalAccountType::CAPITAL) {
             throw new RuntimeException(__('services.capital_transfer.source_must_be_capital'));
         }
 
@@ -66,6 +81,12 @@ class CapitalTransferService
         if ($transferCost < 0) {
             throw new InvalidArgumentException(
                 __('services.capital_transfer.cost_cannot_be_negative')
+            );
+        }
+
+        if ($isProfitDistribution && $transferCost > 0) {
+            throw new InvalidArgumentException(
+                __('services.capital_transfer.profit_distribution_no_cost')
             );
         }
     }
@@ -179,8 +200,7 @@ class CapitalTransferService
             $transferCost,
         );
 
-
-
+        $isProfitDistribution = $this->isProfitDistribution($fromAccount, $toAccount);
 
         // Calculate the destination amount using the currency converter service
         $totalDeduction = $sourceAmount + $transferCost;
@@ -211,23 +231,34 @@ class CapitalTransferService
             $notes,
             $totalDeduction,
             $createdBy,
+            $isProfitDistribution,
         ) {
             $fromAccount = CapitalAccount::lockForUpdate()->findOrFail($fromAccount->id);
             $toAccount = CapitalAccount::lockForUpdate()->findOrFail($toAccount->id);
-            $profitAccount = CapitalAccount::lockForUpdate()->findOrFail(
-                $this->getProfitAccount($toAccount->currency)->id
-            );
 
-            $profitDeduction = round(
-                $this->converter->convert($transferCost, $fromAccount->currency, $profitAccount->currency),
-                2
-            );
+            $profitAccount = null;
+            $profitDeduction = 0;
+
+            if (! $isProfitDistribution) {
+                $profitAccount = CapitalAccount::lockForUpdate()->findOrFail(
+                    $this->getProfitAccount($toAccount->currency)->id
+                );
+
+                $profitDeduction = round(
+                    $this->converter->convert($transferCost, $fromAccount->currency, $profitAccount->currency),
+                    2
+                );
+            }
 
             // Recheck after acquiring row locks to prevent race conditions.
-
             if ($fromAccount->balance < $totalDeduction) {
                 throw new RuntimeException(__('services.capital_transfer.insufficient_source_balance'));
             }
+
+            $transactionType = $isProfitDistribution
+                ? CapitalTransactionType::PROFIT_DISTRIBUTION
+                : CapitalTransactionType::INTERNAL_TRANSFER;
+
             $transfer = CapitalTransfer::create([
                 'from_account_id' => $fromAccount->id,
                 'to_account_id' => $toAccount->id,
@@ -254,7 +285,7 @@ class CapitalTransferService
             $this->recordTransaction(
                 account: $fromAccount,
                 direction: TransactionDirection::OUT,
-                transactionType: CapitalTransactionType::INTERNAL_TRANSFER,
+                transactionType: $transactionType,
                 amount: $totalDeduction,
                 balanceBefore: $fromBefore,
                 balanceAfter: $fromAfter,
@@ -271,7 +302,7 @@ class CapitalTransferService
             $this->recordTransaction(
                 account: $toAccount,
                 direction: TransactionDirection::IN,
-                transactionType: CapitalTransactionType::INTERNAL_TRANSFER,
+                transactionType: $transactionType,
                 amount: $destinationAmount,
                 balanceBefore: $toBefore,
                 balanceAfter: $toAfter,
@@ -279,25 +310,27 @@ class CapitalTransferService
                 reference: $transfer,
             );
 
-            $profitBefore = $profitAccount->balance;
-            if ($profitBefore < $profitDeduction) {
-                throw new RuntimeException(
-                    __('services.capital_transfer.insufficient_profit_balance')
+            if (! $isProfitDistribution) {
+                $profitBefore = $profitAccount->balance;
+                if ($profitBefore < $profitDeduction) {
+                    throw new RuntimeException(
+                        __('services.capital_transfer.insufficient_profit_balance')
+                    );
+                }
+                $profitAfter = $profitBefore - $profitDeduction;
+                $profitAccount->balance = $profitAfter;
+                $profitAccount->save();
+                $this->recordTransaction(
+                    account: $profitAccount,
+                    direction: TransactionDirection::OUT,
+                    transactionType: CapitalTransactionType::TRANSFER_EXPENSE,
+                    amount: $profitDeduction,
+                    balanceBefore: $profitBefore,
+                    balanceAfter: $profitAfter,
+                    createdBy: $createdBy,
+                    reference: $transfer,
                 );
             }
-            $profitAfter = $profitBefore - $profitDeduction;
-            $profitAccount->balance = $profitAfter;
-            $profitAccount->save();
-            $this->recordTransaction(
-                account: $profitAccount,
-                direction: TransactionDirection::OUT,
-                transactionType: CapitalTransactionType::TRANSFER_EXPENSE,
-                amount: $profitDeduction,
-                balanceBefore: $profitBefore,
-                balanceAfter: $profitAfter,
-                createdBy: $createdBy,
-                reference: $transfer,
-            );
 
             return $transfer;
         });

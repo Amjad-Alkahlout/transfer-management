@@ -36,6 +36,14 @@ return [
             'title' => 'Withdraw Profit',
             'description' => 'Withdraw profit from :account',
         ],
+        'adjustment' => [
+            'title' => 'Manual Balance Adjustment',
+            'description' => 'Manually adjust the balance of :account (add or deduct), with a documented reason.',
+        ],
+        'profit_distribution' => [
+            'title' => 'Distribute Profit to UAE',
+            'description' => 'Transfer part of the profit account balance (:account) directly to a UAE capital account, with no transfer cost.',
+        ],
 
     ],
 
@@ -47,6 +55,9 @@ return [
         'opening_balance' => 'Opening Balance',
         'amount' => 'Amount',
         'notes' => 'Notes',
+        'adjustment_direction' => 'Adjustment Type',
+        'adjustment_notes' => 'Adjustment Reason',
+        'destination_account' => 'Destination Account (UAE)',
     ],
 
     'buttons' => [
@@ -57,6 +68,9 @@ return [
         'activate' => 'Activate',
         'deactivate' => 'Deactivate',
         'withdraw_profit' => 'Withdraw Profit',
+        'adjust_balance' => 'Adjust Balance',
+        'save_adjustment' => 'Save Adjustment',
+        'distribute_profit' => 'Distribute to UAE',
     ],
 
     'status' => [
@@ -70,6 +84,8 @@ return [
         'activated' => 'Capital account activated successfully.',
         'deactivated' => 'Capital account deactivated successfully.',
         'profit_withdrawn' => 'Profit withdrawn successfully.',
+        'adjusted' => 'Balance adjusted successfully.',
+        'profit_distributed' => 'Profit distributed successfully.',
     ],
 
     'errors' => [
@@ -81,6 +97,11 @@ return [
         'select_branch' => 'Select Branch',
         'select_currency' => 'Select Currency',
         'select_account_type' => 'Select Account Type',
+        'select_uae_account' => 'Select UAE account',
+    ],
+    'adjustment_direction' => [
+        'add' => 'Add amount',
+        'deduct' => 'Deduct amount',
     ],
 
 ];

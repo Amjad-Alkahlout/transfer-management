@@ -36,6 +36,14 @@ return [
             'title' => 'سحب الأرباح',
             'description' => 'سحب الأرباح من الحساب :account',
         ],
+        'adjustment' => [
+            'title' => 'تعديل يدوي على الرصيد',
+            'description' => 'تعديل رصيد الحساب :account يدوياً (إضافة أو خصم)، مع توثيق السبب.',
+        ],
+        'profit_distribution' => [
+            'title' => 'توزيع أرباح إلى الإمارات',
+            'description' => 'تحويل جزء من رصيد حساب الربح (:account) مباشرة إلى حساب رأس مال في الإمارات، دون أي تكلفة تحويل.',
+        ],
 
     ],
 
@@ -47,6 +55,9 @@ return [
         'opening_balance' => 'الرصيد الافتتاحي',
         'amount' => 'المبلغ',
         'notes' => 'الملاحظات',
+        'adjustment_direction' => 'نوع التعديل',
+        'adjustment_notes' => 'سبب التعديل',
+        'destination_account' => 'الحساب المستلم (الإمارات)',
     ],
 
     'buttons' => [
@@ -57,6 +68,9 @@ return [
         'activate' => 'تفعيل',
         'deactivate' => 'تعطيل',
         'withdraw_profit' => 'سحب الأرباح',
+        'adjust_balance' => 'تعديل الرصيد',
+        'save_adjustment' => 'حفظ التعديل',
+        'distribute_profit' => 'توزيع للإمارات',
     ],
 
     'status' => [
@@ -70,6 +84,7 @@ return [
         'activated' => 'تم تفعيل حساب رأس المال بنجاح.',
         'deactivated' => 'تم تعطيل حساب رأس المال بنجاح.',
         'profit_withdrawn' => 'تم سحب الأرباح بنجاح.',
+        'profit_distributed' => 'تم توزيع الأرباح بنجاح.',
     ],
 
     'errors' => [
@@ -81,6 +96,11 @@ return [
         'select_branch' => 'اختر الفرع',
         'select_currency' => 'اختر العملة',
         'select_account_type' => 'اختر نوع الحساب',
+        'select_uae_account' => 'اختر حساب الإمارات',
+    ],
+    'adjustment_direction' => [
+        'add' => 'إضافة مبلغ',
+        'deduct' => 'خصم مبلغ',
     ],
 
 ];

@@ -7,6 +7,7 @@ return [
 
 'buttons' => [
 'logout' => 'Logout',
+    'cancel' => 'Cancel',
 ],
 
 ];

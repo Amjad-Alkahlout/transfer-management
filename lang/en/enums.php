@@ -20,6 +20,7 @@ return [
         'transfer_expense' => 'Transfer Expense',
         'profit_withdrawal' => 'Profit Withdrawal',
         'transfer_cancellation' => 'Transfer Cancellation',
+        'profit_distribution' => 'Profit Distribution',
     ],
 
     'currency' => [

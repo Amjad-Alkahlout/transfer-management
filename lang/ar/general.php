@@ -7,6 +7,7 @@ return [
 
     'buttons' => [
         'logout' => 'تسجيل الخروج',
+        'cancel' => 'إلغاء',
     ],
 
 ];

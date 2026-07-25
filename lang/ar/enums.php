@@ -20,6 +20,7 @@ return [
         'transfer_expense' => 'مصروف حوالة',
         'profit_withdrawal' => 'سحب أرباح',
         'transfer_cancellation' => 'إلغاء حوالة',
+        'profit_distribution' => 'توزيع أرباح',
     ],
 
     'currency' => [
@@ -50,8 +51,8 @@ return [
     ],
 
     'transfer_calculation_mode' => [
-        'receiver_amount' => 'مبلغ المستلم',
-        'customer_payment' => 'مبلغ العميل',
+        'receiver_amount' => 'المبلغ الذي يريد استلامه',
+        'customer_payment' => 'المبلغ الذي يريد دفعه',
     ],
 
     'transfer_status' => [

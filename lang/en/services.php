@@ -25,6 +25,7 @@ return [
         'invalid_destination_amount' => 'Calculated destination amount is invalid.',
 
         'insufficient_profit_balance' => 'Insufficient balance in the Gaza profit account.',
+        'profit_distribution_no_cost' => 'Profit distribution transfers cannot include a transfer cost.',
 
     ],
     'commission' => [
@@ -73,6 +74,11 @@ return [
 
         'insufficient_gaza_capital' => 'Insufficient balance in Gaza capital account.',
 
+    ],
+    'capital_account_adjustment' => [
+        'inactive_account' => 'Cannot adjust the balance of an inactive account.',
+        'amount_must_be_positive' => 'The amount must be greater than zero.',
+        'insufficient_balance' => 'The current balance is insufficient to complete the deduction.',
     ],
 
 ];
