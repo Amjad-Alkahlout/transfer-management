@@ -62,7 +62,7 @@ class AppServiceProvider extends ServiceProvider
         );
 
         Gate::define('manage-capital-accounts', fn (User $user) =>
-        $user->isExecutor()
+        !$user->isTransferExecutor()
         );
 
         Gate::define('manage-exchange-rates', fn (User $user) =>
