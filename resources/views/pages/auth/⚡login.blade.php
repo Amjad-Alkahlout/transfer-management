@@ -14,7 +14,10 @@ new #[Layout('layouts::guest')] class extends Component {
     public function login()
     {
         $this->validate([
-            'email' => ['required', 'email'],
+            'email' => [
+                'required',
+                'email:rfc',
+            ],
             'password' => ['required'],
         ]);
 

@@ -75,6 +75,17 @@ new class extends Component {
         </x-slot:actions>
 
     </x-ui.page-header>
+    <div class="mb-6">
+
+        <x-ui.button
+            :href="route('dashboard')"
+            variant="secondary"
+        >
+            {{ app()->getLocale() === 'ar' ? '→' : '←' }}
+            {{ __('exchange_rates.buttons.back') }}
+        </x-ui.button>
+
+    </div>
     <x-ui.flash/>
 
     <x-ui.card

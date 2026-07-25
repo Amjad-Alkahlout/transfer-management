@@ -50,6 +50,7 @@ return [
 
         'delete' => 'حذف',
         'cancel' => 'إلغاء',
+        'back' => 'رجوع',
 
     ],
     'empty_state' => [

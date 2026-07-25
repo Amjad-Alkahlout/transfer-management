@@ -46,7 +46,7 @@ return [
 
         'amount' => 'المبلغ',
 
-        'transfer_cost' => 'تكلفة التحويل',
+        'transfer_cost' => 'عمولة التحويل',
 
         'notes' => 'الملاحظات',
 
@@ -68,7 +68,7 @@ return [
 
         'transfer_amount' => 'مبلغ التحويل',
 
-        'transfer_cost' => 'تكلفة التحويل',
+        'transfer_cost' => 'عممولة الحوالة',
 
         'total_deduction' => 'إجمالي الخصم',
 

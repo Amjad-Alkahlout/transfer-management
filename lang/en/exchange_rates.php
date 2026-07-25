@@ -25,6 +25,7 @@ return [
         'update' => 'Update Rates',
         'save' => 'Save Rates',
         'cancel' => 'Cancel',
+        'back' => 'Back',
     ],
 
     'messages' => [
