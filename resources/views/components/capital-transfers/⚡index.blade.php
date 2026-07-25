@@ -119,24 +119,20 @@ new class extends Component {
             $this->preview = null;
             return;
         }
-        try{
+        try {
             $from = CapitalAccount::findOrFail($this->from_account_id);
-
             $to = CapitalAccount::findOrFail($this->to_account_id);
+
             $this->preview = app(CapitalTransferService::class)
                 ->preview(
                     $from,
                     $to,
                     (float) $this->source_amount,
-                    (float) $this->transfer_cost,
+                    (float) ($this->transfer_cost ?: 0),
                 );
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->preview = null;
-
-            $this->addError(
-                'preview',
-                $e->getMessage()
-            );
+            $this->addError('preview', $e->getMessage());
         }
     }
 
