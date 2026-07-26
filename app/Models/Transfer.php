@@ -53,7 +53,6 @@ class Transfer extends Model
         'receiver_method',
         'requested_amount',
         'requested_currency',
-        'fee_mode',
         'commission_amount',
         'commission_currency',
         'amount_due',
@@ -82,7 +81,6 @@ class Transfer extends Model
     protected function casts(): array
     {
         return [
-            'fee_mode' =>FeeMode::class,
             'status' =>TransferStatus::class,
             'requested_currency'=>CurrencyType::class,
             'priced_at' => 'datetime',

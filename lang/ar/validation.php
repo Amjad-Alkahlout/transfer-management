@@ -313,7 +313,6 @@ return [
         'requested_currency' => 'عملة المستلم',
         'requested_amount' => 'المبلغ ',
         'receiver_amount' => 'مبلغ المستلم',
-        'fee_mode' => 'طريقة احتساب العمولة',
         'customer_pay_amount' => 'المبلغ الذي سيدفعه العميل',
         'customer_pay_currency' => 'عملة الدفع',
         'customer_payable_currency' => 'عملة المبلغ المستحق',

@@ -69,9 +69,6 @@ class AppServiceProvider extends ServiceProvider
         $user->isExecutor()
         );
 
-        Gate::define('manage-commission-rules', fn (User $user) =>
-        $user->isExecutor()
-        );
 
         Gate::define('view-financial-dashboard', fn (User $user) =>
         !$user->isTransferExecutor()

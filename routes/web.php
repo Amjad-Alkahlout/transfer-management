@@ -81,9 +81,6 @@ Route::middleware('auth')->group(function () {
         ->name('capital-transfers.index')
         ->middleware('can:view-capital-transfers');
 
-    Route::livewire('/commission-rules', 'commission-rules.index')
-        ->name('commission-rules.index')
-        ->middleware('can:manage-commission-rules');
 
 
 

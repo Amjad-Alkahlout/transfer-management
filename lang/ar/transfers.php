@@ -49,7 +49,6 @@ return [
         'requested_currency' => 'عملة المستلم',
         'requested_amount' => 'المبلغ المطلوب',
         'receiver_amount' => 'مبلغ المستلم',
-        'fee_mode' => 'طريقة احتساب العمولة',
         'customer_pay_amount' => 'المبلغ الذي سيدفعه العميل',
         'customer_pay_currency' => 'عملة الدفع',
         'customer_payable_currency' => 'عملة المبلغ المستحق',
@@ -61,7 +60,6 @@ return [
     'placeholders' => [
         'select_receiver_method' => 'اختر طريقة الاستلام',
         'select_requested_currency' => 'اختر عملة المستلم',
-        'select_fee_mode' => 'اختر طريقة احتساب العمولة',
         'select_customer_pay_currency' => 'اختر عملة الدفع',
     ],
 
@@ -170,8 +168,7 @@ return [
         'customer_pays' => 'العميل يدفع',
 
         'commission' => 'العمولة',
-
-        'fee_mode' => 'طريقة احتساب العمولة',
+        'notes' => 'الملاحظات',
 
         'calculation_mode' => 'طريقة الاحتساب',
 

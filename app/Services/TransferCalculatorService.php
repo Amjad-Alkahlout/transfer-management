@@ -3,68 +3,42 @@
 namespace App\Services;
 
 use App\Enums\CurrencyType;
-use App\Enums\FeeMode;
+
 
 class TransferCalculatorService
 {
     public function __construct(
         protected CurrencyConverterService $converter,
-        protected CommissionService $commissionService,
     ) {}
 
     public function calculateFromReceiverAmount(
         float $requestedAmount,
         CurrencyType $requestedCurrency,
         CurrencyType $payCurrency,
-        FeeMode $feeMode,
+        float $commissionAmount,
     ): array {
 
-        $commissionInOperationCurrency = $this->commissionService->getCommission(
+        $baseCustomerPayable = $this->converter->convert(
             $requestedAmount,
             $requestedCurrency,
+            $payCurrency,
         );
 
-        $commissionRule = $this->commissionService->getCommissionRule(
-            $requestedAmount,
-            $requestedCurrency,
+        $commissionInPayCurrency = $this->converter->convert(
+            $commissionAmount,
+            CurrencyType::AED,
+            $payCurrency,
         );
 
-        if (
-            $feeMode === FeeMode::INCLUDED &&
-            $commissionInOperationCurrency >= $requestedAmount
-        ) {
-            throw new \InvalidArgumentException(
-                __('services.transfer_calculator.included_fee_exceeds_amount')
-            );
-        }
-
-        if ($feeMode === FeeMode::INCLUDED) {
-
-            $transferAmount = $requestedAmount - $commissionInOperationCurrency;
-
-            $customerPayableBaseAmount = $requestedAmount;
-
-        } else {
-
-            $transferAmount = $requestedAmount;
-
-            $customerPayableBaseAmount = $requestedAmount + $commissionInOperationCurrency;
-        }
-
-        $customerPayableAmount = $this->converter->convert(
-            $customerPayableBaseAmount,
-            $requestedCurrency,
-            $payCurrency
-        );
+        $customerPayable = $baseCustomerPayable + $commissionInPayCurrency;
 
         return [
-            'transfer_amount' => round($transferAmount, 2),
+            'transfer_amount' => round($requestedAmount, 2),
 
-            'customer_payable_amount' => round($customerPayableAmount, 2),
+            'customer_payable_amount' => round($customerPayable, 2),
             'customer_payable_currency' => $payCurrency,
 
-            // Stored in DB (always AED)
-            'commission_amount' => round($commissionRule->commission_amount, 2),
+            'commission_amount' => round($commissionAmount, 2),
             'commission_currency' => CurrencyType::AED,
         ];
     }
@@ -73,30 +47,27 @@ class TransferCalculatorService
         float $customerPayableAmount,
         CurrencyType $payCurrency,
         CurrencyType $requestedCurrency,
+        float $commissionAmount,
     ): array {
 
-        $commissionInOperationCurrency = $this->commissionService->getCommission(
-            $customerPayableAmount,
+        $commissionInPayCurrency = $this->converter->convert(
+            $commissionAmount,
+            CurrencyType::AED,
             $payCurrency,
         );
 
-        $commissionRule = $this->commissionService->getCommissionRule(
-            $customerPayableAmount,
-            $payCurrency,
-        );
-
-        if ($commissionInOperationCurrency >= $customerPayableAmount) {
+        if ($commissionInPayCurrency >= $customerPayableAmount) {
             throw new \InvalidArgumentException(
                 __('services.transfer_calculator.fee_exceeds_amount')
             );
         }
 
-        $amountAfterCommission = $customerPayableAmount - $commissionInOperationCurrency;
+        $baseCustomerPayable = $customerPayableAmount - $commissionInPayCurrency;
 
         $requestedAmount = $this->converter->convert(
-            $amountAfterCommission,
+            $baseCustomerPayable,
             $payCurrency,
-            $requestedCurrency
+            $requestedCurrency,
         );
 
         return [
@@ -108,8 +79,7 @@ class TransferCalculatorService
             'customer_payable_amount' => round($customerPayableAmount, 2),
             'customer_payable_currency' => $payCurrency,
 
-            // Stored in DB (always AED)
-            'commission_amount' => round($commissionRule->commission_amount, 2),
+            'commission_amount' => round($commissionAmount, 2),
             'commission_currency' => CurrencyType::AED,
         ];
     }

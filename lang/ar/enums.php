@@ -29,10 +29,6 @@ return [
         'ils' => 'شيكل',
     ],
 
-    'fee_mode' => [
-        'included' => 'شامل',
-        'excluded' => 'غير شامل',
-    ],
 
     'payment_status' => [
         'unpaid' => 'غير مدفوع',

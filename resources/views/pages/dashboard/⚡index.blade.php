@@ -178,6 +178,12 @@ class extends Component {
     >
 
         <x-slot:actions>
+            @can('create-transfer')
+                <x-ui.button :href="route('transfers.create')">
+                    {{ __('dashboard.quick_actions.create_transfer') }}
+                </x-ui.button>
+            @endcan
+
             <x-ui.button wire:click="openTelegramModal">
 
                 @if(auth()->user()->telegram_chat_id)
@@ -191,11 +197,6 @@ class extends Component {
                 @endif
 
             </x-ui.button>
-            @can('create-transfer')
-            <x-ui.button :href="route('transfers.create')">
-                {{ __('dashboard.quick_actions.create_transfer') }}
-            </x-ui.button>
-            @endcan
         </x-slot:actions>
     </x-ui.page-header>
 
@@ -204,17 +205,17 @@ class extends Component {
 
     <div class="mb-8">
 
-        <div class="mb-5">
-            <h2 class="text-xl font-semibold text-gray-900">
+        <div class="mb-6">
+            <h2 class="text-2xl font-semibold text-gray-900">
                 {{ __('dashboard.financial.title') }}
             </h2>
 
-            <p class="mt-1 text-sm text-gray-500">
+            <p class="mt-1 text-base text-gray-500">
                 {{ __('dashboard.financial.description') }}
             </p>
         </div>
 
-        <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <div class="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
 
             <x-ui.stat-card
                 :title="__('dashboard.financial.gaza_capital')"
@@ -254,7 +255,7 @@ class extends Component {
                 :title="__('dashboard.financial.profit')"
                 :value="'$'.number_format($this->financialOverview['profit'],2)"
                 :subtitle="__('dashboard.financial.net_profit')"
-                color="emerald"
+                color="green"
             >
                 <x-slot:icon>
                     <x-heroicon-o-chart-bar class="h-7 w-7 text-emerald-600"/>
@@ -279,73 +280,9 @@ class extends Component {
     </div>
     @endcan
 
-    <div class="mb-8">
-
-        <x-ui.card :title="__('dashboard.quick_actions.title')">
-
-            <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
-
-                <x-ui.button
-                    class="justify-center py-4"
-                    :href="route('transfers.index')"
-                    variant="secondary"
-                >
-                    {{ __('dashboard.quick_actions.transfers') }}
-                </x-ui.button>
-                @can('view-capital-transfers')
-                <x-ui.button
-                    class="justify-center py-4"
-                    :href="route('capital-transfers.index')"
-                    variant="secondary"
-                >
-                    {{ __('dashboard.quick_actions.capital_transfers') }}
-                </x-ui.button>
-                @endcan
-                @can('view-capital-accounts')
-
-                <x-ui.button
-                    class="justify-center py-4"
-                    :href="route('capital-accounts.index')"
-                    variant="secondary"
-                >
-                    {{ __('dashboard.quick_actions.capital_accounts') }}
-                </x-ui.button>
-                @endcan
-                @can('manage-exchange-rates')
-                <x-ui.button
-                    class="justify-center py-4"
-                    :href="route('exchange-rates.index')"
-                    variant="secondary"
-                >
-                    {{ __('dashboard.quick_actions.exchange_rates') }}
-                </x-ui.button>
-                @endcan
-                @can('manage-commission-rules')
-                    <x-ui.button
-                        class="justify-center py-4"
-                        :href="route('commission-rules.index')"
-                        variant="secondary"
-                    >
-                        {{ __('dashboard.quick_actions.commission_rules') }}
-                    </x-ui.button>
-                @endcan
-                @can('manage-users')
-                    <x-ui.button
-                        class="justify-center py-4"
-                        :href="route('users.index')"
-                        variant="secondary"
-                    >
-                        {{ __('dashboard.quick_actions.users') }}
-                    </x-ui.button>
-                @endcan
-
-            </div>
-
-        </x-ui.card>
-
-    </div>
 
     <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+
 
         <x-ui.card
             :title="__('dashboard.transfers.title')"
@@ -530,48 +467,7 @@ class extends Component {
 
         </x-ui.card>
 
-        <x-ui.card
-            :title="__('dashboard.commission_rules.title')"
-            :description="__('dashboard.commission_rules.description')"
-        >
 
-            <x-ui.table>
-
-                <x-ui.table-header>
-
-                    <x-ui.table-head>
-                        {{ __('dashboard.commission_rules.currency') }}
-                    </x-ui.table-head>
-
-                    <x-ui.table-head>
-                        {{ __('dashboard.commission_rules.total_rules') }}
-                    </x-ui.table-head>
-
-                </x-ui.table-header>
-
-                <x-ui.table-body>
-
-                    @foreach($this->commissionStats as $rule)
-
-                        <x-ui.table-row>
-
-                            <x-ui.table-cell>
-                                {{ $rule->currency->label() }}
-                            </x-ui.table-cell>
-
-                            <x-ui.table-cell>
-                                {{ $rule->total }}
-                            </x-ui.table-cell>
-
-                        </x-ui.table-row>
-
-                    @endforeach
-
-                </x-ui.table-body>
-
-            </x-ui.table>
-
-        </x-ui.card>
     </div>
 
     <x-ui.modal

@@ -29,10 +29,6 @@ return [
         'ils' => 'ILS',
     ],
 
-    'fee_mode' => [
-        'included' => 'Included',
-        'excluded' => 'Excluded',
-    ],
 
     'payment_status' => [
         'unpaid' => 'Unpaid',

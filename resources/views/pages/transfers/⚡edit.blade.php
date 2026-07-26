@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\CurrencyType;
-use App\Enums\FeeMode;
 use App\Enums\PaymentStatus;
 use App\Enums\ReceiverMethod;
 use App\Enums\TransferCalculationMode;
@@ -16,7 +15,6 @@ new #[Layout('layouts::app')] class extends Component {
     public Transfer $transfer;
     public $receiver_name;
     public $receiver_method;
-    public $fee_mode;
     public $requested_currency;
     public $calculation_mode;
     public $requested_amount;
@@ -25,6 +23,7 @@ new #[Layout('layouts::app')] class extends Component {
     public $receiver_account_number;
     public $customer_payable_currency;
     public $notes;
+    public $commission_amount;
     public array|null $calculation = null;
 
     public function mount(Transfer $transfer)
@@ -36,7 +35,7 @@ new #[Layout('layouts::app')] class extends Component {
         }
         $this->receiver_name = $this->transfer->receiver_name;
         $this->receiver_method = $this->transfer->receiver_method->value;
-        $this->fee_mode = $this->transfer->fee_mode->value;
+        $this->commission_amount = $this->transfer->commission_amount;
         $this->requested_currency = $this->transfer->requested_currency->value;
         $this->receiver_wallet_phone = $this->transfer->receiver_wallet_phone;
         $this->receiver_account_number = $this->transfer->receiver_account_number;
@@ -58,8 +57,8 @@ new #[Layout('layouts::app')] class extends Component {
             'customer_payable_amount',
             'requested_currency',
             'customer_payable_currency',
-            'fee_mode',
             'calculation_mode',
+            'commission_amount',
         ])) {
             $this->calculateIfReady();
         }
@@ -77,8 +76,7 @@ new #[Layout('layouts::app')] class extends Component {
         $this->calculation = null;
         $this->requested_amount = null;
         $this->customer_payable_amount = null;
-
-        $this->fee_mode = FeeMode::INCLUDED->value;
+        $this->commission_amount = null;
     }
 
 
@@ -107,6 +105,10 @@ new #[Layout('layouts::app')] class extends Component {
             $this->calculation = null;
             return;
         }
+        if (!$this->commission_amount) {
+            $this->calculation = null;
+            return;
+        }
 
         $this->calculateTransfer();
     }
@@ -130,7 +132,7 @@ new #[Layout('layouts::app')] class extends Component {
                         $this->requested_amount,
                         CurrencyType::from($this->requested_currency),
                         CurrencyType::from($this->customer_payable_currency),
-                        FeeMode::from($this->fee_mode),
+                        $this->commission_amount,
                     );
 
             } else {
@@ -140,6 +142,7 @@ new #[Layout('layouts::app')] class extends Component {
                         $this->customer_payable_amount,
                         CurrencyType::from($this->customer_payable_currency),
                         CurrencyType::from($this->requested_currency),
+                        $this->commission_amount,
                     );
 
             }
@@ -163,10 +166,7 @@ new #[Layout('layouts::app')] class extends Component {
         $this->validate([
             'receiver_name' => 'required|string|max:255',
             'notes' => 'nullable|string|max:255',
-            'fee_mode' => [
-                'required',
-                Rule::enum(FeeMode::class),
-            ],
+            'commission_amount' => 'required|numeric|min:0',
             'requested_currency' => [
                 'required',
                 Rule::enum(CurrencyType::class),
@@ -218,10 +218,6 @@ new #[Layout('layouts::app')] class extends Component {
         $this->transfer->fill([
             'receiver_name' => $this->receiver_name,
             'notes' => $this->notes,
-            'fee_mode' =>
-                $this->calculation_mode === TransferCalculationMode::RECEIVER_AMOUNT->value
-                    ? $this->fee_mode
-                    : FeeMode::INCLUDED,
             'requested_currency' => $this->requested_currency,
             'requested_amount' =>
                 $this->calculation_mode === TransferCalculationMode::RECEIVER_AMOUNT->value
@@ -376,21 +372,6 @@ new #[Layout('layouts::app')] class extends Component {
 
             @if($calculation_mode === TransferCalculationMode::RECEIVER_AMOUNT->value)
 
-                <x-ui.select
-                    :label="__('transfers.fields.fee_mode')"
-                    name="fee_mode"
-                    wire:model.live="fee_mode"
-                >
-
-                    @foreach(FeeMode::cases() as $feeMode)
-
-                        <option value="{{ $feeMode->value }}">
-                            {{ $feeMode->label() }}
-                        </option>
-
-                    @endforeach
-
-                </x-ui.select>
 
                 <x-ui.input
                     :label="__('transfers.fields.receiver_amount')"
@@ -427,6 +408,14 @@ new #[Layout('layouts::app')] class extends Component {
                 @endforeach
 
             </x-ui.select>
+
+            <x-ui.input
+                :label="__('transfers.fields.commission') . ' (AED)'"
+                name="commission_amount"
+                type="number"
+                step="0.01"
+                wire:model.live="commission_amount"
+            />
 
         </x-ui.form-section>
 

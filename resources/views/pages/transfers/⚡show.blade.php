@@ -338,12 +338,7 @@ class extends Component {
                 {{ $transfer->commission_amount }}
                 {{ $transfer->commission_currency->symbol() }}
             </p>
-            @if($transfer->calculation_mode === TransferCalculationMode::RECEIVER_AMOUNT)
-                <p>
-                    <strong>{{ __('transfers.details.fee_mode') }}:</strong>
-                    {{ $transfer->fee_mode->label() }}
-                </p>
-            @endif
+
 
             <p>
                 <strong>{{ __('transfers.details.calculation_mode') }}:</strong>
@@ -378,6 +373,15 @@ class extends Component {
 
         {{-- Audit --}}
         <x-ui.card :title="__('transfers.sections.audit')">
+
+            @if($transfer->notes)
+
+                <p>
+                    <strong>{{ __('transfers.details.notes') }}:</strong>
+                    {{ $transfer->notes }}
+                </p>
+
+            @endif
 
             <p>
                 <strong>{{ __('transfers.details.created_by') }}:</strong>

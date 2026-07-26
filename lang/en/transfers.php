@@ -48,7 +48,6 @@ return [
         'receiver_wallet_number' => 'Receiver Wallet Number',
         'requested_currency' => 'Requested Currency',
         'requested_amount' => 'Requested Amount',
-        'fee_mode' => 'Fee Mode',
         'customer_pay_amount' => 'Customer Pay Amount',
         'customer_payable_currency' => 'Customer Payable Currency',
         'customer_pay_currency' => 'Customer Pay Currency',
@@ -60,7 +59,6 @@ return [
     'placeholders' => [
         'select_receiver_method' => 'Select Receiver Method',
         'select_requested_currency' => 'Select Requested Currency',
-        'select_fee_mode' => 'Select Fee Mode',
         'select_customer_pay_currency' => 'Select Customer Pay Currency',
     ],
 
@@ -165,8 +163,7 @@ return [
         'customer_pays' => 'Customer Pays',
 
         'commission' => 'Commission',
-
-        'fee_mode' => 'Fee Mode',
+        'notes' => 'Notes',
 
         'calculation_mode' => 'Calculation Mode',
 
