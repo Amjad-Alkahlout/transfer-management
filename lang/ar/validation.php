@@ -317,5 +317,10 @@ return [
         'customer_pay_amount' => 'المبلغ الذي سيدفعه العميل',
         'customer_pay_currency' => 'عملة الدفع',
         'customer_payable_currency' => 'عملة المبلغ المستحق',
+        'new_password' => 'كلمة السر الجديدة',
+        'new_password_confirmation' => 'تأكيد كلمة السر الجديدة',
+        'editName' => 'الاسم',
+        'editEmail' => 'البريد الإلكتروني',
+        'editRole' => 'الدور الوظيفي',
     ],
 ];

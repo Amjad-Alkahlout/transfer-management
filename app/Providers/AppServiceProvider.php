@@ -79,5 +79,9 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::define('update-transfer', fn (User $user) => $user->isCoordinator());
 
+        Gate::define('manage-users', fn (User $user) =>
+        $user->isAdmin()
+        );
+
     }
 }

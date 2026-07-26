@@ -223,7 +223,7 @@ class extends Component {
                 color="gray"
             >
                 <x-slot:icon>
-                    <x-heroicon-o-banknotes class="h-7 w-7 text-gray-600"/>
+                    <x-heroicon-o-building-office-2 class="h-7 w-7 text-gray-600"/>
                 </x-slot:icon>
             </x-ui.stat-card>
 
@@ -269,7 +269,7 @@ class extends Component {
                 color="red"
             >
                 <x-slot:icon>
-                    <x-heroicon-o-banknotes class="h-7 w-7 text-red-600"/>
+                    <x-heroicon-o-clock class="h-7 w-7 text-red-600"/>
                 </x-slot:icon>
             </x-ui.stat-card>
 
@@ -321,13 +321,22 @@ class extends Component {
                 </x-ui.button>
                 @endcan
                 @can('manage-commission-rules')
-                <x-ui.button
-                    class="justify-center py-4"
-                    :href="route('commission-rules.index')"
-                    variant="secondary"
-                >
-                    {{ __('dashboard.quick_actions.commission_rules') }}
-                </x-ui.button>
+                    <x-ui.button
+                        class="justify-center py-4"
+                        :href="route('commission-rules.index')"
+                        variant="secondary"
+                    >
+                        {{ __('dashboard.quick_actions.commission_rules') }}
+                    </x-ui.button>
+                @endcan
+                @can('manage-users')
+                    <x-ui.button
+                        class="justify-center py-4"
+                        :href="route('users.index')"
+                        variant="secondary"
+                    >
+                        {{ __('dashboard.quick_actions.users') }}
+                    </x-ui.button>
                 @endcan
 
             </div>

@@ -21,16 +21,13 @@
 
     {{-- Top Navigation --}}
     <header class="border-b border-gray-200 bg-white shadow-sm">
-
-        <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-
+        <div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:h-16 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-0">
             <div>
-                <h1 class="text-xl font-bold text-blue-600">
+                <h1 class="text-lg font-bold text-blue-600 sm:text-xl">
                     {{ __('general.app.name') }}
                 </h1>
             </div>
-
-            <div class="flex items-center gap-4 whitespace-nowrap">
+            <div class="flex flex-wrap items-center gap-3 sm:flex-nowrap sm:gap-4 sm:whitespace-nowrap">
 
                 <a
                     href="{{ route('locale.switch', app()->getLocale() === 'ar' ? 'en' : 'ar') }}"

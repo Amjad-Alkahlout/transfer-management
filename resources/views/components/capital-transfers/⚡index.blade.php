@@ -15,7 +15,7 @@ new class extends Component {
     public $to_account_id;
 
     public $source_amount;
-    public $transfer_cost = 0;
+    public $transfer_cost = null;
 
     public $notes;
 
@@ -339,6 +339,7 @@ new class extends Component {
                     name="transfer_cost"
                     type="number"
                     step="0.01"
+                    placeholder="0"
                     wire:model.live.number="transfer_cost"
                 />
 

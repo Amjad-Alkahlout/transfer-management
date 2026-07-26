@@ -89,5 +89,13 @@ Route::middleware('auth')->group(function () {
 
     Route::livewire('/dashboard', 'pages::dashboard.index')
         ->name('dashboard');
+
+    Route::livewire('/users', 'pages::users.index')
+        ->name('users.index')
+        ->middleware([
+            'throttle:10,1',
+            'can:manage-users',
+        ]);
+
 });
 

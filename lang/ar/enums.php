@@ -66,6 +66,7 @@ return [
         'coordinator' => 'منسق',
         'executor' => 'منفذ',
         'transfer_executor' => 'منفذ الحوالات',
+
     ],
 
 ];

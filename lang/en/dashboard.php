@@ -32,6 +32,7 @@ return [
         'capital_accounts' => 'Capital Accounts',
         'exchange_rates' => 'Exchange Rates',
         'commission_rules' => 'Commission Rules',
+        'users' => 'User Management',
     ],
 
     'transfers' => [

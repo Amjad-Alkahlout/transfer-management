@@ -32,6 +32,7 @@ return [
         'capital_accounts' => 'حسابات رأس المال',
         'exchange_rates' => 'أسعار الصرف',
         'commission_rules' => 'قواعد العمولات',
+        'users' => 'إدارة المستخدمين',
     ],
 
     'transfers' => [
