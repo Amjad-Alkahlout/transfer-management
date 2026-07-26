@@ -54,6 +54,7 @@ return [
         'initial_payment' => 'Initial Payment',
         'notes' => 'Notes',
         'transfer_proof' => 'Transfer Proof',
+        'commission' => 'Commission',
     ],
 
     'placeholders' => [

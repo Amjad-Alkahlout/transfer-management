@@ -55,6 +55,7 @@ return [
         'initial_payment' => 'الدفعة الأولى',
         'notes' => 'الملاحظات',
         'transfer_proof' => 'إثبات التحويل',
+        'commission'=>'عمولة التحويل'
     ],
 
     'placeholders' => [
