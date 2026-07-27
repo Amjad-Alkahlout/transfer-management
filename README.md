@@ -1,8 +1,8 @@
 # 💸 Money Transfer Management System
 
-A production-ready money transfer management platform built with Laravel, Livewire, Docker, and Telegram integration.
+A production-ready Money Transfer Management System built with Laravel, Livewire, Docker, and Telegram integration.
 
-The system manages the complete lifecycle of international money transfers, including pricing, approvals, execution, accounting, and real-time Telegram notifications.
+The platform manages the complete lifecycle of international money transfers, from transfer creation to payment collection, execution, accounting, and real-time notifications.
 
 ---
 
@@ -10,22 +10,26 @@ The system manages the complete lifecycle of international money transfers, incl
 
 ## Authentication & Authorization
 
-- Secure user authentication
+- Secure authentication
 - Role-based access control
-- Protected routes and permissions
+- Permission management
+- Protected routes
 - Session management
 
 ---
 
 ## Transfer Management
 
-- Create money transfers
-- Review transfer details
-- Pricing workflow
-- Approval process
-- Execution tracking
+- Create and edit money transfers
+- Manual commission entry (AED)
+- Automatic multi-currency calculations
+- Receiver Amount calculation mode
+- Customer Payment calculation mode
+- Payment collection
+- Transfer execution
+- Transfer cancellation
 - Transfer history
-- Transfer status management
+- Status tracking
 
 ---
 
@@ -33,21 +37,16 @@ The system manages the complete lifecycle of international money transfers, incl
 
 ### Capital Accounts
 
-- Multiple capital accounts
-- Current balances
-- Transaction history
+- Manage multiple capital accounts
+- Track balances
+- View account transactions
 
 ### Exchange Rates
 
 - Manage exchange rates
-- Currency conversion
-- Live pricing support
-
-### Commission Rules
-
-- Flexible commission configuration
-- Multiple commission types
-- Automatic commission calculation
+- Automatic currency conversion
+- Multi-currency support
+- Real-time transfer calculations
 
 ---
 
@@ -63,24 +62,64 @@ Interactive dashboard displaying:
 
 ---
 
+# 💱 Transfer Calculation
+
+The system supports two calculation modes.
+
+## Receiver Amount
+
+The operator enters:
+
+- Receiver amount
+- Receiver currency
+- Customer payment currency
+- Commission (AED)
+
+The system automatically:
+
+- Converts the receiver amount into the customer's payment currency.
+- Converts the commission from AED into the customer's payment currency.
+- Adds the commission.
+- Calculates the final customer payable amount.
+
+---
+
+## Customer Payment
+
+The operator enters:
+
+- Customer payment amount
+- Customer payment currency
+- Receiver currency
+- Commission (AED)
+
+The system automatically:
+
+- Converts the commission from AED into the payment currency.
+- Deducts the commission.
+- Converts the remaining amount into the receiver's currency.
+- Calculates the final transfer amount.
+
+---
+
 ## Telegram Integration
 
-Users can securely connect their Telegram account to receive notifications.
+Users can securely connect their Telegram account.
 
-### Features
+Features include:
 
 - Telegram account linking
-- Secure verification code
-- Telegram Webhook
-- Automatic chat ID registration
-- Queue-based notification delivery
+- Verification code
+- Webhook integration
+- Automatic Chat ID registration
+- Queue-based notifications
 
 Notifications include:
 
 - Transfer created
-- Approval updates
-- Execution updates
-- Other workflow events
+- Payment received
+- Transfer executed
+- Workflow updates
 
 ---
 
@@ -88,21 +127,19 @@ Notifications include:
 
 Background jobs are processed using Laravel Queues.
 
-Dedicated Queue Worker container:
+Dedicated Queue Worker handles:
 
-- Notification processing
+- Telegram notifications
+- Background jobs
 - Event listeners
-- Background tasks
 
 ---
 
-## Dockerized Production Environment
-
-The application runs using Docker Compose with separate containers.
+# 🏗️ Architecture
 
 ```
                 +----------------+
-                |    Nginx       |
+                |     Nginx      |
                 +--------+-------+
                          |
                          |
@@ -110,52 +147,56 @@ The application runs using Docker Compose with separate containers.
                 | Laravel App    |
                 +--------+-------+
                          |
-             +-----------+-----------+
-             |                       |
-     +-------v------+       +--------v-------+
-     | Queue Worker |       |     MySQL      |
-     +--------------+       +----------------+
+          +--------------+--------------+
+          |                             |
+  +-------v------+             +--------v-------+
+  | Queue Worker |             |     MySQL      |
+  +--------------+             +----------------+
 ```
 
 ---
 
-# 🏗 Tech Stack
+# 🛠️ Tech Stack
 
-### Backend
+## Backend
 
-- Laravel
+- Laravel 12
 - PHP 8.4
 - Livewire
 - Eloquent ORM
+- Service Layer Architecture
+- Laravel Policies & Gates
 
-### Frontend
+## Frontend
 
 - Blade
 - Livewire
 - Tailwind CSS
+- Alpine.js
 - Vite
 
-### Database
+## Database
 
 - MySQL 8.4
 
-### Infrastructure
+## Infrastructure
 
 - Docker
 - Docker Compose
 - Nginx
 
-### Notifications
+## Notifications
 
 - Telegram Bot API
 - Webhooks
 - Laravel Queues
 
-### Deployment
+## Deployment
 
 - Microsoft Azure VM
+- Docker
+- Nginx
 - Let's Encrypt SSL
-- Custom Domain
 
 ---
 
@@ -189,13 +230,13 @@ Enter the project
 cd transfer-management
 ```
 
-Copy environment file
+Copy the environment file
 
 ```bash
 cp .env.example .env
 ```
 
-Generate application key
+Generate the application key
 
 ```bash
 php artisan key:generate
@@ -211,7 +252,7 @@ Build containers
 docker compose build
 ```
 
-Run containers
+Start containers
 
 ```bash
 docker compose up -d
@@ -223,17 +264,23 @@ Run migrations
 docker compose exec app php artisan migrate
 ```
 
-Seed database
+Seed the database
 
 ```bash
 docker compose exec app php artisan db:seed
+```
+
+Optimize the application
+
+```bash
+docker compose exec app php artisan optimize
 ```
 
 ---
 
 # 🤖 Telegram Setup
 
-Configure the following environment variables:
+Configure:
 
 ```env
 TELEGRAM_BOT_TOKEN=
@@ -242,40 +289,15 @@ TELEGRAM_BOT_USERNAME=
 
 Register the webhook
 
-```bash
+```text
 https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://your-domain.com/telegram/webhook
 ```
-
-Users can then link their Telegram account directly from the application.
-
----
-
-# 🔐 HTTPS
-
-Production deployment includes
-
-- Let's Encrypt SSL
-- Automatic certificate renewal
-- HTTPS enforcement
-
----
-
-# 🚀 Production Deployment
-
-The application is deployed using
-
-- Azure Virtual Machine
-- Docker Compose
-- Nginx Reverse Proxy
-- MySQL
-- Queue Worker
-- HTTPS
 
 ---
 
 # 👥 User Roles
 
-The system supports multiple roles throughout the transfer workflow.
+The system supports multiple roles.
 
 Examples include:
 
@@ -293,34 +315,26 @@ Each role has dedicated permissions and responsibilities.
 Transfer Created
         │
         ▼
-Pricing
+Payment Received
         │
         ▼
-Approval
-        │
-        ▼
-Execution
-        │
-        ▼
-Accounting
+Transfer Executed
         │
         ▼
 Completed
 ```
 
-Telegram notifications are automatically sent during important workflow events.
-
 ---
 
 # 📬 Queue Processing
 
-Queue Worker runs continuously inside its own Docker container.
+Run the queue worker
 
 ```bash
 php artisan queue:work
 ```
 
-Used for
+Used for:
 
 - Telegram notifications
 - Background jobs
@@ -330,44 +344,44 @@ Used for
 
 # 📸 Screenshots
 
-Add screenshots here.
+Screenshots will be added soon.
 
-Example:
+Suggested images:
 
 ```
 screenshots/
 
 dashboard.png
-
-transfers.png
-
+transfer-create.png
+transfer-details.png
+exchange-rates.png
 telegram.png
 ```
 
 ---
 
-# 🔮 Future Improvements
+# 🚀 Future Improvements
 
-- Email notifications
-- PDF receipts
-- Multi-language support
-- Audit logs
-- API integration
-- Redis queue
-- Real-time dashboard
-- Cloud storage support
+- REST API
+- Flutter Mobile Application
+- Push Notifications
+- PDF Receipts
+- Audit Logs
+- Redis Queues
+- Real-time Dashboard
+- Cloud Storage Integration
 
 ---
 
 # 👨‍💻 Author
 
-**Amjad Alkahlout**
+**Amjad Alkahloot**
 
 Computer Science Engineering Student
 
 Andhra University
 
-GitHub:
+GitHub
 
 https://github.com/Amjad-Alkahlout
 
