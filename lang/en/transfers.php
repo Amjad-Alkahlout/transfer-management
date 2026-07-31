@@ -86,7 +86,7 @@ return [
         'created' => 'Transfer created successfully.',
         'updated' => 'Transfer updated successfully.',
         'completed' => 'Transfer completed successfully.',
-
+        'no_financial_impact' => 'No financial impact found.',
         'cancelled' => 'Transfer cancelled successfully.',
     ],
 
@@ -145,7 +145,17 @@ return [
         'audit' => 'Audit',
 
         'execute_transfer' => 'Execute Transfer',
+        'financial_impact' => 'Financial Impact',
 
+    ],
+    'ledger' => [
+        'account' => 'Account',
+        'amount' => 'Amount',
+        'direction' => 'Direction',
+        'balance_before' => 'Balance Before',
+        'balance_after' => 'Balance After',
+        'description' => 'Description',
+        'date' => 'Date',
     ],
     'details' => [
 

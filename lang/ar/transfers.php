@@ -90,7 +90,7 @@ return [
         'created' => 'تم إنشاء الحوالة بنجاح.',
         'updated' => 'تم تحديث الحوالة بنجاح.',
         'completed' => 'تم تنفيذ الحوالة بنجاح.',
-
+        'no_financial_impact' => 'لا يوجد أثر مالي.',
         'cancelled' => 'تم إلغاء الحوالة بنجاح.',
     ],
 
@@ -150,7 +150,17 @@ return [
         'audit' => 'سجل العمليات',
 
         'execute_transfer' => 'تنفيذ الحوالة',
+        'financial_impact' => 'الأثر المالي',
 
+    ],
+    'ledger' => [
+        'account' => 'الحساب',
+        'amount' => 'المبلغ',
+        'direction' => 'الاتجاه',
+        'balance_before' => 'الرصيد قبل الحركة',
+        'balance_after' => 'الرصيد بعد الحركة',
+        'description' => 'الوصف',
+        'date' => 'التاريخ',
     ],
     'details' => [
 

@@ -6,8 +6,10 @@ use App\Enums\ReceiverMethod;
 use App\Enums\TransferStatus;
 use App\Events\TransferCancelled;
 use App\Events\TransferExecuted;
+use App\Models\CapitalTransaction;
 use App\Models\Transfer;
 use App\Services\TransferExecutionService;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -28,6 +30,7 @@ class extends Component {
     public $transfer_proof_path;
     public $show_transfer_proof_form = false;
     public bool $showProofModal = false;
+
 
 
     public function mount(Transfer $transfer)
@@ -143,6 +146,19 @@ class extends Component {
 
     }
 
+    #[Computed]
+
+    public function transactions()
+    {
+        return CapitalTransaction::query()
+            ->with([
+                'account',
+            ])
+            ->where('reference_type', Transfer::class)
+            ->where('reference_id', $this->transfer->id)
+            ->latest()
+            ->get();
+    }
 
 };
 ?>
@@ -416,7 +432,103 @@ class extends Component {
             @endif
 
         </x-ui.card>
+
     </div>
+    @can('view-capital-ledger')
+    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-1 mb-4">
+        <x-ui.card :title="__('transfers.sections.financial_impact')">
+
+            @if($this->transactions->isEmpty())
+
+                <div class="py-8 text-center text-sm text-gray-500">
+                    {{ __('transfers.messages.no_capital_transactions') }}
+                </div>
+
+            @else
+
+                <x-ui.table>
+
+                    <x-ui.table-head>
+
+                        <x-ui.table-row>
+                            <x-ui.table-cell>{{ __('transfers.ledger.account') }}</x-ui.table-cell>
+                            <x-ui.table-cell>{{ __('transfers.ledger.amount') }}</x-ui.table-cell>
+                            <x-ui.table-cell>{{ __('transfers.ledger.direction') }}</x-ui.table-cell>
+                            <x-ui.table-cell>{{ __('transfers.ledger.balance_before') }}</x-ui.table-cell>
+                            <x-ui.table-cell>{{ __('transfers.ledger.balance_after') }}</x-ui.table-cell>
+                            <x-ui.table-cell>{{ __('transfers.ledger.description') }}</x-ui.table-cell>
+                            <x-ui.table-cell>{{ __('transfers.ledger.date') }}</x-ui.table-cell>
+                        </x-ui.table-row>
+
+                    </x-ui.table-head>
+
+                    <x-ui.table-body>
+
+                        @foreach($this->transactions as $transaction)
+
+                            @php
+                                $currency = $transaction->account->currency;
+                            @endphp
+
+                            <x-ui.table-row>
+
+                                <x-ui.table-cell>
+                                    {{ $transaction->account->name }}
+                                    -
+                                    {{ $transaction->account->branch->label() }}
+                                </x-ui.table-cell>
+
+                                <x-ui.table-cell>
+
+                            <span class="{{ $transaction->direction->value === 'in'
+                                    ? 'text-green-600'
+                                    : 'text-red-600' }} font-semibold">
+
+                                {{ $transaction->direction->value === 'in' ? '+' : '-' }}
+
+                                {{ number_format($transaction->amount, 2) }}
+
+                                {{ $currency->label() }}
+
+                            </span>
+
+                                </x-ui.table-cell>
+
+                                <x-ui.table-cell>
+                                    {{ $transaction->direction->label() }}
+                                </x-ui.table-cell>
+
+                                <x-ui.table-cell>
+                                    {{ number_format($transaction->balance_before, 2) }}
+                                    {{ $currency->label() }}
+                                </x-ui.table-cell>
+
+                                <x-ui.table-cell>
+                                    {{ number_format($transaction->balance_after, 2) }}
+                                    {{ $currency->label() }}
+                                </x-ui.table-cell>
+
+                                <x-ui.table-cell>
+                                    {{ $transaction->description }}
+                                </x-ui.table-cell>
+
+                                <x-ui.table-cell>
+                                    {{ $transaction->created_at->format('d/m/Y H:i') }}
+                                </x-ui.table-cell>
+
+                            </x-ui.table-row>
+
+                        @endforeach
+
+                    </x-ui.table-body>
+
+                </x-ui.table>
+
+            @endif
+        </x-ui.card>
+    </div>
+    @endcan
+
 
     @if($show_transfer_proof_form)
 

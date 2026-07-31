@@ -17,7 +17,7 @@ return [
         'internal_transfer' => 'تحويل داخلي',
         'manual_adjustment' => 'تعديل يدوي',
         'opening_balance' => 'الرصيد الافتتاحي',
-        'transfer_expense' => 'مصروف حوالة',
+        'transfer_expense' => 'عمولة الحوالة',
         'profit_withdrawal' => 'سحب أرباح',
         'transfer_cancellation' => 'إلغاء حوالة',
         'profit_distribution' => 'توزيع أرباح',

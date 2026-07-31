@@ -80,5 +80,7 @@ class AppServiceProvider extends ServiceProvider
         $user->isAdmin()
         );
 
+        Gate::define('view-capital-ledger', fn (User $user) => $user->isAdmin());
+
     }
 }

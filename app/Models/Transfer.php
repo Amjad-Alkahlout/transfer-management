@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CurrencyType;
-use App\Enums\FeeMode;
+
 use App\Enums\PaymentStatus;
 use App\Enums\ReceiverMethod;
 use App\Enums\TransferCalculationMode;
@@ -19,10 +19,7 @@ class Transfer extends Model
     {
         return $this->hasMany(Payment::class);
     }
-    public function account(): BelongsTo
-    {
-        return $this->belongsTo(BankAccount::class, 'bank_account_id');
-    }
+
 
     public function creator(): BelongsTo
     {
