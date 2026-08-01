@@ -321,5 +321,6 @@ return [
         'editName' => 'الاسم',
         'editEmail' => 'البريد الإلكتروني',
         'editRole' => 'الدور الوظيفي',
+        'receiver_method' => 'طريقة الاستلام',
     ],
 ];

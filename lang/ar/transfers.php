@@ -195,6 +195,8 @@ return [
 
         'cancelled_at' => 'تاريخ الإلغاء',
 
+        'receiver_method' => 'طريقة الاستلام',
+
     ],
     'modal' => [
 

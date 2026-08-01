@@ -68,7 +68,7 @@ class CapitalTransferService
         }
 
         // Validate that the fromAccount has enough balance
-        if ($fromAccount->balance < $sourceAmount + $transferCost) {
+        if ($fromAccount->balance < $sourceAmount ) {
             throw new RuntimeException(__('services.capital_transfer.insufficient_source_balance'));
         }
 
@@ -202,8 +202,6 @@ class CapitalTransferService
 
         $isProfitDistribution = $this->isProfitDistribution($fromAccount, $toAccount);
 
-        // Calculate the destination amount using the currency converter service
-        $totalDeduction = $sourceAmount + $transferCost;
 
         $destinationAmount = round(
             $this->converter->convert($sourceAmount, $fromAccount->currency, $toAccount->currency),
@@ -229,7 +227,6 @@ class CapitalTransferService
             $transferCost,
             $exchangeRate,
             $notes,
-            $totalDeduction,
             $createdBy,
             $isProfitDistribution,
         ) {
@@ -251,7 +248,7 @@ class CapitalTransferService
             }
 
             // Recheck after acquiring row locks to prevent race conditions.
-            if ($fromAccount->balance < $totalDeduction) {
+            if ($fromAccount->balance < $sourceAmount) {
                 throw new RuntimeException(__('services.capital_transfer.insufficient_source_balance'));
             }
 
@@ -277,7 +274,7 @@ class CapitalTransferService
 
             $fromBefore = $fromAccount->balance;
 
-            $fromAfter = $fromBefore - $totalDeduction;
+            $fromAfter = $fromBefore - $sourceAmount;
 
             $fromAccount->balance = $fromAfter;
             $fromAccount->save();
@@ -286,7 +283,7 @@ class CapitalTransferService
                 account: $fromAccount,
                 direction: TransactionDirection::OUT,
                 transactionType: $transactionType,
-                amount: $totalDeduction,
+                amount: $sourceAmount,
                 balanceBefore: $fromBefore,
                 balanceAfter: $fromAfter,
                 createdBy: $createdBy,
