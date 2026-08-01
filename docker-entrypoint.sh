@@ -23,6 +23,8 @@ try {
 done
 echo "MySQL is ready."
 
+php artisan storage:link || true
+
 if [ "$CONTAINER_ROLE" = "queue-worker" ]; then
     echo "Starting Queue Worker..."
     exec php artisan queue:work --sleep=3 --tries=3

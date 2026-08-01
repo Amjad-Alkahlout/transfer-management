@@ -9,6 +9,7 @@ use App\Notifications\Telegram\TransferCancelledMessage;
 use App\Notifications\Telegram\TransferCreatedMessage;
 use App\Notifications\Telegram\TransferExecutedMessage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class NotificationService
 {
@@ -77,6 +78,7 @@ class NotificationService
                 UserRole::ADMIN,
                 UserRole::EXECUTOR,
                 UserRole::TRANSFER_EXECUTOR,
+                UserRole::COORDINATOR,
             ])
             ->whereNotNull('telegram_chat_id')
             ->where('telegram_notifications_enabled', true)
@@ -86,7 +88,7 @@ class NotificationService
 
             $this->telegram->sendPhoto(
                 $user->telegram_chat_id,
-                $transfer->transfer_proof_path,
+                Storage::disk('public')->url($transfer->transfer_proof_path),
                 $caption,
             );
 

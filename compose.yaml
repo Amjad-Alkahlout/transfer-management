@@ -10,6 +10,7 @@ services:
             - .env
         volumes:
             - ./.env:/var/www/html/.env:ro
+            - storage_public:/var/www/html/storage/app/public
         expose:
             - "9000"
         environment:
@@ -20,6 +21,7 @@ services:
                 condition: service_healthy
         networks:
             - transfer-network
+
 
     queue-worker:
        build:
@@ -39,6 +41,9 @@ services:
               condition: service_started
        networks:
           - transfer-network
+       volumes:
+           - ./.env:/var/www/html/.env:ro
+           - storage_public:/var/www/html/storage/app/public
 
 
     nginx:
@@ -52,6 +57,7 @@ services:
             - "443:443"
         volumes:
             - /etc/letsencrypt:/etc/letsencrypt:ro
+            - storage_public:/var/www/html/storage/app/public:ro
         depends_on:
             app:
                 condition: service_started
@@ -82,6 +88,7 @@ services:
 
 volumes:
     mysql-data:
+    storage_public:
 
 networks:
     transfer-network:
