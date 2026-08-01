@@ -129,7 +129,7 @@ class extends Component {
                         $this->customer_payable_amount,
                         CurrencyType::from($this->customer_payable_currency),
                         CurrencyType::from($this->requested_currency),
-                        (float) ($this->commissionAmount ?: 0)
+                        (float) ($this->commission_amount ?: 0)
                     );
 
             } else {
@@ -139,7 +139,7 @@ class extends Component {
                         $this->requested_amount,
                         CurrencyType::from($this->requested_currency),
                         CurrencyType::from($this->customer_payable_currency),
-                        (float) ($this->commissionAmount ?: 0)
+                        (float) ($this->commission_amount ?: 0)
                     );
             }
 
