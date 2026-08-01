@@ -10,4 +10,5 @@ return [
     'commission_rules' => 'Commission Rules',
     'users' => 'User Management',
     'toggle_menu' => 'Toggle Menu',
+    'capital_ledger' => 'Capital Ledgers',
 ];

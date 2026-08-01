@@ -10,4 +10,5 @@ return [
     'commission_rules' => 'قواعد العمولات',
     'users' => 'إدارة المستخدمين',
     'toggle_menu' => 'فتح القائمة',
+    'capital_ledger'=>'سجل الحركات'
 ];

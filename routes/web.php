@@ -81,6 +81,10 @@ Route::middleware('auth')->group(function () {
         ->name('capital-transfers.index')
         ->middleware('can:view-capital-transfers');
 
+    Route::livewire('/capital-ledger', 'pages::capital-ledger.index')
+        ->name('capital-ledger.index');
+
+
 
 
 

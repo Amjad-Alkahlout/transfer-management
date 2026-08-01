@@ -2,7 +2,7 @@
 return [
 
 'app' => [
-'name' => 'Money Transfer System',
+'name' => 'Transfer Hub',
 ],
 
 'buttons' => [
