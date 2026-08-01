@@ -88,7 +88,7 @@ class NotificationService
 
             $this->telegram->sendPhoto(
                 $user->telegram_chat_id,
-                Storage::disk('public')->url($transfer->transfer_proof_path),
+                $transfer->transfer_proof_path,
                 $caption,
             );
 

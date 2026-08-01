@@ -30,7 +30,7 @@ new #[Layout('layouts::app')] class extends Component {
         }
 
         if ($this->paymentStatus) {
-            $query->where('payment_status', $this->paymentStatus);
+            $query->where('payment_status', $this->paymentStatus)->where('status', '!=', TransferStatus::CANCELLED);
         }
 
         return $query

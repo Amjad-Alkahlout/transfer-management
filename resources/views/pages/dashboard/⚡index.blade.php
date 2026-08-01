@@ -70,7 +70,7 @@ class extends Component {
     public function paymentStats()
     {
         return [
-            'unpaid' => Transfer::where('payment_status', PaymentStatus::UNPAID)->count(),
+            'unpaid' => Transfer::where('payment_status', PaymentStatus::UNPAID)->where('status', '!=', TransferStatus::CANCELLED)->count(),
             'partially_paid' => Transfer::where('payment_status', PaymentStatus::PARTIALLY_PAID)->count(),
             'paid' => Transfer::where('payment_status', PaymentStatus::PAID)->count(),
         ];
@@ -82,13 +82,7 @@ class extends Component {
         return ExchangeRate::orderBy('currency')->get();
     }
 
-    #[Computed]
-    public function commissionStats()
-    {
-        return CommissionRule::selectRaw('currency, COUNT(*) as total')
-            ->groupBy('currency')
-            ->get();
-    }
+
     public function openTransfers(?string $status = null, ?string $paymentStatus = null)
     {
         return redirect()->route('transfers.index', [
