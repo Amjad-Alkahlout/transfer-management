@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.3",
         "blade-ui-kit/blade-heroicons": "^2.7",
+        "jenssegers/agent": "^2.6",
         "laravel-notification-channels/telegram": "^7.0",
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",

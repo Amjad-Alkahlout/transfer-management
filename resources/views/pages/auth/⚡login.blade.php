@@ -35,8 +35,6 @@ new #[Layout('layouts::guest')] class extends Component {
             return;
         }
 
-        session()->regenerate();
-
         return $this->redirectRoute('dashboard');
     }
 };

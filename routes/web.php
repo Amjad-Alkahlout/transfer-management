@@ -30,7 +30,7 @@ Route::get('/locale/{locale}', function (string $locale) {
 
 })->name('locale.switch');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'single.device'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])
         ->name('logout');
 
