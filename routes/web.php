@@ -22,14 +22,13 @@ Route::get('/locale/{locale}', function (string $locale) {
         abort(404);
     }
 
-    session()->put('locale', $locale);
-
     App::setLocale($locale);
 
-    return back();
+    return back()->withCookie(
+        cookie('locale', $locale, 60 * 24 * 365)
+    );
 
 })->name('locale.switch');
-
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])

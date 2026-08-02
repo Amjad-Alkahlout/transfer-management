@@ -182,6 +182,7 @@ class CapitalTransferService
             'reference_id' => $reference?->getKey(),
 
             'created_by' => $createdBy,
+            'notes' => $notes,
         ]);
     }
 

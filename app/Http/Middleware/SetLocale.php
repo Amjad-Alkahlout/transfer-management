@@ -14,7 +14,7 @@ class SetLocale
         Closure $next,
     ): Response {
 
-        $locale = session(
+        $locale = $request->cookie(
             'locale',
             config('app.locale')
         );

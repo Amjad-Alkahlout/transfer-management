@@ -106,7 +106,7 @@ new class extends Component {
         @foreach ($rates as $rate)
                 <x-ui.table-row>
                 <x-ui.table-cell>{{  $rate['currency']->label()  }}</x-ui.table-cell>
-                <x-ui.table-cell>{{ number_format((float) $rate['rate_to_usd'], 4) }}</x-ui.table-cell>
+                <x-ui.table-cell>{{ number_format((float) $rate['rate_to_usd'], 8) }}</x-ui.table-cell>
                 <x-ui.table-cell>{{ $rate['updated_at']->format('d/m/Y H:i') }}</x-ui.table-cell>
             </x-ui.table-row>
         @endforeach
@@ -131,7 +131,7 @@ new class extends Component {
                         :label="$rate['currency']->label()"
                         :name="'rates.'.$index.'.rate_to_usd'"
                         type="number"
-                        step="0.0001"
+                        step="any"
                         wire:model.live="rates.{{ $index }}.rate_to_usd"
                     />
                 @endforeach
