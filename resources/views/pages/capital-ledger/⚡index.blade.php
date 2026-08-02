@@ -278,7 +278,7 @@ new class extends Component {
 
                                 <x-ui.table-cell>
 
-                                    {{ $transaction->description }}
+                                    {{ $transaction->notes }}
 
                                 </x-ui.table-cell>
 
