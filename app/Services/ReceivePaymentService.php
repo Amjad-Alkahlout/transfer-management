@@ -72,6 +72,7 @@ class ReceivePaymentService
                 balanceAfter: $uaeCapital->balance,
                 createdBy: auth()->id(),
                 reference: $transfer,
+                notes: $notes,
             );
 
             $transfer->paid_amount += $paymentAmount;

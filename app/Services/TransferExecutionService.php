@@ -74,7 +74,8 @@ class TransferExecutionService
                 balanceBefore: $gazaBefore,
                 balanceAfter: $gazaCapital->balance,
                 createdBy: auth()->id(),
-                reference: $transfer, // سنعدلها بعد قليل
+                reference: $transfer,
+                notes: null,
             );
 
             $gazaBefore = $gazaCapital->balance;
@@ -92,6 +93,7 @@ class TransferExecutionService
                 balanceAfter: $gazaCapital->balance,
                 createdBy: auth()->id(),
                 reference: $transfer,
+                notes: null,
             );
 
             $profitBefore = $profitAccount->balance;
@@ -109,6 +111,7 @@ class TransferExecutionService
                 balanceAfter: $profitAccount->balance,
                 createdBy: auth()->id(),
                 reference: $transfer,
+                notes: null,
             );
 
             $this->profitService->addCommission(

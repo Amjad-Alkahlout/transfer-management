@@ -61,6 +61,7 @@ class CapitalAccountAdjustmentService
                 balanceAfter: $after,
                 createdBy: $createdBy,
                 reference: null,
+                notes: $notes,
             );
         });
     }

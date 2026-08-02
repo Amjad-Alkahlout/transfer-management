@@ -160,7 +160,8 @@ class CapitalTransferService
         float $balanceBefore,
         float $balanceAfter,
         int $createdBy,
-        ?Model $reference = null
+        ?Model $reference = null,
+        ?string $notes = null,
     ): void {
 
         CapitalTransaction::create([
@@ -288,6 +289,7 @@ class CapitalTransferService
                 balanceAfter: $fromAfter,
                 createdBy: $createdBy,
                 reference: $transfer,
+                notes: $notes,
             );
 
             $toBefore = $toAccount->balance;
@@ -305,6 +307,7 @@ class CapitalTransferService
                 balanceAfter: $toAfter,
                 createdBy: $createdBy,
                 reference: $transfer,
+                notes: $notes
             );
 
             if (! $isProfitDistribution) {
@@ -326,6 +329,7 @@ class CapitalTransferService
                     balanceAfter: $profitAfter,
                     createdBy: $createdBy,
                     reference: $transfer,
+                    notes: $notes
                 );
             }
 

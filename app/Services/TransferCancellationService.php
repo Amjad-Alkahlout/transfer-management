@@ -52,6 +52,7 @@ class TransferCancellationService
                     balanceAfter: $capitalAccount->balance,
                     createdBy: auth()->id(),
                     reference: $transfer,
+                    notes: null,
                 );
             }
             $transfer->paid_amount = 0;

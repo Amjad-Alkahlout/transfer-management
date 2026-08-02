@@ -67,6 +67,7 @@ class ProfitWithdrawalService
                 balanceAfter: $after,
                 createdBy: auth()->id(),
                 reference: null,
+                notes: $notes,
             );
 
         });
