@@ -55,6 +55,8 @@ class TransferCancellationService
                     notes: null,
                 );
             }
+
+            $transfer->payments()->delete();
             $transfer->paid_amount = 0;
 
             $transfer->remaining_amount = 0;

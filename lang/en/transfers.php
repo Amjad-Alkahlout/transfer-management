@@ -55,6 +55,7 @@ return [
         'notes' => 'Notes',
         'transfer_proof' => 'Transfer Proof',
         'commission' => 'Commission',
+        'confirm_password' => 'Password',
     ],
 
     'placeholders' => [
@@ -80,6 +81,8 @@ return [
 
         'close' => 'Close',
         'edit' => 'Edit',
+        'force_cancel' => 'Cancel Transfer (After Completion)',
+        'confirm_force_cancel' => 'Confirm Cancellation',
     ],
 
     'messages' => [
@@ -88,6 +91,7 @@ return [
         'completed' => 'Transfer completed successfully.',
         'no_financial_impact' => 'No financial impact found.',
         'cancelled' => 'Transfer cancelled successfully.',
+        'force_cancelled' => 'Transfer cancelled and all financial transactions reversed successfully.',
     ],
 
     'errors' => [
@@ -96,6 +100,8 @@ return [
         'cannot_execute' => 'This transfer cannot be executed in its current state.',
 
         'cannot_cancel' => 'This transfer cannot be cancelled in its current state.',
+        'cannot_force_cancel' => 'This transfer cannot be cancelled this way.',
+        'invalid_password' => 'Incorrect password.',
     ],
     'table' => [
 
@@ -194,6 +200,8 @@ return [
     'modal' => [
 
         'proof_title' => 'Transfer Proof',
+        'force_cancel_title' => 'Cancel Completed Transfer',
+        'force_cancel_warning' => 'This action will permanently reverse all financial transactions linked to this transfer. Please enter your password to confirm.',
 
     ],
 

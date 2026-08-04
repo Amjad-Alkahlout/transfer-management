@@ -19,6 +19,8 @@ enum CapitalTransactionType: string
 
     case PROFIT_DISTRIBUTION = 'profit_distribution';
 
+    case POST_COMPLETION_CANCELLATION = 'post_completion_cancellation';
+
     public function label(): string
     {
         return __("enums.capital_transaction_type.$this->value");

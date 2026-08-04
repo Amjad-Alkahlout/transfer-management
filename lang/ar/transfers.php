@@ -55,7 +55,8 @@ return [
         'initial_payment' => 'الدفعة الأولى',
         'notes' => 'الملاحظات',
         'transfer_proof' => 'إثبات التحويل',
-        'commission'=>'عمولة التحويل'
+        'commission'=>'عمولة التحويل',
+        'confirm_password' => 'كلمة المرور',
     ],
 
     'placeholders' => [
@@ -82,6 +83,8 @@ return [
         'download' => 'تنزيل',
 
         'close' => 'إغلاق',
+        'force_cancel' => 'إلغاء الحوالة (بعد الاكتمال)',
+        'confirm_force_cancel' => 'تأكيد الإلغاء',
 
 
     ],
@@ -92,6 +95,8 @@ return [
         'completed' => 'تم تنفيذ الحوالة بنجاح.',
         'no_financial_impact' => 'لا يوجد أثر مالي.',
         'cancelled' => 'تم إلغاء الحوالة بنجاح.',
+        'force_cancelled' => 'تم إلغاء الحوالة وعكس جميع الحركات المالية بنجاح.',
+        'no_capital_transactions' => 'لا توجد حركات مالية.',
     ],
 
     'errors' => [
@@ -101,6 +106,8 @@ return [
         'cannot_execute' => 'لا يمكن تنفيذ هذه الحوالة بحالتها الحالية.',
 
         'cannot_cancel' => 'لا يمكن إلغاء هذه الحوالة بحالتها الحالية.',
+        'cannot_force_cancel' => 'لا يمكن إلغاء هذه الحوالة بهذه الطريقة.',
+        'invalid_password' => 'كلمة المرور غير صحيحة.',
     ],
     'table' => [
 
@@ -201,6 +208,8 @@ return [
     'modal' => [
 
         'proof_title' => 'إثبات التحويل',
+        'force_cancel_title' => 'إلغاء حوالة مكتملة',
+        'force_cancel_warning' => 'هذا الإجراء سيعكس جميع الحركات المالية المرتبطة بهذه الحوالة بشكل نهائي. الرجاء إدخال كلمة المرور للتأكيد.',
 
     ],
 

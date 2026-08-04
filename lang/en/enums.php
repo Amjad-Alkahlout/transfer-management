@@ -21,6 +21,7 @@ return [
         'profit_withdrawal' => 'Profit Withdrawal',
         'transfer_cancellation' => 'Transfer Cancellation',
         'profit_distribution' => 'Profit Distribution',
+        'post_completion_cancellation' => 'Post-Completion Cancellation',
     ],
 
     'currency' => [

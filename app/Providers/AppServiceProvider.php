@@ -29,6 +29,10 @@ class AppServiceProvider extends ServiceProvider
             return $user->isAdmin() ? true : null;
         });
 
+        Gate::define('force-cancel-completed-transfer', function (User $user) {
+            return $user->role === UserRole::ADMIN;
+        });
+
         Gate::define('view-transfers', fn (User $user) =>
         true
         );

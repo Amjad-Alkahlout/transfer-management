@@ -80,5 +80,8 @@ return [
         'amount_must_be_positive' => 'The amount must be greater than zero.',
         'insufficient_balance' => 'The current balance is insufficient to complete the deduction.',
     ],
+    'force_cancel' => [
+        'only_completed_allowed' => 'Only completed transfers can be force cancelled.',
+    ],
 
 ];

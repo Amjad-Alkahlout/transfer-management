@@ -80,5 +80,8 @@ return [
         'amount_must_be_positive' => 'يجب أن يكون المبلغ أكبر من صفر.',
         'insufficient_balance' => 'الرصيد الحالي غير كافٍ لإتمام عملية الخصم.',
     ],
+    'force_cancel' => [
+        'only_completed_allowed' => 'يمكن إلغاء الحوالات المكتملة فقط بهذه الطريقة.',
+    ],
 
 ];

@@ -9,6 +9,7 @@ use App\Events\TransferExecuted;
 use App\Models\CapitalTransaction;
 use App\Models\Transfer;
 use App\Services\TransferExecutionService;
+use App\Support\LocalTime;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -20,6 +21,8 @@ use App\Enums\TransferCalculationMode;
 use App\Services\TransferCancellationService;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Gate;
+use App\Services\ForceCancelCompletedTransferService;
+use Illuminate\Support\Facades\Hash;
 
 new #[Layout('layouts::app')]
 class extends Component {
@@ -30,7 +33,9 @@ class extends Component {
     public $transfer_proof_path;
     public $show_transfer_proof_form = false;
     public bool $showProofModal = false;
-
+    public bool $showForceCancelModal = false;
+    public string $forceCancelPassword = '';
+    public ?string $forceCancelNotes = null;
 
 
     public function mount(Transfer $transfer)
@@ -146,8 +151,84 @@ class extends Component {
 
     }
 
-    #[Computed]
+    public function openForceCancelModal(): void
+    {
+        Gate::authorize('force-cancel-completed-transfer');
 
+        if ($this->transfer->status !== TransferStatus::COMPLETED) {
+            $this->addError(
+                'general',
+                __('transfers.errors.cannot_force_cancel')
+            );
+            return;
+        }
+
+        $this->forceCancelPassword = '';
+        $this->forceCancelNotes = null;
+        $this->showForceCancelModal = true;
+    }
+
+    public function closeForceCancelModal(): void
+    {
+        $this->forceCancelPassword = '';
+        $this->showForceCancelModal = false;
+    }
+
+    public function confirmForceCancel()
+    {
+        Gate::authorize('force-cancel-completed-transfer');
+
+        $this->validate([
+            'forceCancelPassword' => 'required|string',
+        ]);
+
+        if (! Hash::check($this->forceCancelPassword, auth()->user()->password)) {
+            $this->addError(
+                'forceCancelPassword',
+                __('transfers.errors.invalid_password')
+            );
+            return;
+        }
+
+        if ($this->transfer->status !== TransferStatus::COMPLETED) {
+            $this->addError(
+                'general',
+                __('transfers.errors.cannot_force_cancel')
+            );
+            return;
+        }
+
+        try {
+
+            app(ForceCancelCompletedTransferService::class)
+                ->cancel($this->transfer, auth()->id(), $this->forceCancelNotes);
+
+        } catch (\Throwable $e) {
+
+            $this->addError(
+                'general',
+                $e->getMessage()
+            );
+
+            return;
+        }
+
+        $this->showForceCancelModal = false;
+
+
+        session()->flash(
+            'success',
+            __('transfers.messages.force_cancelled')
+        );
+
+        return redirect()->route(
+            'transfers.show',
+            $this->transfer
+        );
+    }
+
+
+    #[Computed]
     public function transactions()
     {
         return CapitalTransaction::query()
@@ -250,6 +331,19 @@ class extends Component {
 
                     @endif
                 @endcan
+
+                    @can('force-cancel-completed-transfer')
+                        @if($transfer->status === TransferStatus::COMPLETED)
+
+                            <x-ui.button
+                                wire:click="openForceCancelModal"
+                                variant="danger"
+                            >
+                                {{ __('transfers.buttons.force_cancel') }}
+                            </x-ui.button>
+
+                        @endif
+                    @endcan
 
                 @if($transfer->transfer_proof_path)
                     <x-ui.button
@@ -408,7 +502,7 @@ class extends Component {
             <p>
                 <strong>{{ __('transfers.details.created_at') }}:</strong>
 
-                {{ $transfer->created_at->format('d/m/Y H:i') }}
+                {{ LocalTime::format($transfer->created_at) }}
             </p>
 
             @if($transfer->completed_at)
@@ -416,7 +510,7 @@ class extends Component {
                 <p>
                     <strong>{{ __('transfers.details.completed_at') }}:</strong>
 
-                    {{ $transfer->completed_at->format('d/m/Y H:i') }}
+                    {{ LocalTime::format($transfer->completed_at) }}
                 </p>
 
             @endif
@@ -426,7 +520,7 @@ class extends Component {
                 <p>
                     <strong>{{ __('transfers.details.cancelled_at') }}:</strong>
 
-                    {{ $transfer->cancelled_at->format('d/m/Y H:i') }}
+                    {{ LocalTime::format($transfer->cancelled_at) }}
                 </p>
 
             @endif
@@ -435,50 +529,50 @@ class extends Component {
 
     </div>
     @can('view-capital-ledger')
-    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-1 mb-4">
-        <x-ui.card :title="__('transfers.sections.financial_impact')">
+        <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-1 mb-4">
+            <x-ui.card :title="__('transfers.sections.financial_impact')">
 
-            @if($this->transactions->isEmpty())
+                @if($this->transactions->isEmpty())
 
-                <div class="py-8 text-center text-sm text-gray-500">
-                    {{ __('transfers.messages.no_capital_transactions') }}
-                </div>
+                    <div class="py-8 text-center text-sm text-gray-500">
+                        {{ __('transfers.messages.no_capital_transactions') }}
+                    </div>
 
-            @else
+                @else
 
-                <x-ui.table>
+                    <x-ui.table>
 
-                    <x-ui.table-head>
-
-                        <x-ui.table-row>
-                            <x-ui.table-cell>{{ __('transfers.ledger.account') }}</x-ui.table-cell>
-                            <x-ui.table-cell>{{ __('transfers.ledger.amount') }}</x-ui.table-cell>
-                            <x-ui.table-cell>{{ __('transfers.ledger.direction') }}</x-ui.table-cell>
-                            <x-ui.table-cell>{{ __('transfers.ledger.balance_before') }}</x-ui.table-cell>
-                            <x-ui.table-cell>{{ __('transfers.ledger.balance_after') }}</x-ui.table-cell>
-                            <x-ui.table-cell>{{ __('transfers.ledger.description') }}</x-ui.table-cell>
-                            <x-ui.table-cell>{{ __('transfers.ledger.date') }}</x-ui.table-cell>
-                        </x-ui.table-row>
-
-                    </x-ui.table-head>
-
-                    <x-ui.table-body>
-
-                        @foreach($this->transactions as $transaction)
-
-                            @php
-                                $currency = $transaction->account->currency;
-                            @endphp
+                        <x-ui.table-head>
 
                             <x-ui.table-row>
+                                <x-ui.table-cell>{{ __('transfers.ledger.account') }}</x-ui.table-cell>
+                                <x-ui.table-cell>{{ __('transfers.ledger.amount') }}</x-ui.table-cell>
+                                <x-ui.table-cell>{{ __('transfers.ledger.direction') }}</x-ui.table-cell>
+                                <x-ui.table-cell>{{ __('transfers.ledger.balance_before') }}</x-ui.table-cell>
+                                <x-ui.table-cell>{{ __('transfers.ledger.balance_after') }}</x-ui.table-cell>
+                                <x-ui.table-cell>{{ __('transfers.ledger.description') }}</x-ui.table-cell>
+                                <x-ui.table-cell>{{ __('transfers.ledger.date') }}</x-ui.table-cell>
+                            </x-ui.table-row>
 
-                                <x-ui.table-cell>
-                                    {{ $transaction->account->name }}
-                                    -
-                                    {{ $transaction->account->branch->label() }}
-                                </x-ui.table-cell>
+                        </x-ui.table-head>
 
-                                <x-ui.table-cell>
+                        <x-ui.table-body>
+
+                            @foreach($this->transactions as $transaction)
+
+                                @php
+                                    $currency = $transaction->account->currency;
+                                @endphp
+
+                                <x-ui.table-row>
+
+                                    <x-ui.table-cell>
+                                        {{ $transaction->account->name }}
+                                        -
+                                        {{ $transaction->account->branch->label() }}
+                                    </x-ui.table-cell>
+
+                                    <x-ui.table-cell>
 
                             <span class="{{ $transaction->direction->value === 'in'
                                     ? 'text-green-600'
@@ -492,41 +586,41 @@ class extends Component {
 
                             </span>
 
-                                </x-ui.table-cell>
+                                    </x-ui.table-cell>
 
-                                <x-ui.table-cell>
-                                    {{ $transaction->direction->label() }}
-                                </x-ui.table-cell>
+                                    <x-ui.table-cell>
+                                        {{ $transaction->direction->label() }}
+                                    </x-ui.table-cell>
 
-                                <x-ui.table-cell>
-                                    {{ number_format($transaction->balance_before, 2) }}
-                                    {{ $currency->label() }}
-                                </x-ui.table-cell>
+                                    <x-ui.table-cell>
+                                        {{ number_format($transaction->balance_before, 2) }}
+                                        {{ $currency->label() }}
+                                    </x-ui.table-cell>
 
-                                <x-ui.table-cell>
-                                    {{ number_format($transaction->balance_after, 2) }}
-                                    {{ $currency->label() }}
-                                </x-ui.table-cell>
+                                    <x-ui.table-cell>
+                                        {{ number_format($transaction->balance_after, 2) }}
+                                        {{ $currency->label() }}
+                                    </x-ui.table-cell>
 
-                                <x-ui.table-cell>
-                                    {{ $transaction->description }}
-                                </x-ui.table-cell>
+                                    <x-ui.table-cell>
+                                        {{ $transaction->description }}
+                                    </x-ui.table-cell>
 
-                                <x-ui.table-cell>
-                                    {{ $transaction->created_at->format('d/m/Y H:i') }}
-                                </x-ui.table-cell>
+                                    <x-ui.table-cell>
+                                        {{ LocalTime::format($transaction->created_at) }}
+                                    </x-ui.table-cell>
 
-                            </x-ui.table-row>
+                                </x-ui.table-row>
 
-                        @endforeach
+                            @endforeach
 
-                    </x-ui.table-body>
+                        </x-ui.table-body>
 
-                </x-ui.table>
+                    </x-ui.table>
 
-            @endif
-        </x-ui.card>
-    </div>
+                @endif
+            </x-ui.card>
+        </div>
     @endcan
 
 
@@ -612,4 +706,65 @@ class extends Component {
         </x-slot:footer>
 
     </x-ui.modal>
+
+    <x-ui.modal
+        :show="$showForceCancelModal"
+        close="$set('showForceCancelModal', false)"
+        :title="__('transfers.modal.force_cancel_title')"
+    >
+
+        <x-ui.alert color="danger">
+            {{ __('transfers.modal.force_cancel_warning') }}
+        </x-ui.alert>
+
+        @error('general')
+        <x-ui.alert color="danger">
+            {{ $message }}
+        </x-ui.alert>
+        @enderror
+
+        <div class="space-y-4 mt-4">
+
+            <x-ui.input
+                type="password"
+                :label="__('transfers.fields.confirm_password')"
+                name="forceCancelPassword"
+                wire:model="forceCancelPassword"
+            />
+
+            <x-ui.textarea
+                :label="__('transfers.fields.notes')"
+                name="forceCancelNotes"
+                wire:model="forceCancelNotes"
+                rows="3"
+            />
+
+        </div>
+
+        <x-slot:footer>
+
+            <div class="flex justify-end gap-2">
+
+                <x-ui.button
+                    type="button"
+                    variant="secondary"
+                    wire:click="closeForceCancelModal"
+                >
+                    {{ __('transfers.buttons.close') }}
+                </x-ui.button>
+
+                <x-ui.button
+                    type="button"
+                    variant="danger"
+                    wire:click="confirmForceCancel"
+                >
+                    {{ __('transfers.buttons.confirm_force_cancel') }}
+                </x-ui.button>
+
+            </div>
+
+        </x-slot:footer>
+
+    </x-ui.modal>
+
 </div>

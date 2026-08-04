@@ -21,6 +21,7 @@ return [
         'profit_withdrawal' => 'سحب أرباح',
         'transfer_cancellation' => 'إلغاء حوالة',
         'profit_distribution' => 'توزيع أرباح',
+        'post_completion_cancellation' => 'إلغاء بعد الاكتمال',
     ],
 
     'currency' => [
