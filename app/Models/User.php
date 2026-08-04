@@ -13,7 +13,7 @@ use Illuminate\Notifications\Notifiable;
 use App\Enums\UserRole;
 
 #[Fillable(['name', 'email', 'password', 'role', 'is_active', 'telegram_chat_id', 'telegram_notifications_enabled','telegram_link_code',
-    'telegram_link_expires_at',])]
+    'telegram_link_expires_at', 'timezone',])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {

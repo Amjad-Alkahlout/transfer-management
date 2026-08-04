@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\ExchangeRate;
+use App\Support\LocalTime;
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
 
@@ -25,7 +26,7 @@ new class extends Component {
             return [
                 'id' => $rate->id,
                 'currency' => $rate->currency,
-                'rate_to_usd' => (float) $rate->rate_to_usd,
+                'rate_to_usd' => (float)$rate->rate_to_usd,
                 'updated_at' => $rate->updated_at,
             ];
         })->toArray();
@@ -95,22 +96,22 @@ new class extends Component {
     >
 
         <x-ui.table>
-        <x-ui.table-header>
-        <x-ui.table-row>
-            <x-ui.table-head>{{ __('exchange_rates.table.currency') }}</x-ui.table-head>
-            <x-ui.table-head>{{ __('exchange_rates.table.rate_to_usd') }}</x-ui.table-head>
-            <x-ui.table-head>{{ __('exchange_rates.table.last_updated') }}</x-ui.table-head>
-        </x-ui.table-row>
-            </x-ui.table-header>
-        <x-ui.table-body>
-        @foreach ($rates as $rate)
+            <x-ui.table-header>
                 <x-ui.table-row>
-                <x-ui.table-cell>{{  $rate['currency']->label()  }}</x-ui.table-cell>
-                <x-ui.table-cell>{{ number_format((float) $rate['rate_to_usd'], 8) }}</x-ui.table-cell>
-                <x-ui.table-cell>{{ $rate['updated_at']->format('d/m/Y H:i') }}</x-ui.table-cell>
-            </x-ui.table-row>
-        @endforeach
-        </x-ui.table-body>
+                    <x-ui.table-head>{{ __('exchange_rates.table.currency') }}</x-ui.table-head>
+                    <x-ui.table-head>{{ __('exchange_rates.table.rate_to_usd') }}</x-ui.table-head>
+                    <x-ui.table-head>{{ __('exchange_rates.table.last_updated') }}</x-ui.table-head>
+                </x-ui.table-row>
+            </x-ui.table-header>
+            <x-ui.table-body>
+                @foreach ($rates as $rate)
+                    <x-ui.table-row>
+                        <x-ui.table-cell>{{  $rate['currency']->label()  }}</x-ui.table-cell>
+                        <x-ui.table-cell>{{ number_format((float) $rate['rate_to_usd'], 8) }}</x-ui.table-cell>
+                        <x-ui.table-cell>{{ LocalTime::format($rate['updated_at']) }}</x-ui.table-cell>
+                    </x-ui.table-row>
+                @endforeach
+            </x-ui.table-body>
         </x-ui.table>
     </x-ui.card>
 
@@ -135,23 +136,23 @@ new class extends Component {
                         wire:model.live="rates.{{ $index }}.rate_to_usd"
                     />
                 @endforeach
-                    <div class="flex justify-end gap-3">
+                <div class="flex justify-end gap-3">
 
-                        <x-ui.button
-                            type="button"
-                            variant="secondary"
-                            wire:click="hideUpdateForm"
-                        >
-                            {{ __('exchange_rates.buttons.cancel') }}
-                        </x-ui.button>
+                    <x-ui.button
+                        type="button"
+                        variant="secondary"
+                        wire:click="hideUpdateForm"
+                    >
+                        {{ __('exchange_rates.buttons.cancel') }}
+                    </x-ui.button>
 
-                        <x-ui.button
-                            type="submit"
-                        >
-                            {{ __('exchange_rates.buttons.save') }}
-                        </x-ui.button>
+                    <x-ui.button
+                        type="submit"
+                    >
+                        {{ __('exchange_rates.buttons.save') }}
+                    </x-ui.button>
 
-                    </div>
+                </div>
             </form>
         </x-ui.card>
     @endif

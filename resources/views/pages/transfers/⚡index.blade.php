@@ -3,12 +3,14 @@
 use App\Enums\ReceiverMethod;
 use App\Enums\TransferStatus;
 use App\Models\Transfer;
+use App\Support\LocalTime;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use App\Enums\PaymentStatus;
 use Livewire\Attributes\Layout;
 
-new #[Layout('layouts::app')] class extends Component {
+new #[Layout('layouts::app')]
+class extends Component {
 
     public ?string $status = null;
     public ?string $paymentStatus = null;
@@ -53,11 +55,11 @@ new #[Layout('layouts::app')] class extends Component {
     >
         <x-slot:actions>
             @can('create-transfer')
-            <x-ui.button
-                :href="route('transfers.create')"
-            >
-                {{ __('transfers.buttons.create') }}
-            </x-ui.button>
+                <x-ui.button
+                    :href="route('transfers.create')"
+                >
+                    {{ __('transfers.buttons.create') }}
+                </x-ui.button>
             @endcan
 
         </x-slot:actions>
@@ -154,9 +156,9 @@ new #[Layout('layouts::app')] class extends Component {
 
                                 <x-slot:actions>
                                     @can('create-transfer')
-                                    <x-ui.button :href="route('transfers.create')">
-                                        {{ __('transfers.buttons.create') }}
-                                    </x-ui.button>
+                                        <x-ui.button :href="route('transfers.create')">
+                                            {{ __('transfers.buttons.create') }}
+                                        </x-ui.button>
                                     @endcan
 
                                 </x-slot:actions>
@@ -169,120 +171,120 @@ new #[Layout('layouts::app')] class extends Component {
 
                 @else
 
-                @foreach($this->transfers as $transfer)
+                    @foreach($this->transfers as $transfer)
                         <x-ui.table-row
                             wire:click="goToTransfer({{ $transfer->id }})"
                             class="cursor-pointer hover:bg-gray-50 transition"
                         >
 
-                        <x-ui.table-cell>
-                            {{ $transfer->reference_number }}
-                        </x-ui.table-cell>
+                            <x-ui.table-cell>
+                                {{ $transfer->reference_number }}
+                            </x-ui.table-cell>
 
-                        <x-ui.table-cell>
-                            {{ $transfer->receiver_name }}
-                        </x-ui.table-cell>
+                            <x-ui.table-cell>
+                                {{ $transfer->receiver_name }}
+                            </x-ui.table-cell>
 
-                        <x-ui.table-cell>
-                            @if($transfer->receiver_method === ReceiverMethod::BANK)
-                                {{ $transfer->receiver_method->label() }}
-                                <br>
-                                {{ $transfer->receiver_account_number }}
-                            @else
-                                {{ str($transfer->receiver_method->value)->replace('_',' ')->title() }}
-                                <br>
-                                {{ $transfer->receiver_wallet_phone }}
-                            @endif
-                        </x-ui.table-cell>
-
-
-                        <x-ui.table-cell>
-                            {{ number_format($transfer->transfer_amount,2) }} {{ $transfer->requested_currency->symbol() }}
-                        </x-ui.table-cell>
-
-                        <x-ui.table-cell>
-                            {{ number_format($transfer->customer_payable_amount,2) }} {{ $transfer->customer_payable_currency->symbol() }}
-                        </x-ui.table-cell>
-
-                        <x-ui.table-cell>
-                           {{ number_format($transfer->commission_amount,2) }} {{ $transfer->commission_currency->symbol() }}
-                        </x-ui.table-cell>
-
-                        <x-ui.table-cell>
-
-                            @switch($transfer->status)
-
-                                @case(TransferStatus::PENDING)
-
-                                    <x-ui.badge color="yellow">
-                                        {{ TransferStatus::PENDING->label() }}
-                                    </x-ui.badge>
-
-                                    @break
-
-                                @case(TransferStatus::COMPLETED)
-
-                                    <x-ui.badge color="green">
-                                        {{ TransferStatus::COMPLETED->label() }}
-                                    </x-ui.badge>
-
-                                    @break
-
-                                @case(TransferStatus::CANCELLED)
-
-                                    <x-ui.badge color="red">
-                                        {{ TransferStatus::CANCELLED->label() }}
-                                    </x-ui.badge>
-
-                                    @break
-
-                            @endswitch
-
-                        </x-ui.table-cell>
-
-                        <x-ui.table-cell>
-
-                            @switch($transfer->payment_status)
-
-                                @case(PaymentStatus::UNPAID)
-
-                                    <x-ui.badge color="red">
-                                        {{ PaymentStatus::UNPAID->label() }}
-                                    </x-ui.badge>
-
-                                    @break
-
-                                @case(PaymentStatus::PARTIALLY_PAID)
-
-                                    <x-ui.badge color="orange">
-                                        {{ PaymentStatus::PARTIALLY_PAID->label() }}
-                                    </x-ui.badge>
-
-                                    @break
-
-                                @case(PaymentStatus::PAID)
-
-                                    <x-ui.badge color="green">
-                                        {{ PaymentStatus::PAID->label() }}
-                                    </x-ui.badge>
-
-                                    @break
-
-                            @endswitch
-
-                        </x-ui.table-cell>
-
-                        <x-ui.table-cell>
-                            {{ $transfer->creator?->name }}
-                        </x-ui.table-cell>
-
-                        <x-ui.table-cell>
-                            {{ $transfer->created_at->format('d/m/Y H:i') }}
-                        </x-ui.table-cell>
+                            <x-ui.table-cell>
+                                @if($transfer->receiver_method === ReceiverMethod::BANK)
+                                    {{ $transfer->receiver_method->label() }}
+                                    <br>
+                                    {{ $transfer->receiver_account_number }}
+                                @else
+                                    {{ str($transfer->receiver_method->value)->replace('_',' ')->title() }}
+                                    <br>
+                                    {{ $transfer->receiver_wallet_phone }}
+                                @endif
+                            </x-ui.table-cell>
 
 
-                    </x-ui.table-row>
-                @endforeach
+                            <x-ui.table-cell>
+                                {{ number_format($transfer->transfer_amount,2) }} {{ $transfer->requested_currency->symbol() }}
+                            </x-ui.table-cell>
+
+                            <x-ui.table-cell>
+                                {{ number_format($transfer->customer_payable_amount,2) }} {{ $transfer->customer_payable_currency->symbol() }}
+                            </x-ui.table-cell>
+
+                            <x-ui.table-cell>
+                                {{ number_format($transfer->commission_amount,2) }} {{ $transfer->commission_currency->symbol() }}
+                            </x-ui.table-cell>
+
+                            <x-ui.table-cell>
+
+                                @switch($transfer->status)
+
+                                    @case(TransferStatus::PENDING)
+
+                                        <x-ui.badge color="yellow">
+                                            {{ TransferStatus::PENDING->label() }}
+                                        </x-ui.badge>
+
+                                        @break
+
+                                    @case(TransferStatus::COMPLETED)
+
+                                        <x-ui.badge color="green">
+                                            {{ TransferStatus::COMPLETED->label() }}
+                                        </x-ui.badge>
+
+                                        @break
+
+                                    @case(TransferStatus::CANCELLED)
+
+                                        <x-ui.badge color="red">
+                                            {{ TransferStatus::CANCELLED->label() }}
+                                        </x-ui.badge>
+
+                                        @break
+
+                                @endswitch
+
+                            </x-ui.table-cell>
+
+                            <x-ui.table-cell>
+
+                                @switch($transfer->payment_status)
+
+                                    @case(PaymentStatus::UNPAID)
+
+                                        <x-ui.badge color="red">
+                                            {{ PaymentStatus::UNPAID->label() }}
+                                        </x-ui.badge>
+
+                                        @break
+
+                                    @case(PaymentStatus::PARTIALLY_PAID)
+
+                                        <x-ui.badge color="orange">
+                                            {{ PaymentStatus::PARTIALLY_PAID->label() }}
+                                        </x-ui.badge>
+
+                                        @break
+
+                                    @case(PaymentStatus::PAID)
+
+                                        <x-ui.badge color="green">
+                                            {{ PaymentStatus::PAID->label() }}
+                                        </x-ui.badge>
+
+                                        @break
+
+                                @endswitch
+
+                            </x-ui.table-cell>
+
+                            <x-ui.table-cell>
+                                {{ $transfer->creator?->name }}
+                            </x-ui.table-cell>
+
+                            <x-ui.table-cell>
+                                {{ LocalTime::format($transfer->created_at) }}
+                            </x-ui.table-cell>
+
+
+                        </x-ui.table-row>
+                    @endforeach
                 @endif
 
             </x-ui.table-body>

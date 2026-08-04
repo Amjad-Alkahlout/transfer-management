@@ -71,8 +71,6 @@ class NotificationService
 
     public function sendTransferExecuted(Transfer $transfer): void
     {
-        $caption = TransferExecutedMessage::build($transfer);
-
         $users = User::query()
             ->whereIn('role', [
                 UserRole::ADMIN,
@@ -86,12 +84,13 @@ class NotificationService
 
         foreach ($users as $user) {
 
+            $caption = TransferExecutedMessage::build($transfer, $user);
+
             $this->telegram->sendPhoto(
                 $user->telegram_chat_id,
                 $transfer->transfer_proof_path,
                 $caption,
             );
-
         }
     }
 

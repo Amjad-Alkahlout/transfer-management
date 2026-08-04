@@ -7,6 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? __('general.app.name') }}</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- Runs before anything paints, so the collapsed sidebar state
          is applied instantly on every full-page navigation instead of
@@ -261,6 +262,34 @@
     </div>
 
 </div>
+
+<script>
+    (function () {
+        const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+        const cookieMatch = document.cookie.match(/(?:^|; )user_timezone=([^;]*)/);
+        const storedTimezone = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
+
+        if (!detectedTimezone || detectedTimezone === storedTimezone) {
+            return;
+        }
+
+        fetch('{{ route('timezone.update') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            },
+            body: JSON.stringify({ timezone: detectedTimezone }),
+        }).then(function (response) {
+            if (response.ok) {
+                document.cookie = 'user_timezone=' + encodeURIComponent(detectedTimezone) +
+                    ';path=/;max-age=' + (60 * 60 * 24 * 365);
+            }
+        });
+    })();
+</script>
 
 @livewireScripts
 </body>

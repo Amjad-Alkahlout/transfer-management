@@ -3,6 +3,7 @@
 use App\Enums\CapitalTransactionType;
 use App\Models\CapitalAccount;
 use App\Models\CapitalTransaction;
+use App\Support\LocalTime;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -33,21 +34,21 @@ new class extends Component {
             ])
             ->when(
                 $this->selectedAccount,
-                fn ($query) => $query->where(
+                fn($query) => $query->where(
                     'capital_account_id',
                     $this->selectedAccount
                 )
             )
             ->when(
                 $this->selectedTransactionType,
-                fn ($query) => $query->where(
+                fn($query) => $query->where(
                     'transaction_type',
                     $this->selectedTransactionType
                 )
             )
             ->when(
                 $this->transactionFromDate,
-                fn ($query) => $query->whereDate(
+                fn($query) => $query->whereDate(
                     'created_at',
                     '>=',
                     $this->transactionFromDate
@@ -55,7 +56,7 @@ new class extends Component {
             )
             ->when(
                 $this->transactionToDate,
-                fn ($query) => $query->whereDate(
+                fn($query) => $query->whereDate(
                     'created_at',
                     '<=',
                     $this->transactionToDate
@@ -284,7 +285,7 @@ new class extends Component {
 
                                 <x-ui.table-cell>
 
-                                    {{ $transaction->created_at->format('d M Y, h:i A') }}
+                                    {{ LocalTime::format($transaction->created_at) }}
 
                                 </x-ui.table-cell>
 

@@ -222,7 +222,7 @@ new class extends Component {
                         </x-ui.table-cell>
 
                         <x-ui.table-cell>
-                            {{ $payment->created_at->format('d M Y H:i') }}
+                            {{ \App\Support\LocalTime::format($payment->created_at) }}
                         </x-ui.table-cell>
 
                         <x-ui.table-cell>

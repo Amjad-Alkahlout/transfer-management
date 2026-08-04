@@ -4,6 +4,7 @@ use App\Enums\CapitalAccountType;
 use App\Models\CapitalAccount;
 use App\Models\CapitalTransfer;
 use App\Services\CapitalTransferService;
+use App\Support\LocalTime;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -100,6 +101,7 @@ new class extends Component {
             ->orderBy('currency')
             ->get();
     }
+
     #[computed]
     public function transfers()
     {
@@ -127,8 +129,8 @@ new class extends Component {
                 ->preview(
                     $from,
                     $to,
-                    (float) $this->source_amount,
-                    (float) ($this->transfer_cost ?: 0),
+                    (float)$this->source_amount,
+                    (float)($this->transfer_cost ?: 0),
                 );
         } catch (\Throwable $e) {
             $this->preview = null;
@@ -259,7 +261,7 @@ new class extends Component {
                         <x-ui.table-cell>{{ $transfer->transfer_cost }}</x-ui.table-cell>
                         <x-ui.table-cell>{{ $transfer->exchange_rate }}</x-ui.table-cell>
                         <x-ui.table-cell>{{ $transfer->createdBy->name }}</x-ui.table-cell>
-                        <x-ui.table-cell>{{ $transfer->created_at->format('Y-m-d H:i') }}</x-ui.table-cell>
+                        <x-ui.table-cell>{{ LocalTime::format($transfer->created_at) }}</x-ui.table-cell>
                         <x-ui.table-cell>{{ $transfer->notes }}</x-ui.table-cell>
                     </x-ui.table-row>
                 @endforeach
@@ -323,7 +325,6 @@ new class extends Component {
                             {{ $account->currency->label() }}</option>
                     @endforeach
                 </x-ui.select>
-
 
 
                 <x-ui.input

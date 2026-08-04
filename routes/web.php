@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\TelegramWebhookController;
+use App\Http\Controllers\TimezoneController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\App;
 
@@ -33,6 +34,9 @@ Route::get('/locale/{locale}', function (string $locale) {
 Route::middleware(['auth', 'single.device'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])
         ->name('logout');
+
+    Route::post('/timezone', [TimezoneController::class, 'update'])
+        ->name('timezone.update');
 
 
     Route::livewire('/capital-accounts', 'pages::capital-accounts.index')
