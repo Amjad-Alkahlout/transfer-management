@@ -10,7 +10,8 @@ This document is the implementation sequence and scope. Work through the phases 
 
 - **Phase 1 — Complete.** Added Sanctum bearer-token login/logout and `/me`, active-user enforcement, API route registration, 30-day token expiry, and feature tests. Phase tests passed (7 tests, 34 assertions). The full suite reported 8/9 passing; the remaining existing `ExampleTest` expects `/` to return `200`, while the current web route intentionally redirects to login (`302`).
 - **Phase 2 — Complete.** Added paginated/filterable transfer reads, transfer details with payment history, calculation for both existing modes, dashboard summary, and exchange-rate reads with role checks and currency-safe decimal strings. Phase tests passed (9 tests, 55 assertions); all API v1 tests pass together (16 tests, 89 assertions).
-- **Phase 3 — Not started.**
+- **Phase 3 — Complete.** Extracted shared transfer create/update operations for API and Livewire, added API create/update endpoints and validation, and recorded creator/payment actors explicitly. Tests passed (9 transfer mutation tests); all API v1 tests pass together (25 tests, 130 assertions).
+- **Phase 4 — Not started.**
 
 ## Current project findings
 
@@ -146,7 +147,7 @@ Before implementing, reconcile any mismatch between README permission tables and
 
 1. Extract transfer creation and update logic from Livewire components into reusable application services where needed.
 2. Add validated create and update requests, preserving the existing calculation and pending-state rules.
-3. Record creator/pricer IDs explicitly and dispatch existing events once per successful creation.
+3. Record the acting creator ID explicitly and dispatch existing events once per successful creation. The model has a `pricer` relationship but the schema has no `priced_by` column; do not add or populate it until its business meaning is defined.
 
 **Tests after Phase 3:** feature tests for valid and invalid creation, both calculation modes, optional initial payment, role denial, pending-only update rules, audit actor fields, event dispatch, and parity with the shared web workflow.
 

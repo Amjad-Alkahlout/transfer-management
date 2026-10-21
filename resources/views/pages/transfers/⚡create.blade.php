@@ -6,16 +6,12 @@ use App\Enums\PaymentStatus;
 use App\Enums\ReceiverMethod;
 use App\Enums\TransferCalculationMode;
 use App\Enums\TransferStatus;
-use App\Events\TransferCreated;
-use App\Models\Payment;
-use App\Models\Transfer;
-use App\Services\ReceivePaymentService;
 use App\Services\TransferCalculatorService;
-use Illuminate\Support\Str;
+use App\Services\TransferManagementService;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use Illuminate\Support\Facades\DB;
 
 new  #[Layout('layouts::app')]
 class extends Component {
@@ -216,63 +212,35 @@ class extends Component {
             'commission_amount' => 'required|numeric|min:0',
 
         ]);
-        $transfer = null;
-
-        DB::transaction(function () use (&$transfer) {
-
-            $transfer = new Transfer();
-            $transfer->fill([
+        try {
+            $transfer = app(TransferManagementService::class)->create([
                 'receiver_name' => $this->receiver_name,
                 'receiver_method' => $this->receiver_method,
                 'notes' => $this->notes,
                 'requested_currency' => $this->requested_currency,
-                'requested_amount' => $this->calculationMode === TransferCalculationMode::RECEIVER_AMOUNT
-                    ? $this->requested_amount
-                    : $this->calculation['requested_amount'],
+                'requested_amount' => $this->requested_amount,
                 'receiver_wallet_phone' => $this->receiver_wallet_phone,
                 'receiver_account_number' => $this->receiver_account_number,
-                'transfer_amount' => $this->calculation['transfer_amount'],
-                'customer_payable_amount' => $this->calculation['customer_payable_amount'],
-                'customer_payable_currency' => $this->calculation['customer_payable_currency']->value,
-                'commission_amount' => $this->calculation['commission_amount'],
-                'commission_currency' => $this->calculation['commission_currency']->value,
-                'paid_amount' => 0,
-                'calculation_mode' => $this->calculationMode,
-            ]);
-
-            $transfer->reference_number = Str::upper('TRF- ' . Str::random(6));
-            $transfer->created_by = auth()->id();
-            $transfer->status = TransferStatus::PENDING;
-
-            $transfer->payment_status = PaymentStatus::UNPAID;
-            $transfer->remaining_amount =
-                $this->calculation['customer_payable_amount'];
-
-            $transfer->save();
-
-            try {
-                if ($this->initial_customer_pay_amount > 0) {
-
-                    app(ReceivePaymentService::class)->receive(
-                        $transfer,
-                        $this->initial_customer_pay_amount,
-                        'Initial payment',
-                    );
-
+                'customer_payable_currency' => $this->customer_payable_currency,
+                'customer_payable_amount' => $this->customer_payable_amount,
+                'initial_customer_pay_amount' => $this->initial_customer_pay_amount,
+                'commission_amount' => $this->commission_amount,
+                'calculation_mode' => $this->calculationMode->value,
+            ], auth()->user());
+        } catch (ValidationException $e) {
+            foreach ($e->errors() as $field => $messages) {
+                foreach ($messages as $message) {
+                    $this->addError($field, $message);
                 }
-
-            } catch (\Throwable $e) {
-                $this->addError(
-                    'initial_customer_pay_amount',
-                    $e->getMessage()
-                );
-
-                return;
             }
 
-        });
+            return;
+        } catch (\Exception $e) {
+            $this->addError('initial_customer_pay_amount', $e->getMessage());
 
-        event(new TransferCreated($transfer));
+            return;
+        }
+
         session()->flash(
             'success',
             __('transfers.messages.created')

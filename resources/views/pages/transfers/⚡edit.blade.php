@@ -6,6 +6,7 @@ use App\Enums\ReceiverMethod;
 use App\Enums\TransferCalculationMode;
 use App\Enums\TransferStatus;
 use App\Models\Transfer;
+use App\Services\TransferManagementService;
 use App\Services\TransferCalculatorService;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -215,31 +216,29 @@ new #[Layout('layouts::app')] class extends Component {
         if ($this->calculation === null) {
             return;
         }
-        $this->transfer->fill([
-            'receiver_name' => $this->receiver_name,
-            'notes' => $this->notes,
-            'requested_currency' => $this->requested_currency,
-            'requested_amount' =>
-                $this->calculation_mode === TransferCalculationMode::RECEIVER_AMOUNT->value
-                    ? $this->requested_amount
-                    : $this->calculation['requested_amount'],
-            'receiver_method' => $this->receiver_method,
-            'receiver_wallet_phone' => $this->receiver_wallet_phone,
-            'receiver_account_number' => $this->receiver_account_number,
-            'transfer_amount' => $this->calculation['transfer_amount'],
-            'customer_payable_amount' =>
-                $this->calculation_mode === TransferCalculationMode::RECEIVER_AMOUNT->value
-                    ? $this->calculation['customer_payable_amount']
-                    : $this->customer_payable_amount,
-            'customer_payable_currency' => $this->calculation['customer_payable_currency']->value,
-            'commission_amount' => $this->calculation['commission_amount'],
-            'commission_currency' => $this->calculation['commission_currency']->value,
-            'remaining_amount' => $this->calculation['customer_payable_amount'],
-            'calculation_mode' => $this->calculation_mode,
+        try {
+            $this->transfer = app(TransferManagementService::class)->update($this->transfer, [
+                'receiver_name' => $this->receiver_name,
+                'receiver_method' => $this->receiver_method,
+                'receiver_wallet_phone' => $this->receiver_wallet_phone,
+                'receiver_account_number' => $this->receiver_account_number,
+                'notes' => $this->notes,
+                'requested_currency' => $this->requested_currency,
+                'requested_amount' => $this->requested_amount,
+                'customer_payable_amount' => $this->customer_payable_amount,
+                'customer_payable_currency' => $this->customer_payable_currency,
+                'commission_amount' => $this->commission_amount,
+                'calculation_mode' => $this->calculation_mode,
+            ]);
+        } catch (\DomainException $e) {
+            $this->addError('general', __('transfers.errors.only_pending_unpaid'));
 
-        ]);
+            return;
+        } catch (\InvalidArgumentException $e) {
+            $this->addError($field, $e->getMessage());
 
-        $this->transfer->save();
+            return;
+        }
         session()->flash('success', __('transfers.messages.updated'));
         return redirect()->route(
             'transfers.show',

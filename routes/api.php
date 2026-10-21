@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\DashboardSummaryController;
 use App\Http\Controllers\Api\V1\ExchangeRateController;
 use App\Http\Controllers\Api\V1\TransferCalculationController;
 use App\Http\Controllers\Api\V1\TransferController;
+use App\Http\Controllers\Api\V1\TransferMutationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
@@ -24,6 +25,10 @@ Route::prefix('v1')->group(function (): void {
 
         Route::post('/transfers/calculate', TransferCalculationController::class)
             ->middleware(['can:create-transfer', 'throttle:30,1']);
+        Route::post('/transfers', [TransferMutationController::class, 'store'])
+            ->middleware(['can:create-transfer', 'throttle:10,1']);
+        Route::patch('/transfers/{transfer}', [TransferMutationController::class, 'update'])
+            ->middleware(['can:update-transfer', 'throttle:10,1']);
 
         Route::middleware('can:view-financial-dashboard')->group(function (): void {
             Route::get('/dashboard/summary', DashboardSummaryController::class);

@@ -23,6 +23,7 @@ class ReceivePaymentService
         Transfer $transfer,
         float $paymentAmount,
         ?string $notes = null,
+        ?int $receivedBy = null,
     ): void {
         if ($transfer->payment_status === PaymentStatus::PAID) {
             throw new \RuntimeException(
@@ -41,7 +42,13 @@ class ReceivePaymentService
             );
         }
 
-        DB::transaction(function () use ($transfer, $paymentAmount, $notes) {
+        $receivedBy ??= auth()->id();
+
+        if ($receivedBy === null) {
+            throw new \InvalidArgumentException('A receiving user is required.');
+        }
+
+        DB::transaction(function () use ($transfer, $paymentAmount, $notes, $receivedBy) {
 
             $uaeCapital = CapitalAccount::lockForUpdate()
                 ->where('branch', Branch::UAE)
@@ -52,7 +59,7 @@ class ReceivePaymentService
             $transfer->payments()->create([
                 'amount' => $paymentAmount,
                 'currency' => $transfer->customer_payable_currency,
-                'received_by' => auth()->id(),
+                'received_by' => $receivedBy,
                 'received_at' => now(),
                 'notes' => $notes,
             ]);
@@ -70,7 +77,7 @@ class ReceivePaymentService
                 amount: $paymentAmount,
                 balanceBefore: $before,
                 balanceAfter: $uaeCapital->balance,
-                createdBy: auth()->id(),
+                createdBy: $receivedBy,
                 reference: $transfer,
                 notes: $notes,
             );
