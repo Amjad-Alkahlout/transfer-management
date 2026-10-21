@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\DashboardSummaryController;
+use App\Http\Controllers\Api\V1\ExchangeRateController;
+use App\Http\Controllers\Api\V1\TransferCalculationController;
+use App\Http\Controllers\Api\V1\TransferController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
@@ -12,5 +16,18 @@ Route::prefix('v1')->group(function (): void {
             ->middleware('throttle:10,1');
 
         Route::get('/me', [AuthController::class, 'me']);
+
+        Route::middleware('can:view-transfers')->group(function (): void {
+            Route::get('/transfers', [TransferController::class, 'index']);
+            Route::get('/transfers/{transfer}', [TransferController::class, 'show']);
+        });
+
+        Route::post('/transfers/calculate', TransferCalculationController::class)
+            ->middleware(['can:create-transfer', 'throttle:30,1']);
+
+        Route::middleware('can:view-financial-dashboard')->group(function (): void {
+            Route::get('/dashboard/summary', DashboardSummaryController::class);
+            Route::get('/exchange-rates', [ExchangeRateController::class, 'index']);
+        });
     });
 });

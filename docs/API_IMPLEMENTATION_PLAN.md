@@ -9,7 +9,8 @@ This document is the implementation sequence and scope. Work through the phases 
 ## Progress
 
 - **Phase 1 — Complete.** Added Sanctum bearer-token login/logout and `/me`, active-user enforcement, API route registration, 30-day token expiry, and feature tests. Phase tests passed (7 tests, 34 assertions). The full suite reported 8/9 passing; the remaining existing `ExampleTest` expects `/` to return `200`, while the current web route intentionally redirects to login (`302`).
-- **Phase 2 — Not started.**
+- **Phase 2 — Complete.** Added paginated/filterable transfer reads, transfer details with payment history, calculation for both existing modes, dashboard summary, and exchange-rate reads with role checks and currency-safe decimal strings. Phase tests passed (9 tests, 55 assertions); all API v1 tests pass together (16 tests, 89 assertions).
+- **Phase 3 — Not started.**
 
 ## Current project findings
 
