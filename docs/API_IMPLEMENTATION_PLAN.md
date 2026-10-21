@@ -12,7 +12,8 @@ This document is the implementation sequence and scope. Work through the phases 
 - **Phase 2 — Complete.** Added paginated/filterable transfer reads, transfer details with payment history, calculation for both existing modes, dashboard summary, and exchange-rate reads with role checks and currency-safe decimal strings. Phase tests passed (9 tests, 55 assertions); all API v1 tests pass together (16 tests, 89 assertions).
 - **Phase 3 — Complete.** Extracted shared transfer create/update operations for API and Livewire, added API create/update endpoints and validation, and recorded creator/payment actors explicitly. Tests passed (9 transfer mutation tests); all API v1 tests pass together (25 tests, 130 assertions).
 - **Phase 4 — Complete.** Added idempotent installment payments, transfer-row locking for payment/execution/cancellation transitions, proof uploads, lifecycle endpoints, explicit actor IDs, and existing event dispatch from shared services. Phase tests passed (9 tests, 65 assertions); all API v1 tests pass together (34 tests, 195 assertions).
-- **Phase 5 — Not started.**
+- **Phase 5 — Complete.** Added capital account management, audited opening balances, manual adjustments, profit withdrawals, exchange-rate updates, capital-transfer preview/execution/history, admin ledger reads, and safe admin user management. Capital adjustments, profit withdrawals, and capital transfers require idempotency keys. Shared services record actor IDs and preserve ledger effects. Phase tests passed (8 tests, 56 assertions); all API v1 tests pass together (42 tests, 251 assertions).
+- **Phase 6 — Not started.**
 
 ## Current project findings
 

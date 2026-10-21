@@ -232,9 +232,10 @@ class extends Component {
         try {
 
             app(\App\Services\ProfitWithdrawalService::class)->withdraw(
-                $this->selectedAccount,
-                $this->withdrawAmount,
-                $this->withdrawNotes,
+                profitAccount: $this->selectedAccount,
+                amount: (float) $this->withdrawAmount,
+                createdBy: auth()->id(),
+                notes: $this->withdrawNotes,
             );
 
         } catch (\Throwable $e) {

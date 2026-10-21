@@ -18,10 +18,11 @@ class ProfitWithdrawalService
     public function withdraw(
         CapitalAccount $profitAccount,
         float $amount,
+        int $createdBy,
         ?string $notes = null,
     ): void
     {
-        DB::transaction(function () use ($profitAccount, $amount, $notes) {
+        DB::transaction(function () use ($profitAccount, $amount, $createdBy, $notes) {
 
             $profitAccount = CapitalAccount::lockForUpdate()
                 ->findOrFail($profitAccount->id);
@@ -65,7 +66,7 @@ class ProfitWithdrawalService
                 amount: $amount,
                 balanceBefore: $before,
                 balanceAfter: $after,
-                createdBy: auth()->id(),
+                createdBy: $createdBy,
                 reference: null,
                 notes: $notes,
             );
