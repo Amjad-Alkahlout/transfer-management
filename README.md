@@ -1,392 +1,484 @@
 # 💸 Money Transfer Management System
 
-A production-ready Money Transfer Management System built with Laravel, Livewire, Docker, and Telegram integration.
+> **Educational & Portfolio Project**  
+> Developed by **Amjad Alkahloot** (Computer Science Engineering Student, Andhra University).  
+> Repository: [Amjad-Alkahlout/transfer-management](https://github.com/Amjad-Alkahlout/transfer-management)
 
-The platform manages the complete lifecycle of international money transfers, from transfer creation to payment collection, execution, accounting, and real-time notifications.
-
----
-
-# ✨ Features
-
-## Authentication & Authorization
-
-- Secure authentication
-- Role-based access control
-- Permission management
-- Protected routes
-- Session management
+A full-stack financial remittance and cash-flow management system built with **Laravel 12**, **Livewire**, **Tailwind CSS**, and **MySQL**. The application models cross-border money transfer operations between two operating branches: **UAE** (collection / sender side) and **Gaza** (payout / receiver side), featuring automated multi-currency calculations, double-entry capital account ledgers, receipt proof uploads, single-device session enforcement, and event-driven Telegram notifications.
 
 ---
 
-## Transfer Management
+## 📋 Table of Contents
 
-- Create and edit money transfers
-- Manual commission entry (AED)
-- Automatic multi-currency calculations
-- Receiver Amount calculation mode
-- Customer Payment calculation mode
-- Payment collection
-- Transfer execution
-- Transfer cancellation
-- Transfer history
-- Status tracking
-
----
-
-## Financial Management
-
-### Capital Accounts
-
-- Manage multiple capital accounts
-- Track balances
-- View account transactions
-
-### Exchange Rates
-
-- Manage exchange rates
-- Automatic currency conversion
-- Multi-currency support
-- Real-time transfer calculations
+- [Overview & Target Users](#overview--target-users)
+- [Architecture & Tech Stack](#architecture--tech-stack)
+- [Implemented Transfer Workflow](#implemented-transfer-workflow)
+- [Currency Calculations & Pricing Engine](#currency-calculations--pricing-engine)
+- [Financial Management & Capital Accounting](#financial-management--capital-accounting)
+- [User Roles & Permissions (RBAC)](#user-roles--permissions-rbac)
+- [Telegram Bot Integration](#telegram-bot-integration)
+- [Security & Session Management](#security--session-management)
+- [Prerequisites & Local Installation](#prerequisites--local-installation)
+- [Docker Environment Setup](#docker-environment-setup)
+- [Environment Configuration](#environment-configuration)
+- [Running Queues, Seeders & Tests](#running-queues-seeders--tests)
+- [Deployment Verification](#deployment-verification)
+- [Current Limitations & Planned Features](#current-limitations--planned-features)
+- [Author & License](#author--license)
 
 ---
 
-## Dashboard
+## Overview & Target Users
 
-Interactive dashboard displaying:
+The system is designed to streamline informal and cross-border money transfer office workflows, where remittances are collected from senders in one jurisdiction and disbursed in cash or bank transfer to receivers in another.
 
-- Capital balances
-- Outstanding receivables
-- Transfer statistics
-- Payment overview
-- Quick actions
+### Target Personas
 
----
-
-# 💱 Transfer Calculation
-
-The system supports two calculation modes.
-
-## Receiver Amount
-
-The operator enters:
-
-- Receiver amount
-- Receiver currency
-- Customer payment currency
-- Commission (AED)
-
-The system automatically:
-
-- Converts the receiver amount into the customer's payment currency.
-- Converts the commission from AED into the customer's payment currency.
-- Adds the commission.
-- Calculates the final customer payable amount.
+- **Remittance Coordinators**: Create transfers, calculate client payable amounts, receive full or partial customer payments in the UAE branch, and issue cancellations when needed.
+- **Payout Executors**: Review pending disbursements, disburse funds to recipients in Gaza (via bank deposit or mobile wallet), and upload signed transfer receipts/proofs.
+- **Transfer Executors**: Restricted payout operators tasked exclusively with executing disbursements and uploading payment receipts.
+- **Financial Administrators**: Manage branch capital accounts, monitor exchange rates relative to USD, perform manual balance adjustments, withdraw or distribute profits, audit the full capital ledger, manage user accounts, and execute administrative force-cancellations.
 
 ---
 
-## Customer Payment
+## Architecture & Tech Stack
 
-The operator enters:
-
-- Customer payment amount
-- Customer payment currency
-- Receiver currency
-- Commission (AED)
-
-The system automatically:
-
-- Converts the commission from AED into the payment currency.
-- Deducts the commission.
-- Converts the remaining amount into the receiver's currency.
-- Calculates the final transfer amount.
-
----
-
-## Telegram Integration
-
-Users can securely connect their Telegram account.
-
-Features include:
-
-- Telegram account linking
-- Verification code
-- Webhook integration
-- Automatic Chat ID registration
-- Queue-based notifications
-
-Notifications include:
-
-- Transfer created
-- Payment received
-- Transfer executed
-- Workflow updates
-
----
-
-## Queue System
-
-Background jobs are processed using Laravel Queues.
-
-Dedicated Queue Worker handles:
-
-- Telegram notifications
-- Background jobs
-- Event listeners
-
----
-
-# 🏗️ Architecture
+The application employs a layered Laravel architecture using Livewire (Volt-style single-file components) for dynamic, reactive UI interactions without dedicated SPA frontend frameworks.
 
 ```
-                +----------------+
-                |     Nginx      |
-                +--------+-------+
-                         |
-                         |
-                +--------v-------+
-                | Laravel App    |
-                +--------+-------+
-                         |
-          +--------------+--------------+
-          |                             |
-  +-------v------+             +--------v-------+
-  | Queue Worker |             |     MySQL      |
-  +--------------+             +----------------+
+                      +-----------------------------+
+                      |         Nginx (Web)         |
+                      |   (HTTP/80 -> HTTPS/443)    |
+                      +--------------+--------------+
+                                     |
+                                     v
+                      +-----------------------------+
+                      |     PHP-FPM Application     |
+                      |  (Laravel 12 / Livewire 4)  |
+                      +-------+-------------+-------+
+                              |             |
+           +------------------+             +------------------+
+           v                                                   v
++---------------------+                             +---------------------+
+|    MySQL 8.4 DB     |                             | Laravel Queue Worker|
+|  (Transactions,     |                             | (Database driver:   |
+|   Transfers, Users) |                             |  Telegram alerts)   |
++---------------------+                             +---------------------+
 ```
+
+### Technology Stack
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Backend Framework** | Laravel 12.x (`laravel/framework ^13.8` skeleton), PHP 8.3+ (Docker uses PHP 8.4) |
+| **Reactive UI** | Livewire 4 (`livewire/livewire ^4.3`), Alpine.js (`alpinejs ^3.15`) |
+| **Styling & Assets** | Tailwind CSS 4 (`tailwindcss ^4.0`, `@tailwindcss/vite`), Vite 8, Blade Heroicons |
+| **Database** | MySQL 8.4 (using `pdo_mysql`, database sessions, and database queue jobs) |
+| **Device Detection** | Jenssegers Agent (`jenssegers/agent ^2.6`) for mobile/desktop session enforcement |
+| **Notifications** | Telegram Bot API via Laravel Queues and Webhooks |
+| **Localization** | Bilingual Arabic (`ar`, RTL with IBM Plex Sans Arabic) and English (`en`) with cookie persistence |
+| **Containerization** | Docker Engine & Docker Compose (multi-stage Node & PHP-FPM builds, Nginx 1.29 Alpine, MySQL 8.4) |
 
 ---
 
-# 🛠️ Tech Stack
+## Implemented Transfer Workflow
 
-## Backend
+The system enforces a strict operational lifecycle across four transfer states:
 
-- Laravel 12
-- PHP 8.4
-- Livewire
-- Eloquent ORM
-- Service Layer Architecture
-- Laravel Policies & Gates
+```
+                  [ Transfer Created ]
+                  (Status: PENDING)
+                  (Payment: UNPAID)
+                          │
+          ┌───────────────┴───────────────┐
+          ▼                               ▼
+ [ Customer Payment ]            [ Payout Execution ]
+ (Full or Partial)               (Proof Upload Required)
+ (Payment: PAID / PARTIALLY)     (Status: COMPLETED)
+          │                               │
+          │                               ▼
+          │                      [ Admin Force-Cancel ]
+          │                      (Password Confirmed;
+          │                       Full Capital Reversal)
+          ▼                               │
+ [ Coordinator Cancel ]                   │
+ (Pending Transfers Only)                 │
+          │                               │
+          └───────────────┬───────────────┘
+                          ▼
+                 [ Transfer Cancelled ]
+                 (Status: CANCELLED)
+```
 
-## Frontend
+### 1. Transfer Creation
+- Performed by **Coordinators** or **Administrators**.
+- Generates an auto-formatted unique reference number (`TRF-XXXXXX`).
+- Captures recipient details:
+  - **Receiver Name**
+  - **Delivery Method**: `bank` (requires bank account number) or `wallet` (requires wallet phone number).
+  - **Notes & Instructions**.
+- Requires calculation mode, requested currency, customer payable currency, and commission in AED.
+- Allows recording an optional **initial customer payment** immediately upon creation.
+- Dispatches a `TransferCreated` event.
 
-- Blade
-- Livewire
-- Tailwind CSS
-- Alpine.js
-- Vite
+### 2. Payment Collection
+- Remittance sender payments are collected in the **UAE** branch.
+- Supports installment payments:
+  - `unpaid`: Zero payment collected.
+  - `partially_paid`: $0 < \text{Paid Amount} < \text{Customer Payable Amount}$.
+  - `paid`: $\text{Remaining Amount} \le 0$.
+- Each received payment credits the corresponding UAE Capital Account in that currency, logging a `customer_transfer` transaction.
 
-## Database
+### 3. Payout Execution
+- Executed by **Executors**, **Transfer Executors**, or **Administrators**.
+- Requires the transfer status to be `PENDING`.
+- **Proof of Execution**: Mandatory file upload (JPEG, PNG, or PDF, up to 2MB) stored on the `public` storage disk (`transfer_proofs/`).
+- **Capital Deductions**:
+  - Deducts the net transfer amount (converted to USD) from the **Gaza Capital Account** (`customer_transfer`, direction: `OUT`).
+  - Deducts the commission (converted to USD) from the **Gaza Capital Account** (`transfer_expense`, direction: `OUT`).
+  - Credits the commission (in USD) to the **Gaza Profit Account** (`customer_transfer`, direction: `IN`).
+  - Records a profit entry in `ProfitAccountTransaction`.
+- Updates transfer status to `COMPLETED` with timestamp and executor user ID.
+- Dispatches a `TransferExecuted` event.
 
-- MySQL 8.4
-
-## Infrastructure
-
-- Docker
-- Docker Compose
-- Nginx
-
-## Notifications
-
-- Telegram Bot API
-- Webhooks
-- Laravel Queues
-
-## Deployment
-
-- Microsoft Azure VM
-- Docker
-- Nginx
-- Let's Encrypt SSL
+### 4. Cancellation & Administrative Rollbacks
+- **Standard Cancellation** (`cancel-transfer` Gate: Coordinator / Admin):
+  - Allowed only for transfers with status `PENDING`.
+  - Automatically reverses any collected customer payments by debiting the UAE Capital account.
+  - Deletes recorded payment receipts and sets status to `CANCELLED`.
+  - Dispatches a `TransferCancelled` event.
+- **Admin Force-Cancellation** (`force-cancel-completed-transfer` Gate: Admin only):
+  - Permitted on transfers already marked `COMPLETED`.
+  - Requires the Administrator to confirm with their account password.
+  - Reverses all associated capital transactions (both Gaza capital/expense deductions and Gaza profit credits) using `post_completion_cancellation` transaction types.
+  - Deletes profit transactions and payment records, then transitions status to `CANCELLED`.
 
 ---
 
-# 📂 Project Structure
+## Currency Calculations & Pricing Engine
 
-```
-app/
-bootstrap/
-config/
-database/
-docker/
-public/
-resources/
-routes/
-storage/
-```
+The system supports three currencies: **USD**, **AED**, and **ILS** (Israeli New Shekel). All conversion rates are anchored against **USD** (`rate_to_usd`).
+
+$$\text{Exchange Rate}(A \to B) = \frac{\text{Rate to USD}(A)}{\text{Rate to USD}(B)}$$
+
+$$\text{Converted Amount} = \text{Round}\left(\text{Amount} \times \text{Exchange Rate}(A \to B), 2\right)$$
+
+> **Important**: Transfer commission is always entered and calculated in **AED** (`CurrencyType::AED`).
+
+The engine (`TransferCalculatorService`) provides two distinct calculation modes:
+
+### Mode 1: Receiver Amount (`receiver_amount`)
+Used when the sender specifies the exact net payout amount the recipient must receive in Gaza.
+1. The operator enters: **Receiver Amount**, **Receiver Currency**, **Customer Payable Currency**, and **Commission (AED)**.
+2. Converts receiver amount into the customer's payment currency.
+3. Converts the commission from AED into the customer's payment currency.
+4. Total Customer Payable:
+   $$\text{Customer Payable Amount} = \text{Converted Receiver Amount} + \text{Converted Commission}$$
+
+### Mode 2: Customer Payment (`customer_payment`)
+Used when the sender provides a fixed lump sum (including fees) to be transferred.
+1. The operator enters: **Customer Payment Amount**, **Customer Payment Currency**, **Receiver Currency**, and **Commission (AED)**.
+2. Converts commission from AED into the customer's payment currency.
+3. Validates that the commission does not exceed or equal the customer payment amount (throws validation exception if invalid).
+4. Deducts commission from customer payment:
+   $$\text{Net Principal} = \text{Customer Payment Amount} - \text{Converted Commission}$$
+5. Converts the remaining net principal into the receiver's currency to determine the final payout amount:
+   $$\text{Receiver Transfer Amount} = \text{Convert}(\text{Net Principal}, \text{Pay Currency} \to \text{Receiver Currency})$$
 
 ---
 
-# ⚙️ Installation
+## Financial Management & Capital Accounting
 
-Clone the repository
+The application implements a multi-currency double-entry ledger to track branch liquidity and commission revenue without relying on unverified third-party ledgers.
+
+### Account Structure
+- **Branches**: `UAE` (collection hub) and `GAZA` (disbursement hub).
+- **Account Types**:
+  - `capital`: Operating liquidity accounts holding sender deposits and disbursement reserves.
+  - `profit`: Earnings accounts holding earned commissions (denominated in USD under the Gaza branch).
+
+### Capital Transaction Types
+Every account adjustment creates an immutable `CapitalTransaction` entry with `balance_before`, `balance_after`, `direction` (`IN` or `OUT`), creator ID, and polymorphic reference:
+- `customer_transfer`: Inflow from sender payments or outflow for payout execution.
+- `transfer_expense`: Commission deduction from disbursement capital.
+- `transfer_cancellation`: Refund debit during pending transfer cancellation.
+- `post_completion_cancellation`: Ledger-reversing entry when an admin force-cancels a completed transfer.
+- `internal_transfer`: Inter-account rebalancing transfer.
+- `manual_adjustment`: Authorized balance correction (`IN` / `OUT`) with mandatory audit notes.
+- `profit_withdrawal`: Direct cash or bank withdrawal from a profit account.
+- `profit_distribution`: Transfer of accumulated profit into an operational capital account.
+- `opening_balance`: Initial capital balance allocation.
+
+### Capital Transfers (Inter-Account Transfers)
+- Allows moving funds between active capital accounts (e.g., rebalancing between branches or currencies).
+- Automatically calculates exchange rates and destination amounts.
+- Supports custom transfer cost fees, which are automatically debited from the Gaza Profit Account (`transfer_expense`).
+
+### Financial Dashboard & Audit Ledger
+- **Dashboard Overview**: Displays real-time Gaza Capital (USD), UAE Capital (USD & AED), Gaza Profit (USD), and total outstanding receivables across active transfers.
+- **Capital Ledger (`/capital-ledger`)**: Admin-only comprehensive ledger view with filters by capital account, transaction type, and date range.
+
+---
+
+## User Roles & Permissions (RBAC)
+
+Role-based access control is enforced via Laravel Gates defined in `AppServiceProvider`:
+
+| Feature / Action | Admin | Coordinator | Executor | Transfer Executor |
+| :--- | :---: | :---: | :---: | :---: |
+| **View Transfers List & Details** | ✅ | ✅ | ✅ | ✅ |
+| **Create & Edit Transfers** | ✅ | ✅ | ❌ | ❌ |
+| **Receive Customer Payments** | ✅ | ✅ | ❌ | ❌ |
+| **Cancel Pending Transfers** | ✅ | ✅ | ❌ | ❌ |
+| **Execute Transfers & Upload Proof** | ✅ | ❌ | ✅ | ✅ |
+| **Force-Cancel Completed Transfers** | ✅ | ❌ | ❌ | ❌ |
+| **View Financial Dashboard** | ✅ | ✅ | ✅ | ❌ |
+| **View Capital Accounts & Balances** | ✅ | ✅ | ✅ | ❌ |
+| **Manage Accounts / Adjust Balances** | ✅ | ✅ | ✅ | ❌ |
+| **Inter-Account Capital Transfers** | ✅ | ✅ | ❌ | ❌ |
+| **Update Exchange Rates** | ✅ | ❌ | ✅ | ❌ |
+| **View Capital Audit Ledger** | ✅ | ❌ | ❌ | ❌ |
+| **User Management (CRUD, Passwords)** | ✅ | ❌ | ❌ | ❌ |
+
+*(Note: The `admin` role possesses superadmin privileges via `Gate::before` and can execute all actions).*
+
+---
+
+## Telegram Bot Integration
+
+The application integrates with the Telegram Bot API using Laravel queued listeners and incoming webhooks (`/telegram/webhook`).
+
+### Verification & Account Linking
+1. The user logs into the dashboard and clicks **Connect Telegram**.
+2. The system generates a secure, single-use 6-character link code (valid for 10 minutes) stored in `users.telegram_link_code`.
+3. The user sends `/link <CODE>` to the company Telegram bot.
+4. The webhook verifies the code, stores the user's `telegram_chat_id`, enables notifications, and confirms the link in Telegram.
+
+### Verified Event Notifications
+Notifications are dispatched asynchronously through queued listeners (`ShouldQueue`):
+
+1. **Transfer Created (`TransferCreated`)**:
+   - Sent to: `admin`, `executor`, `transfer_executor` users with active Telegram links.
+   - Message: Receiver name, payout amount & currency, payout method (bank/wallet), and creator name.
+2. **Transfer Executed (`TransferExecuted`)**:
+   - Sent to: `admin`, `executor`, `transfer_executor`, `coordinator` users.
+   - Message: **Sends the uploaded receipt photo** with an HTML caption containing transfer reference number, recipient name, amount, method, and localized completion timestamp.
+3. **Transfer Cancelled (`TransferCancelled`)**:
+   - Sent to: `admin`, `executor`, `transfer_executor` users.
+   - Message: Receiver name, amount, and cancellation alert.
+
+*(Note: There are no notifications implemented for payment receipts or intermediate status edits).*
+
+---
+
+## Security & Session Management
+
+- **Single Device Session Enforcement (`EnsureSingleDeviceSession` Middleware)**:
+  - Users are restricted to one active session per device category (`mobile` vs `desktop`) using browser user-agent inspection.
+  - Logging into an account on a second device of the same type immediately invalidates and logs out the previous session with an explanatory flash message.
+- **Password-Protected Administrative Actions**: Force-cancellation of completed transfers requires re-entering the logged-in administrator's password.
+- **Audit Trails**: All balance changes and transfer status transitions record user IDs (`created_by`, `completed_by`, `cancelled_by`, `received_by`).
+- **Timezone Awareness**: Users can store their local timezone preference. Timestamps are persisted in UTC and converted dynamically for display using `LocalTime`.
+
+---
+
+## Prerequisites & Local Installation
+
+### System Requirements
+- **PHP**: `^8.3` (with extensions: `pdo_mysql`, `mbstring`, `bcmath`, `gd`, `zip`, `pcntl`, `exif`)
+- **Composer**: `v2.x`
+- **Node.js**: `v20.x` or `v22.x` & **npm**
+- **Database**: MySQL 8.0+
+
+### Step-by-Step Local Setup
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/Amjad-Alkahlout/transfer-management.git
+   cd transfer-management
+   ```
+
+2. **Install PHP dependencies**:
+   ```bash
+   composer install
+   ```
+
+3. **Install frontend dependencies**:
+   ```bash
+   npm install
+   ```
+
+4. **Configure environment file**:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+   Open `.env` and configure your database credentials (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`).
+
+5. **Create the public storage symlink**:
+   ```bash
+   php artisan storage:link
+   ```
+
+6. **Run database migrations and seeders**:
+   ```bash
+   php artisan migrate --seed
+   ```
+
+7. **Compile frontend assets**:
+   ```bash
+   # For local development with hot reload:
+   npm run dev
+
+   # Or compile for production:
+   npm run build
+   ```
+
+8. **Start the local development server and queue worker**:
+   ```bash
+   # Run the web server:
+   php artisan serve
+
+   # In a separate terminal, start the queue worker:
+   php artisan queue:work
+   ```
+   *(Alternatively, run `composer run dev` to start server, queue worker, pail logs, and Vite concurrently).*
+
+---
+
+## Initial Post-Installation Step: Capital Account Setup
+
+> [!IMPORTANT]
+> The database seeder (`DatabaseSeeder`) seeds default users and initial exchange rates (USD, AED, ILS), **but does not automatically seed capital accounts**.  
+> Because recording customer payments or executing transfers requires active capital accounts in the database, the **Administrator** must log in and manually create the following initial accounts under `/capital-accounts`:
+> 
+> 1. **UAE Branch**: Account Type `Capital`, Currency `USD` (and/or `AED`).
+> 2. **Gaza Branch**: Account Type `Capital`, Currency `USD` (with sufficient opening balance to disburse transfers).
+> 3. **Gaza Branch**: Account Type `Profit`, Currency `USD` (to receive commission profits).
+
+### Default Seeded Users
+
+All accounts are created by `UserSeeder` with the default password: `password`
+
+| Role | Email | Password |
+| :--- | :--- | :--- |
+| **Administrator** | `admin@example.com` | `password` |
+| **Coordinator** | `coordinator@example.com` | `password` |
+| **Executor** | `executor@example.com` | `password` |
+| **Transfer Executor** | `transfer-executor@example.com` | `password` |
+
+---
+
+## Docker Environment Setup
+
+The repository includes a multi-container Docker setup defined in `compose.yaml`:
+
+- `transfer-app`: PHP 8.4-FPM container running application code.
+- `transfer-queue-worker`: Identical PHP container running `php artisan queue:work --sleep=3 --tries=3`.
+- `transfer-nginx`: Nginx 1.29 Alpine serving static assets and reverse proxying to PHP-FPM.
+- `transfer-mysql`: MySQL 8.4 container with healthchecks.
+
+### Important Docker Configuration Note
+In `docker/nginx/default.conf` and `compose.yaml`, the included Nginx configuration is configured for the domain `transfer-hub.app` and expects SSL certificates at `/etc/letsencrypt/live/transfer-hub.app/fullchain.pem`, with port 80 redirecting to port 443.
+
+For **local Docker testing without existing SSL certificates**, modify `docker/nginx/default.conf` to serve plain HTTP on port 80 and remove the `/etc/letsencrypt` volume mount in `compose.yaml` before running containers.
+
+### Starting Docker Containers
 
 ```bash
-git clone https://github.com/Amjad-Alkahlout/transfer-management.git
+# 1. Build and start containers
+docker compose up -d --build
+
+# 2. Check container status
+docker compose ps
+
+# 3. Run database migrations and seed default data
+docker compose exec app php artisan migrate --seed
 ```
 
-Enter the project
-
-```bash
-cd transfer-management
-```
-
-Copy the environment file
-
-```bash
-cp .env.example .env
-```
-
-Generate the application key
-
-```bash
-php artisan key:generate
-```
+The application's entrypoint script (`docker-entrypoint.sh`) automatically waits for MySQL to be healthy, links public storage, clears/caches routes and config, and executes migrations on startup.
 
 ---
 
-# 🐳 Docker
+## Environment Configuration
 
-Build containers
+Configure application parameters in `.env`. Never commit secrets or real credentials to version control.
 
+| Variable | Default / Example | Description |
+| :--- | :--- | :--- |
+| `APP_NAME` | `MoneyTransferHub` | Application title |
+| `APP_ENV` | `local` | `local` or `production` |
+| `APP_KEY` | *(Generated by artisan)* | 32-character AES encryption key |
+| `APP_DEBUG` | `true` | Show debug exceptions (`false` in production) |
+| `APP_URL` | `http://localhost` | Canonical base URL |
+| `DB_CONNECTION` | `mysql` | Database driver |
+| `DB_HOST` | `127.0.0.1` (`mysql` in Docker) | Database hostname |
+| `DB_PORT` | `3306` | Database port |
+| `DB_DATABASE` | `money-transfer-management` | Database name |
+| `DB_USERNAME` | `your_db_user` | Database user |
+| `DB_PASSWORD` | `your_db_password` | Database password |
+| `SESSION_DRIVER` | `database` | Session storage engine |
+| `QUEUE_CONNECTION` | `database` | Queue storage engine |
+| `FILESYSTEM_DISK` | `public` | Storage disk for transfer receipt uploads |
+| `TELEGRAM_BOT_TOKEN` | `your_bot_token_here` | Telegram Bot API authentication token |
+
+---
+
+## Running Queues, Seeders & Tests
+
+### Database Seeding
+To reset and seed the database with test users and base exchange rates:
 ```bash
-docker compose build
+php artisan migrate:fresh --seed
 ```
 
-Start containers
-
+### Running Background Queues
+The application requires a running queue worker to dispatch Telegram notifications:
 ```bash
-docker compose up -d
+php artisan queue:work --tries=3 --timeout=60
 ```
 
-Run migrations
-
+### Running Tests
+The project uses PHPUnit / Laravel test runner:
 ```bash
-docker compose exec app php artisan migrate
+php artisan test
 ```
-
-Seed the database
-
-```bash
-docker compose exec app php artisan db:seed
-```
-
-Optimize the application
-
-```bash
-docker compose exec app php artisan optimize
-```
+> [!NOTE]
+> The current repository contains only Laravel's default boilerplate tests (`tests/Feature/ExampleTest.php` and `tests/Unit/ExampleTest.php`). Custom automated tests for the domain services, calculation algorithms, and Livewire components are not yet written.
 
 ---
 
-# 🤖 Telegram Setup
+## Deployment Verification
 
-Configure:
-
-```env
-TELEGRAM_BOT_TOKEN=
-TELEGRAM_BOT_USERNAME=
-```
-
-Register the webhook
-
-```text
-https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://your-domain.com/telegram/webhook
-```
+- **Docker Compose**: Containerized multi-service deployment (`app`, `queue-worker`, `nginx`, `mysql`) is verified by the included Dockerfiles and entrypoint scripts.
+- **Nginx Reverse Proxy & Let's Encrypt**: Verified in `docker/nginx/default.conf` and `compose.yaml` configured for `transfer-hub.app`.
+- **Cloud Infrastructure Claims**: Past documentation referenced deployment on Microsoft Azure Virtual Machines. However, no Azure-specific Infrastructure as Code (ARM templates, Bicep, Terraform) or CI/CD deployment pipelines exist in this repository.
 
 ---
 
-# 👥 User Roles
+## Current Limitations & Planned Features
 
-The system supports multiple roles.
+### Current Limitations
+- **Educational / Portfolio Scope**: This is an educational and portfolio system demonstrating financial workflows; it is not verified or licensed as production-grade banking software.
+- **Corridor Fixed to UAE & Gaza**: Capital account logic in `ReceivePaymentService` and `TransferExecutionService` expects payments to route to UAE Capital and disbursements/profits to deduct from Gaza Capital. Corridors cannot be dynamically reconfigured without modifying service code.
+- **Manual Account Initialization**: As noted, capital accounts are not seeded by default and must be manually configured before transfers can be executed.
+- **Fixed Commission Currency**: Transfer commission rules are fixed in AED across all transfers.
+- **Fixed Currency Enum**: Currencies are constrained to `USD`, `AED`, and `ILS` via PHP enums; adding additional currencies requires migration and enum adjustments.
+- **Test Suite**: Automated tests for business logic and calculation services are not yet implemented.
+- **Receipts**: Payout proofs can be uploaded, but PDF receipt generation for customers is not yet supported.
 
-Examples include:
-
-- Administrator
-- Coordinator
-- Executor
-
-Each role has dedicated permissions and responsibilities.
-
----
-
-# 🔄 Transfer Workflow
-
-```
-Transfer Created
-        │
-        ▼
-Payment Received
-        │
-        ▼
-Transfer Executed
-        │
-        ▼
-Completed
-```
+### Planned Features
+- [ ] Comprehensive unit and feature test coverage for calculation and capital services.
+- [ ] Dynamic multi-corridor and multi-branch configuration from the UI.
+- [ ] Exportable PDF customer receipts and disbursement vouchers.
+- [ ] RESTful API endpoints for mobile client integration.
+- [ ] Comprehensive system audit logging for non-capital actions.
+- [ ] Redis cache and queue driver support.
 
 ---
 
-# 📬 Queue Processing
+## Author & License
 
-Run the queue worker
-
-```bash
-php artisan queue:work
-```
-
-Used for:
-
-- Telegram notifications
-- Background jobs
-- Event listeners
-
----
-
-# 📸 Screenshots
-
-Screenshots will be added soon.
-
-Suggested images:
-
-```
-screenshots/
-
-dashboard.png
-transfer-create.png
-transfer-details.png
-exchange-rates.png
-telegram.png
-```
-
----
-
-# 🚀 Future Improvements
-
-- REST API
-- Flutter Mobile Application
-- Push Notifications
-- PDF Receipts
-- Audit Logs
-- Redis Queues
-- Real-time Dashboard
-- Cloud Storage Integration
-
----
-
-# 👨‍💻 Author
-
-**Amjad Alkahloot**
-
-Computer Science Engineering Student
-
-Andhra University
-
-GitHub
-
-https://github.com/Amjad-Alkahlout
-
----
-
-# 📄 License
-
-This project was developed for educational and portfolio purposes.
+- **Author**: [Amjad Alkahloot](https://github.com/Amjad-Alkahlout)  
+  Computer Science Engineering Student, Andhra University
+- **License**: Developed for educational and portfolio purposes.
