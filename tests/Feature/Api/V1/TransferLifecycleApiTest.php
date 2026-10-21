@@ -257,6 +257,7 @@ class TransferLifecycleApiTest extends TestCase
         $this->withToken($admin->createToken('admin')->plainTextToken)
             ->postJson('/api/v1/transfers/'.$transfer->id.'/force-cancel', [
                 'password' => 'wrong-password',
+                'notes' => 'Reversal requested',
             ])
             ->assertUnprocessable()
             ->assertJsonPath('error.code', 'INVALID_PASSWORD');
