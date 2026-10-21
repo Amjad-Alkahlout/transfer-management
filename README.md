@@ -18,6 +18,7 @@ A full-stack financial remittance and cash-flow management system built with **L
 - [User Roles & Permissions (RBAC)](#user-roles--permissions-rbac)
 - [Telegram Bot Integration](#telegram-bot-integration)
 - [Security & Session Management](#security--session-management)
+- [Versioned JSON API](#versioned-json-api)
 - [Prerequisites & Local Installation](#prerequisites--local-installation)
 - [Docker Environment Setup](#docker-environment-setup)
 - [Environment Configuration](#environment-configuration)
@@ -282,6 +283,57 @@ Notifications are dispatched asynchronously through queued listeners (`ShouldQue
 
 ---
 
+## Versioned JSON API
+
+The application provides a versioned JSON API for mobile and other first-party clients. The API reuses the application's transfer and capital services, applies the existing role permissions, and uses Laravel Sanctum bearer tokens. The full contract is available in [`docs/openapi.json`](docs/openapi.json).
+
+### Authentication
+
+1. Send `POST /api/v1/auth/login` with a JSON body containing `email`, `password`, and `device_name`.
+2. Use the returned `access_token` on protected routes as `Authorization: Bearer <access_token>`.
+3. Call `POST /api/v1/auth/logout` to revoke the current token. `GET /api/v1/me` returns the authenticated user's safe profile.
+
+Tokens expire after 30 days. Login is limited to 5 attempts per minute. Inactive users cannot obtain or use API tokens. API token authentication is separate from the browser's single-device session flow.
+
+Example login request:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/login \
+  -H 'Accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@example.com","password":"your-password","device_name":"mobile-app"}'
+```
+
+### Endpoint groups
+
+All endpoints are under `/api/v1`. Protected routes require a bearer token and are subject to role-based permissions.
+
+| Group | Endpoints |
+| :--- | :--- |
+| Authentication | `POST /auth/login`, `POST /auth/logout`, `GET /me` |
+| Transfers | `GET /transfers`, `POST /transfers/calculate`, `POST /transfers`, `GET /transfers/{transfer}`, `PATCH /transfers/{transfer}` |
+| Transfer lifecycle | `POST /transfers/{transfer}/payments`, `/execute`, `/cancel`, and `/force-cancel` |
+| Dashboard and rates | `GET /dashboard/summary`, `GET /exchange-rates`, `PUT /exchange-rates/{currency}` |
+| Capital accounts | `GET` and `POST /capital-accounts`, `PATCH /capital-accounts/{account}`, account adjustments and profit withdrawals |
+| Capital transfers and ledger | `POST /capital-transfers/preview`, `POST` and `GET /capital-transfers`, `GET /capital-transactions` |
+| User administration | `GET` and `POST /users`, `GET` and `PATCH /users/{user}`, `PUT /users/{user}/password`, `DELETE /users/{user}` |
+
+Transfer execution accepts a multipart `proof` upload (JPEG, PNG, or PDF, up to 2 MiB). Paginated lists accept `page` and `per_page`; page size is capped at 100.
+
+### Idempotency and errors
+
+Send an `Idempotency-Key` header on transfer creation, capital-account creation, payment receipt, capital adjustments, profit withdrawals, and capital transfers. Repeating the same request with the same key replays the saved response; reusing that key with a different payload returns `409`.
+
+Validation failures return `422`. Domain conflicts return `409`; transfer calculations that cannot run because exchange rates are missing return `503`. Monetary response values are decimal strings. Force-cancelling a completed transfer requires an administrator password and non-empty audit notes.
+
+Run the API feature tests with:
+
+```bash
+php artisan test tests/Feature/Api/V1
+```
+
+---
+
 ## Prerequisites & Local Installation
 
 ### System Requirements
@@ -444,7 +496,7 @@ The project uses PHPUnit / Laravel test runner:
 php artisan test
 ```
 > [!NOTE]
-> The current repository contains only Laravel's default boilerplate tests (`tests/Feature/ExampleTest.php` and `tests/Unit/ExampleTest.php`). Custom automated tests for the domain services, calculation algorithms, and Livewire components are not yet written.
+> The API has feature tests for authentication, permissions, transfer lifecycle operations, idempotency, capital accounting, user administration, and the OpenAPI contract. Broader unit and UI coverage for the existing domain services and Livewire workflows remains a work in progress.
 
 ---
 
@@ -464,14 +516,13 @@ php artisan test
 - **Manual Account Initialization**: As noted, capital accounts are not seeded by default and must be manually configured before transfers can be executed.
 - **Fixed Commission Currency**: Transfer commission rules are fixed in AED across all transfers.
 - **Fixed Currency Enum**: Currencies are constrained to `USD`, `AED`, and `ILS` via PHP enums; adding additional currencies requires migration and enum adjustments.
-- **Test Suite**: Automated tests for business logic and calculation services are not yet implemented.
+- **Test Coverage**: API workflows have feature coverage; broader unit and Livewire UI coverage remains incomplete.
 - **Receipts**: Payout proofs can be uploaded, but PDF receipt generation for customers is not yet supported.
 
 ### Planned Features
 - [ ] Comprehensive unit and feature test coverage for calculation and capital services.
 - [ ] Dynamic multi-corridor and multi-branch configuration from the UI.
 - [ ] Exportable PDF customer receipts and disbursement vouchers.
-- [ ] RESTful API endpoints for mobile client integration.
 - [ ] Comprehensive system audit logging for non-capital actions.
 - [ ] Redis cache and queue driver support.
 
