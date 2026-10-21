@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 use App\Enums\UserRole;
 
 #[Fillable(['name', 'email', 'password', 'role', 'is_active', 'telegram_chat_id', 'telegram_notifications_enabled','telegram_link_code',
@@ -18,7 +19,7 @@ use App\Enums\UserRole;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
 
     public function createdTransfers(): HasMany

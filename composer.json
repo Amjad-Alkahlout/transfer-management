@@ -11,6 +11,7 @@
         "jenssegers/agent": "^2.6",
         "laravel-notification-channels/telegram": "^7.0",
         "laravel/framework": "^13.8",
+        "laravel/sanctum": "^4.3",
         "laravel/tinker": "^3.0",
         "livewire/livewire": "^4.3"
     },

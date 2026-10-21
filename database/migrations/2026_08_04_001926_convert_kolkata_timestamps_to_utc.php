@@ -74,6 +74,11 @@ return new class extends Migration
 
     private function convertUsing(string $function): void
     {
+        $isSqlite = DB::connection()->getDriverName() === 'sqlite';
+        $sqliteModifier = $function === 'DATE_SUB'
+            ? '-330 minutes'
+            : '+330 minutes';
+
         foreach ($this->columns as $table => $columns) {
 
             if (! Schema::hasTable($table)) {
@@ -83,6 +88,16 @@ return new class extends Migration
             foreach ($columns as $column) {
 
                 if (! Schema::hasColumn($table, $column)) {
+                    continue;
+                }
+
+                if ($isSqlite) {
+                    DB::statement("
+                        UPDATE `{$table}`
+                        SET `{$column}` = datetime(`{$column}`, '{$sqliteModifier}')
+                        WHERE `{$column}` IS NOT NULL
+                    ");
+
                     continue;
                 }
 
