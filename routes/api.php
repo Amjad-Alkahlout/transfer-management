@@ -3,9 +3,11 @@
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DashboardSummaryController;
 use App\Http\Controllers\Api\V1\ExchangeRateController;
+use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\TransferCalculationController;
 use App\Http\Controllers\Api\V1\TransferController;
 use App\Http\Controllers\Api\V1\TransferMutationController;
+use App\Http\Controllers\Api\V1\TransferActionController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
@@ -29,6 +31,15 @@ Route::prefix('v1')->group(function (): void {
             ->middleware(['can:create-transfer', 'throttle:10,1']);
         Route::patch('/transfers/{transfer}', [TransferMutationController::class, 'update'])
             ->middleware(['can:update-transfer', 'throttle:10,1']);
+
+        Route::post('/transfers/{transfer}/payments', [PaymentController::class, 'store'])
+            ->middleware(['can:receive-payment', 'throttle:10,1']);
+        Route::post('/transfers/{transfer}/execute', [TransferActionController::class, 'execute'])
+            ->middleware(['can:execute-transfer', 'throttle:10,1']);
+        Route::post('/transfers/{transfer}/cancel', [TransferActionController::class, 'cancel'])
+            ->middleware(['can:cancel-transfer', 'throttle:10,1']);
+        Route::post('/transfers/{transfer}/force-cancel', [TransferActionController::class, 'forceCancel'])
+            ->middleware(['can:force-cancel-completed-transfer', 'throttle:5,1']);
 
         Route::middleware('can:view-financial-dashboard')->group(function (): void {
             Route::get('/dashboard/summary', DashboardSummaryController::class);

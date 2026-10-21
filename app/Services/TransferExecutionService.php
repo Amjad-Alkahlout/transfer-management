@@ -8,8 +8,10 @@ use App\Enums\CapitalTransactionType;
 use App\Enums\CurrencyType;
 use App\Enums\TransactionDirection;
 use App\Enums\TransferStatus;
+use App\Events\TransferExecuted;
 use App\Models\CapitalAccount;
 use App\Models\Transfer;
+use DomainException;
 use Illuminate\Support\Facades\DB;
 
 class TransferExecutionService
@@ -24,9 +26,15 @@ class TransferExecutionService
     public function execute(
         Transfer $transfer,
         string $proofPath,
-    ): void {
+        int $executedBy,
+    ): Transfer {
 
-        DB::transaction(function () use ($transfer, $proofPath) {
+        $transfer = DB::transaction(function () use ($transfer, $proofPath, $executedBy): Transfer {
+            $transfer = Transfer::query()->lockForUpdate()->findOrFail($transfer->id);
+
+            if ($transfer->status !== TransferStatus::PENDING) {
+                throw new DomainException(__('transfers.errors.cannot_execute'));
+            }
 
             $gazaCapital = CapitalAccount::lockForUpdate()
                 ->where('branch', Branch::GAZA)
@@ -73,7 +81,7 @@ class TransferExecutionService
                 amount: $transferAmountInUsd,
                 balanceBefore: $gazaBefore,
                 balanceAfter: $gazaCapital->balance,
-                createdBy: auth()->id(),
+                createdBy: $executedBy,
                 reference: $transfer,
                 notes: null,
             );
@@ -91,7 +99,7 @@ class TransferExecutionService
                 amount: $commissionInUsd,
                 balanceBefore: $gazaBefore,
                 balanceAfter: $gazaCapital->balance,
-                createdBy: auth()->id(),
+                createdBy: $executedBy,
                 reference: $transfer,
                 notes: null,
             );
@@ -109,7 +117,7 @@ class TransferExecutionService
                 amount: $commissionInUsd,
                 balanceBefore: $profitBefore,
                 balanceAfter: $profitAccount->balance,
-                createdBy: auth()->id(),
+                createdBy: $executedBy,
                 reference: $transfer,
                 notes: null,
             );
@@ -117,17 +125,21 @@ class TransferExecutionService
             $this->profitService->addCommission(
                 $transfer,
                 $commissionInUsd,
+                $executedBy,
             );
 
             $transfer->update([
                 'status' => TransferStatus::COMPLETED,
                 'completed_at' => now(),
-                'completed_by' => auth()->id(),
+                'completed_by' => $executedBy,
                 'transfer_proof_path' => $proofPath,
             ]);
 
-
+            return $transfer->fresh(['creator']);
         });
 
+        TransferExecuted::dispatch($transfer);
+
+        return $transfer;
     }
 }

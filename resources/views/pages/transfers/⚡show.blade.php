@@ -4,8 +4,6 @@ use App\Enums\CurrencyType;
 use App\Enums\PaymentStatus;
 use App\Enums\ReceiverMethod;
 use App\Enums\TransferStatus;
-use App\Events\TransferCancelled;
-use App\Events\TransferExecuted;
 use App\Models\CapitalTransaction;
 use App\Models\Transfer;
 use App\Services\TransferExecutionService;
@@ -86,8 +84,8 @@ class extends Component {
 
         try {
 
-            app(TransferExecutionService::class)
-                ->execute($this->transfer, $path);
+            $this->transfer = app(TransferExecutionService::class)
+                ->execute($this->transfer, $path, auth()->id());
 
         } catch (\Throwable $e) {
 
@@ -102,8 +100,6 @@ class extends Component {
         }
 
         $this->hideTransferProofForm();
-        event(new TransferExecuted($this->transfer));
-
         session()->flash(
             'success',
             __('transfers.messages.completed')
@@ -126,8 +122,8 @@ class extends Component {
         }
         try {
 
-            app(TransferCancellationService::class)
-                ->cancel($this->transfer);
+            $this->transfer = app(TransferCancellationService::class)
+                ->cancel($this->transfer, auth()->id());
 
         } catch (\Throwable $e) {
 
@@ -138,7 +134,6 @@ class extends Component {
 
             return;
         }
-        event(new TransferCancelled($this->transfer));
         session()->flash(
             'success',
             __('transfers.messages.cancelled')

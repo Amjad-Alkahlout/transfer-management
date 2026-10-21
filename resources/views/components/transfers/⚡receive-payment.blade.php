@@ -41,7 +41,8 @@ new class extends Component {
 
             app(ReceivePaymentService::class)->receive(
                 $this->transfer,
-                $this->payment_amount,
+                (float) $this->payment_amount,
+                auth()->id(),
                 $this->notes,
             );
 

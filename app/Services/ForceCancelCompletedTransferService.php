@@ -21,13 +21,12 @@ class ForceCancelCompletedTransferService
 
     public function cancel(Transfer $transfer, int $cancelledBy, ?string $notes = null): void
     {
-        if ($transfer->status !== TransferStatus::COMPLETED) {
-            throw new \RuntimeException(
-                __('services.force_cancel.only_completed_allowed')
-            );
-        }
-
         DB::transaction(function () use ($transfer, $cancelledBy, $notes) {
+            $transfer = Transfer::query()->lockForUpdate()->findOrFail($transfer->id);
+
+            if ($transfer->status !== TransferStatus::COMPLETED) {
+                throw new \DomainException(__('services.force_cancel.only_completed_allowed'));
+            }
 
             $originalTransactions = CapitalTransaction::query()
                 ->where('reference_type', Transfer::class)

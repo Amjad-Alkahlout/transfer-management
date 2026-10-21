@@ -11,6 +11,7 @@ class ProfitService
     public function addCommission(
         Transfer $transfer,
         float $amount,
+        int $createdBy,
     ): void {
 
         ProfitAccountTransaction::create([
@@ -18,7 +19,7 @@ class ProfitService
             'amount' => $amount,
             'currency' => CurrencyType::USD,
             'description' => 'Transfer commission',
-            'created_by' => auth()->id(),
+            'created_by' => $createdBy,
         ]);
     }
 }

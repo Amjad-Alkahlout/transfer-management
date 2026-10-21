@@ -71,8 +71,8 @@ class TransferManagementService
                 $this->receivePaymentService->receive(
                     $transfer,
                     $initialPayment,
-                    'Initial payment',
                     $actor->id,
+                    'Initial payment',
                 );
             }
 

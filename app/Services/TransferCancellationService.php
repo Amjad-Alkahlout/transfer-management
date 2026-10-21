@@ -8,8 +8,10 @@ use App\Enums\CapitalTransactionType;
 use App\Enums\PaymentStatus;
 use App\Enums\TransactionDirection;
 use App\Enums\TransferStatus;
+use App\Events\TransferCancelled;
 use App\Models\CapitalAccount;
 use App\Models\Transfer;
+use DomainException;
 use Illuminate\Support\Facades\DB;
 
 class TransferCancellationService
@@ -19,15 +21,14 @@ class TransferCancellationService
     ) {
     }
 
-    public function cancel(Transfer $transfer): void
+    public function cancel(Transfer $transfer, int $cancelledBy): Transfer
     {
-        if ($transfer->status !== TransferStatus::PENDING) {
-            throw new \RuntimeException(
-                __('services.transfer_cancellation.cannot_cancel')
-            );
-        }
+        $transfer = DB::transaction(function () use ($transfer, $cancelledBy): Transfer {
+            $transfer = Transfer::query()->lockForUpdate()->findOrFail($transfer->id);
 
-        DB::transaction(function () use ($transfer) {
+            if ($transfer->status !== TransferStatus::PENDING) {
+                throw new DomainException(__('services.transfer_cancellation.cannot_cancel'));
+            }
 
             if ($transfer->paid_amount > 0) {
 
@@ -50,7 +51,7 @@ class TransferCancellationService
                     amount: $transfer->paid_amount,
                     balanceBefore: $before,
                     balanceAfter: $capitalAccount->balance,
-                    createdBy: auth()->id(),
+                    createdBy: $cancelledBy,
                     reference: $transfer,
                     notes: null,
                 );
@@ -63,10 +64,16 @@ class TransferCancellationService
 
             $transfer->payment_status = PaymentStatus::UNPAID;
             $transfer->status = TransferStatus::CANCELLED;
-            $transfer->cancelled_by = auth()->id();
+            $transfer->cancelled_by = $cancelledBy;
             $transfer->cancelled_at = now();
 
             $transfer->save();
+
+            return $transfer->fresh(['creator']);
         });
+
+        TransferCancelled::dispatch($transfer);
+
+        return $transfer;
     }
 }
