@@ -18,8 +18,7 @@ class TransferCancellationService
 {
     public function __construct(
         protected CapitalTransferService $capitalTransferService,
-    ) {
-    }
+    ) {}
 
     public function cancel(Transfer $transfer, int $cancelledBy): Transfer
     {

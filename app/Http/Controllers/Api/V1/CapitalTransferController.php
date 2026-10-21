@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Exceptions\Api\IdempotencyConflictException;
 use App\Http\Controllers\Controller;
 use App\Models\CapitalAccount;
 use App\Models\CapitalTransfer;
-use App\Exceptions\Api\IdempotencyConflictException;
 use App\Services\ApiIdempotencyService;
 use App\Services\CapitalTransferService;
 use Illuminate\Http\JsonResponse;
@@ -16,6 +16,7 @@ class CapitalTransferController extends Controller
     public function index(Request $request): JsonResponse
     {
         $items = CapitalTransfer::query()->with(['fromAccount', 'toAccount'])->latest()->paginate(min((int) $request->query('per_page', 20), 100));
+
         return response()->json(['data' => $items->getCollection()->map(fn (CapitalTransfer $t) => $this->serialize($t)), 'meta' => ['current_page' => $items->currentPage(), 'per_page' => $items->perPage(), 'total' => $items->total(), 'last_page' => $items->lastPage()]]);
     }
 
@@ -23,6 +24,7 @@ class CapitalTransferController extends Controller
     {
         $data = $request->validate(['from_account_id' => ['required', 'integer', 'exists:capital_accounts,id'], 'to_account_id' => ['required', 'integer', 'different:from_account_id', 'exists:capital_accounts,id'], 'source_amount' => ['required', 'numeric', 'decimal:0,2', 'gt:0'], 'transfer_cost' => ['required', 'numeric', 'decimal:0,2', 'min:0']]);
         $result = $service->preview(CapitalAccount::findOrFail($data['from_account_id']), CapitalAccount::findOrFail($data['to_account_id']), (float) $data['source_amount'], (float) $data['transfer_cost']);
+
         return response()->json(['data' => ['exchange_rate' => (string) $result['exchange_rate'], 'destination_amount' => number_format($result['destination_amount'], 2, '.', ''), 'total_deduction' => number_format($result['total_deduction'], 2, '.', '')]]);
     }
 
@@ -34,11 +36,13 @@ class CapitalTransferController extends Controller
         try {
             $result = app(ApiIdempotencyService::class)->execute($request->user(), $key, 'capital-transfer', $data, function () use ($request, $service, $data): array {
                 $transfer = $service->transfer(CapitalAccount::findOrFail($data['from_account_id']), CapitalAccount::findOrFail($data['to_account_id']), (float) $data['source_amount'], (float) $data['transfer_cost'], (int) $request->user()->id, $data['notes'] ?? null);
+
                 return ['status' => 201, 'body' => ['data' => $this->serialize($transfer->load(['fromAccount', 'toAccount']))]];
             });
         } catch (IdempotencyConflictException $exception) {
             return response()->json(['message' => $exception->getMessage(), 'error' => ['code' => $exception->errorCode]], 409);
         }
+
         return response()->json($result['body'], $result['status']);
     }
 

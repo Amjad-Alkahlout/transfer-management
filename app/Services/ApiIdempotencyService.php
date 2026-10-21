@@ -14,7 +14,7 @@ class ApiIdempotencyService
     /**
      * Execute a financial operation once per user/key and replay its saved response.
      *
-     * @param Closure(): array{status: int, body: array<string, mixed>} $operation
+     * @param  Closure(): array{status: int, body: array<string, mixed>}  $operation
      * @return array{status: int, body: array<string, mixed>, replayed: bool}
      */
     public function execute(

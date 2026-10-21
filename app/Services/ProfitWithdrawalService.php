@@ -12,16 +12,14 @@ class ProfitWithdrawalService
 {
     public function __construct(
         protected CapitalTransferService $capitalTransferService,
-    ) {
-    }
+    ) {}
 
     public function withdraw(
         CapitalAccount $profitAccount,
         float $amount,
         int $createdBy,
         ?string $notes = null,
-    ): void
-    {
+    ): void {
         DB::transaction(function () use ($profitAccount, $amount, $createdBy, $notes) {
 
             $profitAccount = CapitalAccount::lockForUpdate()

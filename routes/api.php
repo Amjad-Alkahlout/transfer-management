@@ -7,10 +7,10 @@ use App\Http\Controllers\Api\V1\CapitalTransferController;
 use App\Http\Controllers\Api\V1\DashboardSummaryController;
 use App\Http\Controllers\Api\V1\ExchangeRateController;
 use App\Http\Controllers\Api\V1\PaymentController;
+use App\Http\Controllers\Api\V1\TransferActionController;
 use App\Http\Controllers\Api\V1\TransferCalculationController;
 use App\Http\Controllers\Api\V1\TransferController;
 use App\Http\Controllers\Api\V1\TransferMutationController;
-use App\Http\Controllers\Api\V1\TransferActionController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
 

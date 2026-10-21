@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\TransferStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\TransferIndexRequest;
 use App\Http\Resources\Api\V1\TransferResource;
 use App\Models\Transfer;
-use App\Enums\TransferStatus;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class TransferController extends Controller

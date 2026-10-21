@@ -10,13 +10,14 @@ use App\Models\Transfer;
 use App\Services\ForceCancelCompletedTransferService;
 use App\Services\TransferCancellationService;
 use App\Services\TransferExecutionService;
+use DomainException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
-use Throwable;
-use DomainException;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class TransferActionController extends Controller
 {
@@ -47,7 +48,7 @@ class TransferActionController extends Controller
     }
 
     public function cancel(
-        \Illuminate\Http\Request $request,
+        Request $request,
         Transfer $transfer,
         TransferCancellationService $cancellation,
     ): JsonResponse|TransferResource {

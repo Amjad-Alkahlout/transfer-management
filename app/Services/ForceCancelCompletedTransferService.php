@@ -16,8 +16,7 @@ class ForceCancelCompletedTransferService
 {
     public function __construct(
         protected CapitalTransferService $capitalTransferService,
-    ) {
-    }
+    ) {}
 
     public function cancel(Transfer $transfer, int $cancelledBy, ?string $notes = null): void
     {

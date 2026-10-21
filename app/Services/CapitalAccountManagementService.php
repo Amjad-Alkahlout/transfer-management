@@ -7,7 +7,6 @@ use App\Enums\CapitalAccountType;
 use App\Enums\CapitalTransactionType;
 use App\Enums\TransactionDirection;
 use App\Models\CapitalAccount;
-use App\Models\CapitalTransaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -45,19 +44,8 @@ class CapitalAccountManagementService
 
     public function update(CapitalAccount $account, array $data): CapitalAccount
     {
-        if (($data['account_type'] ?? $account->account_type->value) === CapitalAccountType::PROFIT->value
-            && ($data['branch'] ?? $account->branch->value) !== Branch::GAZA->value) {
-            throw ValidationException::withMessages(['account_type' => 'Profit accounts are only allowed in Gaza.']);
-        }
+        $account->fill(array_intersect_key($data, array_flip(['name', 'is_active', 'notes'])))->save();
 
-        $branch = $data['branch'] ?? $account->branch->value;
-        $currency = $data['currency'] ?? $account->currency->value;
-        $type = $data['account_type'] ?? $account->account_type->value;
-        if (CapitalAccount::query()->where('branch', $branch)->where('currency', $currency)->where('account_type', $type)->where('id', '!=', $account->id)->exists()) {
-            throw ValidationException::withMessages(['currency' => 'An account already exists for this branch, currency, and type.']);
-        }
-
-        $account->fill(array_intersect_key($data, array_flip(['name', 'branch', 'currency', 'account_type', 'is_active', 'notes'])))->save();
         return $account->refresh();
     }
 }

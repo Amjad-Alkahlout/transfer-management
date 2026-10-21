@@ -10,19 +10,17 @@ use App\Enums\TransferStatus;
 use App\Events\TransferCreated;
 use App\Models\Transfer;
 use App\Models\User;
+use DomainException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use InvalidArgumentException;
-use DomainException;
 
 class TransferManagementService
 {
     public function __construct(
         protected TransferCalculatorService $calculator,
         protected ReceivePaymentService $receivePaymentService,
-    ) {
-    }
+    ) {}
 
     public function create(array $input, User $actor): Transfer
     {
@@ -37,7 +35,7 @@ class TransferManagementService
         }
 
         $transfer = DB::transaction(function () use ($input, $actor, $mode, $calculation, $initialPayment): Transfer {
-            $transfer = new Transfer();
+            $transfer = new Transfer;
             $transfer->forceFill([
                 'reference_number' => $this->newReferenceNumber(),
                 'receiver_name' => $input['receiver_name'],

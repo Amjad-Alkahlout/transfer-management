@@ -2,18 +2,18 @@
 
 namespace App\Services;
 
+use App\Enums\Branch;
 use App\Enums\CapitalAccountType;
-use App\Enums\CurrencyType;
-use App\Models\CapitalAccount;
-use App\Models\CapitalTransfer;
 use App\Enums\CapitalTransactionType;
+use App\Enums\CurrencyType;
 use App\Enums\TransactionDirection;
+use App\Models\CapitalAccount;
 use App\Models\CapitalTransaction;
+use App\Models\CapitalTransfer;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
 use InvalidArgumentException;
-use App\Enums\Branch;
+use RuntimeException;
 
 class CapitalTransferService
 {
@@ -22,8 +22,7 @@ class CapitalTransferService
      */
     public function __construct(
         protected CurrencyConverterService $converter,
-    ) {
-    }
+    ) {}
 
     /**
      * Special case: profit distribution from Gaza's profit account
@@ -68,7 +67,7 @@ class CapitalTransferService
         }
 
         // Validate that the fromAccount has enough balance
-        if ($fromAccount->balance < $sourceAmount ) {
+        if ($fromAccount->balance < $sourceAmount) {
             throw new RuntimeException(__('services.capital_transfer.insufficient_source_balance'));
         }
 
@@ -93,7 +92,7 @@ class CapitalTransferService
 
     private function getProfitAccount(CurrencyType $currency): CapitalAccount
     {
-        $profitAccount= CapitalAccount::where('branch', Branch::GAZA)
+        $profitAccount = CapitalAccount::where('branch', Branch::GAZA)
             ->where('currency', $currency)
             ->where('account_type', CapitalAccountType::PROFIT)
             ->where('is_active', true)
@@ -117,8 +116,7 @@ class CapitalTransferService
         CapitalAccount $toAccount,
         float $sourceAmount,
         float $transferCost,
-    ): array
-    {
+    ): array {
         $this->validateTransfer(
             $fromAccount,
             $toAccount,
@@ -135,7 +133,7 @@ class CapitalTransferService
         );
 
         if ($destinationAmount <= 0) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 __('services.capital_transfer.invalid_destination_amount')
             );
         }
@@ -204,7 +202,6 @@ class CapitalTransferService
 
         $isProfitDistribution = $this->isProfitDistribution($fromAccount, $toAccount);
 
-
         $destinationAmount = round(
             $this->converter->convert($sourceAmount, $fromAccount->currency, $toAccount->currency),
             2
@@ -216,7 +213,7 @@ class CapitalTransferService
         );
 
         if ($destinationAmount <= 0) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 __('services.capital_transfer.invalid_destination_amount')
             );
         }
@@ -271,7 +268,7 @@ class CapitalTransferService
 
                 'notes' => $notes,
 
-                'created_by' => $createdBy
+                'created_by' => $createdBy,
             ]);
 
             $fromBefore = $fromAccount->balance;

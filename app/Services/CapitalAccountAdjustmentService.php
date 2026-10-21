@@ -11,8 +11,7 @@ class CapitalAccountAdjustmentService
 {
     public function __construct(
         protected CapitalTransferService $capitalTransferService,
-    ) {
-    }
+    ) {}
 
     public function adjust(
         CapitalAccount $account,

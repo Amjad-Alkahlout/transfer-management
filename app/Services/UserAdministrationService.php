@@ -24,6 +24,7 @@ class UserAdministrationService
             }
             $this->guardLastAdmin($locked, $data['role'] ?? $locked->role->value, $data['is_active'] ?? $locked->is_active);
             $locked->fill($data)->save();
+
             return $locked->refresh();
         });
     }
@@ -37,11 +38,13 @@ class UserAdministrationService
     public function deactivate(User $user, int $actorId): User
     {
         $this->guardSelf($user, $actorId);
+
         return DB::transaction(function () use ($user): User {
             $locked = User::query()->lockForUpdate()->findOrFail($user->id);
             $this->guardLastAdmin($locked, $locked->role->value, false);
             $locked->update(['is_active' => false]);
             $locked->tokens()->delete();
+
             return $locked->refresh();
         });
     }

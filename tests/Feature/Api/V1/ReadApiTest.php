@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Api\V1;
 
-use App\Enums\CapitalAccountType;
 use App\Enums\CurrencyType;
 use App\Enums\PaymentStatus;
 use App\Enums\TransferCalculationMode;

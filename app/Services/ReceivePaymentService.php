@@ -17,8 +17,7 @@ class ReceivePaymentService
 {
     public function __construct(
         protected CapitalTransferService $capitalTransferService,
-    ) {
-    }
+    ) {}
 
     public function receive(
         Transfer $transfer,

@@ -13,6 +13,7 @@ use App\Models\CapitalTransaction;
 use App\Models\ExchangeRate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Tests\TestCase;
 
 class CapitalAndUsersApiTest extends TestCase
@@ -107,7 +108,7 @@ class CapitalAndUsersApiTest extends TestCase
 
     public function test_admin_user_management_uses_safe_serialization_password_reset_and_self_protection(): void
     {
-        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
+        $this->withoutMiddleware(ThrottleRequests::class);
         $admin = User::factory()->create(['role' => UserRole::ADMIN]);
         $target = User::factory()->create(['role' => UserRole::COORDINATOR]);
         $token = $admin->createToken('admin')->plainTextToken;

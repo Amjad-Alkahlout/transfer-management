@@ -9,8 +9,8 @@ use App\Http\Requests\Api\V1\TransferCalculationRequest;
 use App\Services\TransferCalculatorService;
 use Illuminate\Http\JsonResponse;
 use InvalidArgumentException;
-use Throwable;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class TransferCalculationController extends Controller
 {

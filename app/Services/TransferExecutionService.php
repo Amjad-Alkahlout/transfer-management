@@ -20,8 +20,7 @@ class TransferExecutionService
         protected CurrencyConverterService $converter,
         protected CapitalTransferService $capitalTransferService,
         protected ProfitService $profitService,
-    ) {
-    }
+    ) {}
 
     public function execute(
         Transfer $transfer,
