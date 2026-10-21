@@ -23,7 +23,12 @@ class CapitalAccountController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $accounts = CapitalAccount::query()->orderBy('branch')->orderBy('currency')->paginate(min((int) $request->query('per_page', 20), 100));
+        $pagination = $request->validate([
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            'page' => ['sometimes', 'integer', 'min:1'],
+        ]);
+        $accounts = CapitalAccount::query()->orderBy('branch')->orderBy('currency')->orderBy('id')
+            ->paginate($pagination['per_page'] ?? 20);
 
         return response()->json(['data' => $accounts->getCollection()->map(fn (CapitalAccount $a) => $this->serialize($a)), 'meta' => ['current_page' => $accounts->currentPage(), 'per_page' => $accounts->perPage(), 'total' => $accounts->total(), 'last_page' => $accounts->lastPage()]]);
     }
@@ -35,15 +40,35 @@ class CapitalAccountController extends Controller
             'currency' => ['required', Rule::enum(CurrencyType::class)], 'account_type' => ['required', Rule::enum(CapitalAccountType::class)],
             'opening_balance' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'], 'is_active' => ['sometimes', 'boolean'], 'notes' => ['nullable', 'string', 'max:255'],
         ]);
-        $account = $service->create($data, (int) $request->user()->id);
+        $key = $request->header('Idempotency-Key');
+        validator(['idempotency_key' => $key], ['idempotency_key' => ['required', 'string', 'max:255']])->validate();
 
-        return response()->json(['data' => $this->serialize($account)], 201);
+        try {
+            $result = app(ApiIdempotencyService::class)->execute(
+                $request->user(),
+                $key,
+                'capital-account-create',
+                $data,
+                function () use ($service, $data, $request): array {
+                    $account = $service->create($data, (int) $request->user()->id);
+
+                    return ['status' => 201, 'body' => ['data' => $this->serialize($account)]];
+                },
+            );
+        } catch (IdempotencyConflictException $exception) {
+            return response()->json(['message' => $exception->getMessage(), 'error' => ['code' => $exception->errorCode]], 409);
+        }
+
+        return response()->json($result['body'], $result['status']);
     }
 
     public function update(Request $request, CapitalAccount $account, CapitalAccountManagementService $service): JsonResponse
     {
         $data = $request->validate([
             'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'branch' => ['prohibited'],
+            'currency' => ['prohibited'],
+            'account_type' => ['prohibited'],
             'is_active' => ['sometimes', 'boolean'], 'notes' => ['sometimes', 'nullable', 'string', 'max:255'],
         ]);
 

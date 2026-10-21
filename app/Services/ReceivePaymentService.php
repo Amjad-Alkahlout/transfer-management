@@ -45,6 +45,7 @@ class ReceivePaymentService
                 ->where('branch', Branch::UAE)
                 ->where('account_type', CapitalAccountType::CAPITAL)
                 ->where('currency', $transfer->customer_payable_currency)
+                ->where('is_active', true)
                 ->firstOrFail();
 
             $payment = $transfer->payments()->create([

@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\CurrencyType;
-use App\Enums\FeeMode;
 use App\Enums\PaymentStatus;
 use App\Enums\ReceiverMethod;
 use App\Enums\TransferCalculationMode;

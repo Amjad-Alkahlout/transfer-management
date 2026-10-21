@@ -235,7 +235,7 @@ new #[Layout('layouts::app')] class extends Component {
 
             return;
         } catch (\InvalidArgumentException $e) {
-            $this->addError($field, $e->getMessage());
+            $this->addError('commission_amount', $e->getMessage());
 
             return;
         }

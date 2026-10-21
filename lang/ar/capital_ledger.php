@@ -34,6 +34,7 @@ return [
         'transaction_type' => 'نوع العملية',
         'description' => 'الوصف',
         'date' => 'التاريخ',
+        'reference' => 'الحوالة المرجعية',
     ],
 
     'messages' => [

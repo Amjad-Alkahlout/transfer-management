@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Enums\CurrencyType;
+use App\Exceptions\ExchangeRatesUnavailableException;
 use App\Models\ExchangeRate;
-use Exception;
 
 class CurrencyConverterService
 {
@@ -26,7 +26,7 @@ class CurrencyConverterService
         $toRate = $rates[$to->value] ?? null;
 
         if (! $fromRate || ! $toRate) {
-            throw new Exception(
+            throw new ExchangeRatesUnavailableException(
                 __('services.currency_converter.exchange_rate_not_found')
             );
         }

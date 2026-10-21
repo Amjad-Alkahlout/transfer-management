@@ -15,7 +15,11 @@ class UserController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $users = User::query()->orderBy('name')->paginate(min((int) $request->query('per_page', 20), 100));
+        $pagination = $request->validate([
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            'page' => ['sometimes', 'integer', 'min:1'],
+        ]);
+        $users = User::query()->orderBy('name')->orderBy('id')->paginate($pagination['per_page'] ?? 20);
 
         return response()->json(['data' => UserResource::collection($users->getCollection())->resolve(), 'meta' => ['current_page' => $users->currentPage(), 'per_page' => $users->perPage(), 'total' => $users->total(), 'last_page' => $users->lastPage()]]);
     }

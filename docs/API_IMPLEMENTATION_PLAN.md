@@ -49,6 +49,7 @@ This document is the implementation sequence and scope. Work through the phases 
 - Use route model binding and return `404` for inaccessible or missing records where exposing existence would be unsafe.
 - Apply rate limits to authentication and state-changing routes.
 - Use idempotency keys for payment receipt and other retry-sensitive financial writes.
+- Require `Idempotency-Key` for transfer creation and capital-account creation because both may post financial entries.
 - Store monetary values as decimal strings in JSON, and serialize currency codes explicitly.
 - Never expose password hashes, remember tokens, Telegram link codes, or unnecessary internal account/security fields.
 

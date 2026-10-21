@@ -3,6 +3,7 @@
 use App\Enums\CapitalTransactionType;
 use App\Models\CapitalAccount;
 use App\Models\CapitalTransaction;
+use App\Models\Transfer;
 use App\Support\LocalTime;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -31,6 +32,7 @@ new class extends Component {
         return CapitalTransaction::query()
             ->with([
                 'account',
+                'reference',
             ])
             ->when(
                 $this->selectedAccount,
@@ -121,7 +123,7 @@ new class extends Component {
                         {{ __('capital_ledger.filters.all_transaction_types') }}
                     </option>
 
-                    @foreach(\App\Enums\CapitalTransactionType::cases() as $type)
+                    @foreach(CapitalTransactionType::cases() as $type)
                         <option value="{{ $type->value }}">
                             {{ $type->label() }}
                         </option>
@@ -191,6 +193,10 @@ new class extends Component {
 
                             <x-ui.table-cell>
                                 {{ __('capital_ledger.table.transaction_type') }}
+                            </x-ui.table-cell>
+
+                            <x-ui.table-cell>
+                                {{ __('capital_ledger.table.reference') }}
                             </x-ui.table-cell>
 
                             <x-ui.table-cell>
@@ -274,6 +280,31 @@ new class extends Component {
                                 <x-ui.table-cell>
 
                                     {{ $transaction->transaction_type->label() }}
+
+                                </x-ui.table-cell>
+
+                                <x-ui.table-cell>
+
+                                    @if($transaction->reference instanceof Transfer)
+
+                                        <a href="{{ route('transfers.show', $transaction->reference) }}"
+                                           class="text-blue-600 hover:underline"
+                                        >
+                                            {{ $transaction->reference->reference_number }}
+                                        </a>
+                                        <div class="text-xs text-gray-500 mt-0.5">
+                                            {{ $transaction->reference->receiver_name }}
+                                        </div>
+
+                                    @elseif($transaction->reference)
+
+                                        {{ class_basename($transaction->reference) }} #{{ $transaction->reference->id }}
+
+                                    @else
+
+                                        —
+
+                                    @endif
 
                                 </x-ui.table-cell>
 

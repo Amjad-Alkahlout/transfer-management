@@ -34,6 +34,7 @@ return [
         'transaction_type' => 'Transaction Type',
         'description' => 'Description',
         'date' => 'Date',
+        'reference' => 'Reference Transfer',
     ],
 
     'messages' => [

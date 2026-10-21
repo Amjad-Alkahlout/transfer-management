@@ -13,6 +13,7 @@ use App\Models\CapitalAccount;
 use App\Models\Transfer;
 use DomainException;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class TransferExecutionService
 {
@@ -39,12 +40,14 @@ class TransferExecutionService
                 ->where('branch', Branch::GAZA)
                 ->where('account_type', CapitalAccountType::CAPITAL)
                 ->where('currency', CurrencyType::USD)
+                ->where('is_active', true)
                 ->firstOrFail();
 
             $profitAccount = CapitalAccount::lockForUpdate()
                 ->where('branch', Branch::GAZA)
                 ->where('account_type', CapitalAccountType::PROFIT)
                 ->where('currency', CurrencyType::USD)
+                ->where('is_active', true)
                 ->firstOrFail();
 
             $commissionInUsd = $this->converter->convert(
@@ -137,7 +140,11 @@ class TransferExecutionService
             return $transfer->fresh(['creator']);
         });
 
-        TransferExecuted::dispatch($transfer);
+        try {
+            TransferExecuted::dispatch($transfer);
+        } catch (Throwable $exception) {
+            report($exception);
+        }
 
         return $transfer;
     }

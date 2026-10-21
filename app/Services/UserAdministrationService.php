@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\UserRole;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -18,11 +19,12 @@ class UserAdministrationService
     public function update(User $user, array $data, int $actorId): User
     {
         return DB::transaction(function () use ($user, $data, $actorId): User {
+            $activeAdmins = $this->lockActiveAdmins();
             $locked = User::query()->lockForUpdate()->findOrFail($user->id);
             if ($locked->id === $actorId && array_key_exists('is_active', $data) && ! filter_var($data['is_active'], FILTER_VALIDATE_BOOLEAN)) {
                 throw ValidationException::withMessages(['user' => 'You cannot deactivate your own account.']);
             }
-            $this->guardLastAdmin($locked, $data['role'] ?? $locked->role->value, $data['is_active'] ?? $locked->is_active);
+            $this->guardLastAdmin($locked, $data['role'] ?? $locked->role->value, $data['is_active'] ?? $locked->is_active, $activeAdmins->count());
             $locked->fill($data)->save();
 
             return $locked->refresh();
@@ -40,8 +42,9 @@ class UserAdministrationService
         $this->guardSelf($user, $actorId);
 
         return DB::transaction(function () use ($user): User {
+            $activeAdmins = $this->lockActiveAdmins();
             $locked = User::query()->lockForUpdate()->findOrFail($user->id);
-            $this->guardLastAdmin($locked, $locked->role->value, false);
+            $this->guardLastAdmin($locked, $locked->role->value, false, $activeAdmins->count());
             $locked->update(['is_active' => false]);
             $locked->tokens()->delete();
 
@@ -52,12 +55,18 @@ class UserAdministrationService
     public function delete(User $user, int $actorId): void
     {
         $this->guardSelf($user, $actorId);
-        $this->guardLastAdmin($user, $user->role->value, false);
-        try {
-            $user->delete();
-        } catch (QueryException $exception) {
-            throw ValidationException::withMessages(['user' => 'This user has related history and cannot be deleted.']);
-        }
+
+        DB::transaction(function () use ($user): void {
+            $activeAdmins = $this->lockActiveAdmins();
+            $locked = User::query()->lockForUpdate()->findOrFail($user->id);
+            $this->guardLastAdmin($locked, $locked->role->value, false, $activeAdmins->count());
+
+            try {
+                $locked->delete();
+            } catch (QueryException $exception) {
+                throw ValidationException::withMessages(['user' => 'This user has related history and cannot be deleted.']);
+            }
+        });
     }
 
     private function guardSelf(User $user, int $actorId): void
@@ -67,11 +76,17 @@ class UserAdministrationService
         }
     }
 
-    private function guardLastAdmin(User $user, string $newRole, bool|string $newActive): void
+    private function lockActiveAdmins(): Collection
+    {
+        // This ordered roster lock serializes every admin-removal decision.
+        return User::query()->where('role', UserRole::ADMIN)->where('is_active', true)->orderBy('id')->lockForUpdate()->get();
+    }
+
+    private function guardLastAdmin(User $user, string $newRole, bool|string $newActive, int $activeAdminCount): void
     {
         $willRemainActiveAdmin = $newRole === UserRole::ADMIN->value && filter_var($newActive, FILTER_VALIDATE_BOOLEAN);
         if ($user->role === UserRole::ADMIN && $user->is_active && ! $willRemainActiveAdmin
-            && User::query()->where('role', UserRole::ADMIN)->where('is_active', true)->count() <= 1) {
+            && $activeAdminCount <= 1) {
             throw ValidationException::withMessages(['user' => 'At least one active administrator must remain.']);
         }
     }

@@ -9,6 +9,8 @@ use Illuminate\Queue\InteractsWithQueue;
 
 class SendTransferCancelledTelegramNotification implements ShouldQueue
 {
+    public bool $afterCommit = true;
+
     use InteractsWithQueue;
 
     public function __construct(

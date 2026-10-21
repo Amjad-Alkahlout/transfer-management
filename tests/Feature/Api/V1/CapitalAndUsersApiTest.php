@@ -12,6 +12,7 @@ use App\Models\CapitalAccount;
 use App\Models\CapitalTransaction;
 use App\Models\ExchangeRate;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Tests\TestCase;
@@ -26,9 +27,19 @@ class CapitalAndUsersApiTest extends TestCase
         $token = $admin->createToken('admin')->plainTextToken;
         $payload = ['name' => 'UAE USD', 'branch' => 'uae', 'currency' => 'usd', 'account_type' => 'capital', 'opening_balance' => '100.00'];
 
-        $this->withToken($token)->postJson('/api/v1/capital-accounts', $payload)->assertCreated()->assertJsonPath('data.balance', '100.00');
+        $headers = ['Idempotency-Key' => 'capital-account-open-1'];
+        $this->withToken($token)->postJson('/api/v1/capital-accounts', $payload, $headers)->assertCreated()->assertJsonPath('data.balance', '100.00');
         $this->assertDatabaseHas('capital_transactions', ['transaction_type' => CapitalTransactionType::OPENING_BALANCE->value, 'amount' => '100.00', 'created_by' => $admin->id]);
-        $this->withToken($token)->postJson('/api/v1/capital-accounts', $payload)->assertUnprocessable();
+        $this->withToken($token)->postJson('/api/v1/capital-accounts', $payload, $headers)->assertCreated()->assertJsonPath('data.balance', '100.00');
+        $this->assertSame(1, CapitalTransaction::query()->where('transaction_type', CapitalTransactionType::OPENING_BALANCE)->count());
+    }
+
+    public function test_database_rejects_duplicate_capital_account_identity(): void
+    {
+        $this->account('uae', 'usd', 'capital', '0.00');
+
+        $this->expectException(QueryException::class);
+        $this->account('uae', 'usd', 'capital', '0.00');
     }
 
     public function test_account_adjustment_and_profit_withdrawal_keep_ledger_and_actor(): void
@@ -125,6 +136,14 @@ class CapitalAndUsersApiTest extends TestCase
         $this->withToken($token)->patchJson("/api/v1/users/{$admin->id}", ['is_active' => false])->assertUnprocessable();
         $this->withToken($token)->deleteJson("/api/v1/users/{$admin->id}")->assertUnprocessable();
         $this->withToken($token)->deleteJson("/api/v1/users/{$target->id}")->assertOk();
+    }
+
+    public function test_user_administration_service_refuses_to_remove_the_last_active_admin(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+        app(\App\Services\UserAdministrationService::class)->deactivate($admin, $admin->id + 1);
     }
 
     public function test_users_and_capital_ledger_are_admin_only(): void

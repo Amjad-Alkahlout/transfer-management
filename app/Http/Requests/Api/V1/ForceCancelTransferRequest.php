@@ -15,7 +15,7 @@ class ForceCancelTransferRequest extends FormRequest
     {
         return [
             'password' => ['required', 'string', 'max:255'],
-            'notes' => ['nullable', 'string', 'max:255'],
+            'notes' => ['required', 'string', 'min:1', 'max:255'],
         ];
     }
 }

@@ -34,7 +34,7 @@ class TransferMutationApiTest extends TestCase
         $response = $this->withToken($user->createToken('coordinator')->plainTextToken)
             ->postJson('/api/v1/transfers', $this->receiverAmountPayload([
                 'initial_customer_pay_amount' => '25.00',
-            ]));
+            ]), ['Idempotency-Key' => 'create-initial-payment-1']);
 
         $response->assertCreated()
             ->assertJsonPath('data.status', 'pending')
@@ -65,7 +65,7 @@ class TransferMutationApiTest extends TestCase
         $this->withToken($token)
             ->postJson('/api/v1/transfers', $this->receiverAmountPayload([
                 'initial_customer_pay_amount' => '101.00',
-            ]))
+            ]), ['Idempotency-Key' => 'create-invalid-initial-1'])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('initial_customer_pay_amount');
 
@@ -76,11 +76,47 @@ class TransferMutationApiTest extends TestCase
                 'customer_payable_amount' => '2.00',
                 'customer_payable_currency' => CurrencyType::AED->value,
                 'commission_amount' => '10.00',
-            ]))
+            ]), ['Idempotency-Key' => 'create-invalid-commission-1'])
             ->assertUnprocessable()
             ->assertJsonPath('error.code', 'INVALID_COMMISSION');
 
         $this->assertDatabaseCount('transfers', 0);
+    }
+
+    public function test_transfer_creation_replays_idempotent_response_and_rejects_payload_changes(): void
+    {
+        $user = User::factory()->create(['role' => UserRole::COORDINATOR]);
+        $this->seedExchangeRates();
+        $token = $user->createToken('coordinator')->plainTextToken;
+        $headers = ['Idempotency-Key' => 'transfer-create-replay-1'];
+        $payload = $this->receiverAmountPayload();
+
+        $first = $this->withToken($token)->postJson('/api/v1/transfers', $payload, $headers)->assertCreated();
+        $transferId = $first->json('data.id');
+        $this->withToken($token)->postJson('/api/v1/transfers', $payload, $headers)
+            ->assertCreated()->assertJsonPath('data.id', $transferId);
+
+        $this->withToken($token)->postJson('/api/v1/transfers', [...$payload, 'receiver_name' => 'Different recipient'], $headers)
+            ->assertConflict()->assertJsonPath('error.code', 'IDEMPOTENCY_KEY_REUSED');
+
+        $this->assertDatabaseCount('transfers', 1);
+        $this->assertDatabaseCount('api_idempotency_keys', 1);
+    }
+
+    public function test_transfer_create_and_update_return_service_unavailable_when_rates_are_missing(): void
+    {
+        $user = User::factory()->create(['role' => UserRole::COORDINATOR]);
+        $token = $user->createToken('coordinator')->plainTextToken;
+
+        $this->withToken($token)->postJson('/api/v1/transfers', $this->receiverAmountPayload(), ['Idempotency-Key' => 'missing-rate-create'])
+            ->assertServiceUnavailable()->assertJsonPath('error.code', 'EXCHANGE_RATES_UNAVAILABLE');
+        $this->assertDatabaseCount('transfers', 0);
+        $this->assertDatabaseCount('api_idempotency_keys', 0);
+
+        $transfer = $this->createPendingTransfer($user);
+        $this->withToken($token)->patchJson('/api/v1/transfers/'.$transfer->id, $this->receiverAmountPayload())
+            ->assertServiceUnavailable()->assertJsonPath('error.code', 'EXCHANGE_RATES_UNAVAILABLE');
+        $this->assertDatabaseHas('transfers', ['id' => $transfer->id, 'receiver_name' => 'Existing Recipient']);
     }
 
     public function test_create_rolls_back_transfer_when_initial_payment_cannot_be_recorded(): void
@@ -91,7 +127,7 @@ class TransferMutationApiTest extends TestCase
         $this->withToken($user->createToken('coordinator')->plainTextToken)
             ->postJson('/api/v1/transfers', $this->receiverAmountPayload([
                 'initial_customer_pay_amount' => '25.00',
-            ]))
+            ]), ['Idempotency-Key' => 'create-missing-capital-account-1'])
             ->assertNotFound();
 
         $this->assertDatabaseCount('transfers', 0);
