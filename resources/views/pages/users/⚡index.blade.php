@@ -275,9 +275,6 @@ class extends Component {
         </x-slot:actions>
     </x-ui.page-header>
 
-    <x-ui.flash/>
-
-
     <div class="mb-6">
         <x-ui.button :href="route('dashboard')" variant="secondary">
             {{ app()->getLocale() === 'ar' ? '→' : '←' }}

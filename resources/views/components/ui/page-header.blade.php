@@ -3,26 +3,26 @@
     'description' => null,
 ])
 
-<div class="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+@push('app-page-heading')
+    <div {{ $attributes->only('class')->class(['min-w-0']) }}>
 
-    <div>
-
-        <h1 class="text-3xl font-bold tracking-tight text-gray-900">
+        <h1 class="truncate text-base font-semibold tracking-tight text-slate-900 sm:text-lg">
             {{ $title }}
         </h1>
 
         @if($description)
-            <p class="mt-2 text-sm text-gray-500">
+            <p class="truncate text-xs text-slate-500 sm:text-sm">
                 {{ $description }}
             </p>
         @endif
 
     </div>
+@endpush
 
-    @isset($actions)
-        <div class="flex flex-wrap items-center gap-3">
-            {{ $actions }}
-        </div>
-    @endisset
+@isset($actions)
+    <div {{ $attributes->class(['mb-6 flex flex-wrap items-center gap-3']) }}>
+        {{ $actions }}
+    </div>
+@endisset
 
-</div>
+<x-ui.flash />

@@ -215,9 +215,9 @@
     {{-- Main column --}}
     <div class="flex min-w-0 flex-1 flex-col">
 
-        <header class="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 shadow-sm sm:px-6">
+        <header class="sticky top-0 z-20 flex min-h-16 shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-white px-4 py-2 shadow-sm sm:gap-4 sm:px-6">
 
-            <div class="flex items-center gap-3">
+            <div class="flex min-w-0 flex-1 items-center gap-3">
 
                 <button
                     type="button"
@@ -232,43 +232,28 @@
                     </svg>
                 </button>
 
-                {{-- Decorative duplicate of the sidebar's <h1> for mobile
-                     (where the real title is scrolled off-canvas). Not a
-                     heading itself, and hidden from assistive tech to avoid
-                     the page title being announced twice. --}}
-                <span class="text-lg font-bold text-blue-600 lg:hidden" aria-hidden="true">
-                    {{ __('general.app.name') }}
-                </span>
-                @if(request()->routeIs('dashboard'))
-                    <span class="hidden text-lg font-semibold text-slate-900 lg:inline">
-                        {{ __('navigation.dashboard') }}
-                    </span>
-                @endif
-
+                @stack('app-page-heading')
             </div>
 
-            <div class="flex flex-wrap items-center gap-3 sm:flex-nowrap sm:gap-4 sm:whitespace-nowrap">
+            <div class="flex shrink-0 items-center gap-2 sm:gap-4 sm:whitespace-nowrap">
 
                 <a
                     href="{{ route('locale.switch', app()->getLocale() === 'ar' ? 'en' : 'ar') }}"
                     class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"                >
                     🌐 {{ app()->getLocale() === 'ar' ? 'English' : 'العربية' }}
                 </a>
-                @if(request()->routeIs('dashboard'))
-                    <div class="hidden items-center gap-2 border-s border-gray-200 ps-4 sm:flex">
-                        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600" aria-hidden="true">
-                            <x-heroicon-o-user class="h-5 w-5" />
-                        </span>
-                        <span class="max-w-40 truncate text-sm font-medium text-slate-700">{{ auth()->user()->name }}</span>
-                    </div>
-                @endif
+                <div class="hidden items-center gap-2 border-s border-gray-200 ps-4 sm:flex">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600" aria-hidden="true">
+                        <x-heroicon-o-user class="h-5 w-5" />
+                    </span>
+                    <span class="max-w-40 truncate text-sm font-medium text-slate-700">{{ auth()->user()->name }}</span>
+                </div>
 
             </div>
 
         </header>
 
         <main class="flex-1 px-4 py-8 sm:px-6">
-            <x-ui.flash />
             {{ $slot }}
         </main>
 

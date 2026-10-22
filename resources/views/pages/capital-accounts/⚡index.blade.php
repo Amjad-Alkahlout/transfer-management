@@ -400,7 +400,6 @@ class extends Component {
 
         </div>
         <x-ui.card
-            :title="__('capital_accounts.table.title')"
             :description="__('capital_accounts.table.description')"
         >
 

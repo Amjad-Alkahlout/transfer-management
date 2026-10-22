@@ -87,10 +87,7 @@ new class extends Component {
         </x-ui.button>
 
     </div>
-    <x-ui.flash/>
-
     <x-ui.card
-        :title="__('exchange_rates.table.title')"
         :description="__('exchange_rates.table.description')"
         class="mb-4"
     >

@@ -105,8 +105,6 @@ class extends Component {
 
     <x-ui.card
         class="transfer-table-card"
-        :title="__('transfers.table.title')"
-
         :description="__('transfers.table.description')"
     >
 

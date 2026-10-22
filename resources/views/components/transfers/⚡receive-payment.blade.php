@@ -84,8 +84,6 @@ new class extends Component {
 
         </x-slot:actions>
     </x-ui.page-header>
-    <x-ui.flash/>
-
     <x-ui.card
         :title="__('receive_payment.summary.title')"
         :description="__('receive_payment.summary.description')"

@@ -202,8 +202,6 @@ new class extends Component {
         </x-slot:actions>
 
     </x-ui.page-header>
-    <x-ui.flash/>
-
     <div class="mb-6">
 
         <x-ui.button
@@ -222,7 +220,6 @@ new class extends Component {
     </div>
 
     <x-ui.card
-        :title="__('capital_transfers.table.title')"
         :description="__('capital_transfers.table.description')"
     >
 
