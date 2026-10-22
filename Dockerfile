@@ -32,7 +32,7 @@ RUN composer install \
 # ===========================
 # Stage 3 - PHP
 # ===========================
-FROM php:8.4-fpm-bookworm
+FROM php:8.5.12-fpm-bookworm
 
 WORKDIR /var/www/html
 

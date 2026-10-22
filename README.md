@@ -71,7 +71,7 @@ The application employs a layered Laravel architecture using Livewire (Volt-styl
 
 | Layer | Technologies |
 | :--- | :--- |
-| **Backend Framework** | Laravel 12.x (`laravel/framework ^13.8` skeleton), PHP 8.3+ (Docker uses PHP 8.4) |
+| **Backend Framework** | Laravel 12.x (`laravel/framework ^13.8` skeleton), PHP 8.5+ |
 | **Reactive UI** | Livewire 4 (`livewire/livewire ^4.3`), Alpine.js (`alpinejs ^3.15`) |
 | **Styling & Assets** | Tailwind CSS 4 (`tailwindcss ^4.0`, `@tailwindcss/vite`), Vite 8, Blade Heroicons |
 | **Database** | MySQL 8.4 (using `pdo_mysql`, database sessions, and database queue jobs) |
@@ -337,7 +337,7 @@ php artisan test tests/Feature/Api/V1
 ## Prerequisites & Local Installation
 
 ### System Requirements
-- **PHP**: `^8.3` (with extensions: `pdo_mysql`, `mbstring`, `bcmath`, `gd`, `zip`, `pcntl`, `exif`)
+- **PHP**: `^8.5` (with extensions: `pdo_mysql`, `mbstring`, `bcmath`, `gd`, `zip`, `pcntl`, `exif`)
 - **Composer**: `v2.x`
 - **Node.js**: `v20.x` or `v22.x` & **npm**
 - **Database**: MySQL 8.0+
@@ -425,7 +425,7 @@ All accounts are created by `UserSeeder` with the default password: `password`
 
 The repository includes a multi-container Docker setup defined in `compose.yaml`:
 
-- `transfer-app`: PHP 8.4-FPM container running application code.
+- `transfer-app`: PHP 8.5-FPM container running application code.
 - `transfer-queue-worker`: Identical PHP container running `php artisan queue:work --sleep=3 --tries=3`.
 - `transfer-nginx`: Nginx 1.29 Alpine serving static assets and reverse proxying to PHP-FPM.
 - `transfer-mysql`: MySQL 8.4 container with healthchecks.
