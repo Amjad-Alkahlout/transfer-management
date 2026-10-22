@@ -6,7 +6,6 @@ use App\Enums\CurrencyType;
 use App\Enums\PaymentStatus;
 use App\Enums\TransferStatus;
 use App\Models\CapitalAccount;
-use App\Models\CommissionRule;
 use App\Models\ExchangeRate;
 use App\Models\Transfer;
 use Livewire\Attributes\Computed;
@@ -21,6 +20,9 @@ class extends Component {
     public bool $showTelegramModal = false;
     public ?string $telegramLinkCode = null;
     public bool $waitingForTelegramLink = false;
+    public string $recentTransferSearch = '';
+    public string $recentTransferStatus = '';
+    public string $recentPaymentStatus = '';
 
     #[Computed]
     public function financialOverview()
@@ -50,9 +52,6 @@ class extends Component {
                     ->where('currency', CurrencyType::USD)
                     ->value('balance') ?? 0,
 
-            'outstanding_receivables' => Transfer::query()
-                ->where('status', '!=', TransferStatus::CANCELLED)
-                ->sum('remaining_amount'),
         ];
     }
 
@@ -80,6 +79,30 @@ class extends Component {
     public function exchangeRates()
     {
         return ExchangeRate::orderBy('currency')->get();
+    }
+
+    #[Computed]
+    public function recentTransfers()
+    {
+        $query = Transfer::query();
+
+        if ($this->recentTransferSearch !== '') {
+            $search = '%'.$this->recentTransferSearch.'%';
+            $query->where(function ($query) use ($search) {
+                $query->where('reference_number', 'like', $search)
+                    ->orWhere('receiver_name', 'like', $search);
+            });
+        }
+
+        if (TransferStatus::tryFrom($this->recentTransferStatus)) {
+            $query->where('status', $this->recentTransferStatus);
+        }
+
+        if (PaymentStatus::tryFrom($this->recentPaymentStatus)) {
+            $query->where('payment_status', $this->recentPaymentStatus);
+        }
+
+        return $query->latest()->limit(8)->get();
     }
 
 
@@ -209,11 +232,11 @@ class extends Component {
             </p>
         </div>
 
-        <div class="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <div class="grid gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
 
             <x-ui.stat-card
                 :title="__('dashboard.financial.gaza_capital')"
-                :value="'$'.number_format($this->financialOverview['gaza_usd'],2)"
+                :value="number_format($this->financialOverview['gaza_usd'],2).' USD'"
                 :subtitle="__('dashboard.financial.current_balance')"
                 color="gray"
             >
@@ -224,7 +247,7 @@ class extends Component {
 
             <x-ui.stat-card
                 :title="__('dashboard.financial.uae_capital_usd')"
-                :value="'$'.number_format($this->financialOverview['uae_usd'],2)"
+                :value="number_format($this->financialOverview['uae_usd'],2).' USD'"
                 :subtitle="__('dashboard.financial.current_balance')"
                 color="gray"
             >
@@ -235,7 +258,7 @@ class extends Component {
 
             <x-ui.stat-card
                 :title="__('dashboard.financial.uae_capital_aed')"
-                :value="number_format($this->financialOverview['uae_aed'],2)"
+                :value="number_format($this->financialOverview['uae_aed'],2).' AED'"
                 :subtitle="__('dashboard.financial.current_balance')"
                 color="gray"
             >
@@ -247,7 +270,7 @@ class extends Component {
 
             <x-ui.stat-card
                 :title="__('dashboard.financial.profit')"
-                :value="'$'.number_format($this->financialOverview['profit'],2)"
+                :value="number_format($this->financialOverview['profit'],2).' USD'"
                 :subtitle="__('dashboard.financial.net_profit')"
                 color="green"
             >
@@ -257,21 +280,86 @@ class extends Component {
             </x-ui.stat-card>
 
 
-            <x-ui.stat-card
-                :title="__('dashboard.financial.customer_receivables')"
-                :value="number_format($this->financialOverview['outstanding_receivables'],2)"
-                :subtitle="__('dashboard.financial.outstanding_amount')"
-                color="red"
-            >
-                <x-slot:icon>
-                    <x-heroicon-o-clock class="h-7 w-7 text-red-600"/>
-                </x-slot:icon>
-            </x-ui.stat-card>
-
-
         </div>
 
     </div>
+    @endcan
+
+
+    @can('view-transfers')
+        <section class="mb-8 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div class="flex flex-col gap-4 border-b border-slate-200 p-5 xl:flex-row xl:items-center xl:justify-between">
+                <div>
+                    <h2 class="text-xl font-semibold text-slate-900">{{ __('dashboard.recent.title') }}</h2>
+                    <p class="mt-1 text-sm text-slate-500">{{ __('dashboard.recent.description') }}</p>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-3 xl:min-w-[680px]">
+                    <label class="sr-only" for="dashboard-transfer-search">{{ __('dashboard.recent.search') }}</label>
+                    <input id="dashboard-transfer-search" type="search" wire:model.live.debounce.300ms="recentTransferSearch"
+                           placeholder="{{ __('dashboard.recent.search') }}"
+                           class="min-w-0 rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                    <label class="sr-only" for="dashboard-transfer-status">{{ __('dashboard.recent.transfer_status') }}</label>
+                    <select id="dashboard-transfer-status" wire:model.live="recentTransferStatus"
+                            class="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                        <option value="">{{ __('dashboard.recent.all_transfer_statuses') }}</option>
+                        @foreach(TransferStatus::cases() as $status)
+                            <option value="{{ $status->value }}">{{ $status->label() }}</option>
+                        @endforeach
+                    </select>
+                    <label class="sr-only" for="dashboard-payment-status">{{ __('dashboard.recent.payment_status') }}</label>
+                    <select id="dashboard-payment-status" wire:model.live="recentPaymentStatus"
+                            class="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                        <option value="">{{ __('dashboard.recent.all_payment_statuses') }}</option>
+                        @foreach(PaymentStatus::cases() as $status)
+                            <option value="{{ $status->value }}">{{ $status->label() }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200 text-start text-sm">
+                    <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        <tr>
+                            <th class="px-5 py-3">{{ __('dashboard.recent.reference') }}</th>
+                            <th class="px-5 py-3">{{ __('dashboard.recent.customer') }}</th>
+                            <th class="px-5 py-3 text-end">{{ __('dashboard.recent.amount') }}</th>
+                            <th class="px-5 py-3">{{ __('dashboard.recent.date') }}</th>
+                            <th class="px-5 py-3">{{ __('dashboard.recent.transfer_status') }}</th>
+                            <th class="px-5 py-3">{{ __('dashboard.recent.payment_status') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 bg-white">
+                        @forelse($this->recentTransfers as $transfer)
+                            <tr class="transition hover:bg-slate-50">
+                                <td class="whitespace-nowrap px-5 py-4 font-medium text-blue-700">
+                                    <a href="{{ route('transfers.show', $transfer) }}" class="hover:underline">{{ $transfer->reference_number }}</a>
+                                </td>
+                                <td class="whitespace-nowrap px-5 py-4 text-slate-800">{{ $transfer->receiver_name }}</td>
+                                <td class="whitespace-nowrap px-5 py-4 text-end font-medium tabular-nums text-slate-900" dir="ltr">
+                                    {{ number_format((float) $transfer->transfer_amount, 2) }} {{ $transfer->requested_currency->symbol() }}
+                                </td>
+                                <td class="whitespace-nowrap px-5 py-4 text-slate-600">{{ \App\Support\LocalTime::format($transfer->created_at, 'd/m/Y') }}</td>
+                                <td class="whitespace-nowrap px-5 py-4">
+                                    @php($transferBadge = match($transfer->status) { TransferStatus::PENDING => 'bg-amber-50 text-amber-800', TransferStatus::COMPLETED => 'bg-emerald-50 text-emerald-800', TransferStatus::CANCELLED => 'bg-rose-50 text-rose-800' })
+                                    <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold {{ $transferBadge }}">{{ $transfer->status->label() }}</span>
+                                </td>
+                                <td class="whitespace-nowrap px-5 py-4">
+                                    @php($paymentBadge = match($transfer->payment_status) { PaymentStatus::UNPAID => 'bg-rose-50 text-rose-800', PaymentStatus::PARTIALLY_PAID => 'bg-orange-50 text-orange-800', PaymentStatus::PAID => 'bg-emerald-50 text-emerald-800' })
+                                    <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold {{ $paymentBadge }}">{{ $transfer->payment_status->label() }}</span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-5 py-16 text-center text-slate-500">
+                                    <x-heroicon-o-document-text class="mx-auto mb-3 h-10 w-10 text-slate-300" />
+                                    <p>{{ __('dashboard.recent.empty') }}</p>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
     @endcan
 
 

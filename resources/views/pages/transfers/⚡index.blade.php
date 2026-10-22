@@ -47,13 +47,21 @@ class extends Component {
 };
 ?>
 
-<div>
+<div class="transfers-listing">
     <x-ui.page-header
         :title="__('transfers.page.index_title')"
 
         :description="__('transfers.page.index_description')"
     >
         <x-slot:actions>
+            <x-ui.button
+                :href="route('dashboard')"
+                variant="secondary"
+            >
+                {{ app()->getLocale() === 'ar' ? '→' : '←' }}
+                {{ __('capital_accounts.buttons.back') }}
+            </x-ui.button>
+
             @can('create-transfer')
                 <x-ui.button
                     :href="route('transfers.create')"
@@ -66,32 +74,20 @@ class extends Component {
 
     </x-ui.page-header>
 
-    <x-ui.card class="mb-6">
-
-        <x-ui.button
-            :href="route('dashboard')"
-            variant="secondary"
-        >
-            {{ app()->getLocale() === 'ar' ? '→' : '←' }}
-            {{ __('capital_accounts.buttons.back') }}
-        </x-ui.button>
-
-    </x-ui.card>
-
     @if($status || $paymentStatus)
 
-        <div class="mb-6 flex items-center justify-between">
+        <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
-            <x-ui.alert color="blue">
+            <x-ui.alert color="info" class="filter-alert flex-1">
 
                 {{ __('transfers.filters.showing') }}
 
                 @if($status)
-                    {{ str($status)->replace('_', ' ')->title() }} {{ __('transfers.filters.transfers') }}
+                    {{ TransferStatus::tryFrom($status)?->label() ?? str($status)->replace('_', ' ')->title() }} {{ __('transfers.filters.transfers') }}
                 @endif
 
                 @if($paymentStatus)
-                    {{ str($paymentStatus)->replace('_', ' ')->title() }} {{ __('transfers.filters.payments') }}
+                    {{ PaymentStatus::tryFrom($paymentStatus)?->label() ?? str($paymentStatus)->replace('_', ' ')->title() }} {{ __('transfers.filters.payments') }}
                 @endif
 
             </x-ui.alert>
@@ -108,6 +104,7 @@ class extends Component {
     @endif
 
     <x-ui.card
+        class="transfer-table-card"
         :title="__('transfers.table.title')"
 
         :description="__('transfers.table.description')"
@@ -117,26 +114,26 @@ class extends Component {
 
             <x-ui.table-header>
 
-                <x-ui.table-head>{{ __('transfers.table.reference') }}</x-ui.table-head>
+                <x-ui.table-head class="whitespace-nowrap">{{ __('transfers.table.reference') }}</x-ui.table-head>
 
-                <x-ui.table-head>{{ __('transfers.table.receiver') }}</x-ui.table-head>
+                <x-ui.table-head class="whitespace-nowrap">{{ __('transfers.table.receiver') }}</x-ui.table-head>
 
-                <x-ui.table-head>{{ __('transfers.table.method') }}</x-ui.table-head>
+                <x-ui.table-head class="whitespace-nowrap">{{ __('transfers.table.method') }}</x-ui.table-head>
 
 
-                <x-ui.table-head>{{ __('transfers.table.receiver_gets') }}</x-ui.table-head>
+                <x-ui.table-head class="whitespace-nowrap text-end">{{ __('transfers.table.receiver_gets') }}</x-ui.table-head>
 
-                <x-ui.table-head>{{ __('transfers.table.customer_pays') }}</x-ui.table-head>
+                <x-ui.table-head class="whitespace-nowrap text-end">{{ __('transfers.table.customer_pays') }}</x-ui.table-head>
 
-                <x-ui.table-head>{{ __('transfers.table.commission') }}</x-ui.table-head>
+                <x-ui.table-head class="whitespace-nowrap text-end">{{ __('transfers.table.commission') }}</x-ui.table-head>
 
-                <x-ui.table-head>{{ __('transfers.table.transfer_status') }}</x-ui.table-head>
+                <x-ui.table-head class="whitespace-nowrap">{{ __('transfers.table.transfer_status') }}</x-ui.table-head>
 
-                <x-ui.table-head>{{ __('transfers.table.payment_status') }}</x-ui.table-head>
+                <x-ui.table-head class="whitespace-nowrap">{{ __('transfers.table.payment_status') }}</x-ui.table-head>
 
-                <x-ui.table-head>{{ __('transfers.table.created_by') }}</x-ui.table-head>
+                <x-ui.table-head class="whitespace-nowrap">{{ __('transfers.table.created_by') }}</x-ui.table-head>
 
-                <x-ui.table-head>{{ __('transfers.table.created') }}</x-ui.table-head>
+                <x-ui.table-head class="whitespace-nowrap">{{ __('transfers.table.created') }}</x-ui.table-head>
 
 
             </x-ui.table-header>
@@ -146,7 +143,7 @@ class extends Component {
 
                     <x-ui.table-row>
 
-                        <x-ui.table-cell colspan="12" class="p-0">
+                        <x-ui.table-cell colspan="10" class="p-0">
 
                             <x-ui.empty-state
                                 :title="__('transfers.empty_state.title')"
@@ -174,7 +171,7 @@ class extends Component {
                     @foreach($this->transfers as $transfer)
                         <x-ui.table-row
                             wire:click="goToTransfer({{ $transfer->id }})"
-                            class="cursor-pointer hover:bg-gray-50 transition"
+                            class="cursor-pointer transition"
                         >
 
                             <x-ui.table-cell>
@@ -191,23 +188,29 @@ class extends Component {
                                     <br>
                                     {{ $transfer->receiver_account_number }}
                                 @else
-                                    {{ str($transfer->receiver_method->value)->replace('_',' ')->title() }}
+                                    {{ $transfer->receiver_method->label() }}
                                     <br>
                                     {{ $transfer->receiver_wallet_phone }}
                                 @endif
                             </x-ui.table-cell>
 
 
-                            <x-ui.table-cell>
-                                {{ number_format($transfer->transfer_amount,2) }} {{ $transfer->requested_currency->symbol() }}
+                            <x-ui.table-cell class="text-end font-medium text-slate-900">
+                                <span dir="ltr" class="inline-block whitespace-nowrap tabular-nums">
+                                    {{ number_format($transfer->transfer_amount,2) }} {{ $transfer->requested_currency->symbol() }}
+                                </span>
                             </x-ui.table-cell>
 
-                            <x-ui.table-cell>
-                                {{ number_format($transfer->customer_payable_amount,2) }} {{ $transfer->customer_payable_currency->symbol() }}
+                            <x-ui.table-cell class="text-end font-medium text-slate-900">
+                                <span dir="ltr" class="inline-block whitespace-nowrap tabular-nums">
+                                    {{ number_format($transfer->customer_payable_amount,2) }} {{ $transfer->customer_payable_currency->symbol() }}
+                                </span>
                             </x-ui.table-cell>
 
-                            <x-ui.table-cell>
-                                {{ number_format($transfer->commission_amount,2) }} {{ $transfer->commission_currency->symbol() }}
+                            <x-ui.table-cell class="text-end font-medium text-slate-900">
+                                <span dir="ltr" class="inline-block whitespace-nowrap tabular-nums">
+                                    {{ number_format($transfer->commission_amount,2) }} {{ $transfer->commission_currency->symbol() }}
+                                </span>
                             </x-ui.table-cell>
 
                             <x-ui.table-cell>
@@ -216,7 +219,7 @@ class extends Component {
 
                                     @case(TransferStatus::PENDING)
 
-                                        <x-ui.badge color="yellow">
+                                        <x-ui.badge color="yellow" class="transfer-status-badge transfer-status-pending">
                                             {{ TransferStatus::PENDING->label() }}
                                         </x-ui.badge>
 
@@ -224,7 +227,7 @@ class extends Component {
 
                                     @case(TransferStatus::COMPLETED)
 
-                                        <x-ui.badge color="green">
+                                        <x-ui.badge color="green" class="transfer-status-badge transfer-status-completed">
                                             {{ TransferStatus::COMPLETED->label() }}
                                         </x-ui.badge>
 
@@ -232,7 +235,7 @@ class extends Component {
 
                                     @case(TransferStatus::CANCELLED)
 
-                                        <x-ui.badge color="red">
+                                        <x-ui.badge color="red" class="transfer-status-badge transfer-status-cancelled">
                                             {{ TransferStatus::CANCELLED->label() }}
                                         </x-ui.badge>
 
@@ -248,7 +251,7 @@ class extends Component {
 
                                     @case(PaymentStatus::UNPAID)
 
-                                        <x-ui.badge color="red">
+                                        <x-ui.badge color="red" class="transfer-status-badge payment-status-unpaid">
                                             {{ PaymentStatus::UNPAID->label() }}
                                         </x-ui.badge>
 
@@ -256,7 +259,7 @@ class extends Component {
 
                                     @case(PaymentStatus::PARTIALLY_PAID)
 
-                                        <x-ui.badge color="orange">
+                                        <x-ui.badge color="orange" class="transfer-status-badge payment-status-partially-paid">
                                             {{ PaymentStatus::PARTIALLY_PAID->label() }}
                                         </x-ui.badge>
 
@@ -264,7 +267,7 @@ class extends Component {
 
                                     @case(PaymentStatus::PAID)
 
-                                        <x-ui.badge color="green">
+                                        <x-ui.badge color="green" class="transfer-status-badge payment-status-paid">
                                             {{ PaymentStatus::PAID->label() }}
                                         </x-ui.badge>
 

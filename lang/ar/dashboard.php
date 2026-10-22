@@ -51,6 +51,21 @@ return [
         'total' => 'الإجمالي',
     ],
 
+    'recent' => [
+        'title' => 'الحوالات الأخيرة',
+        'description' => 'ابحث عن أحدث الحوالات وراجع تفاصيلها.',
+        'search' => 'ابحث بالمرجع أو اسم العميل',
+        'reference' => 'المرجع',
+        'customer' => 'العميل',
+        'amount' => 'المبلغ',
+        'date' => 'التاريخ',
+        'transfer_status' => 'حالة الحوالة',
+        'payment_status' => 'حالة الدفع',
+        'all_transfer_statuses' => 'جميع حالات الحوالة',
+        'all_payment_statuses' => 'جميع حالات الدفع',
+        'empty' => 'لا توجد سجلات حوالات مطابقة لهذه المرشحات.',
+    ],
+
     'exchange_rates' => [
         'title' => 'أسعار الصرف',
         'description' => 'أسعار الصرف الحالية.',

@@ -51,6 +51,21 @@ return [
         'total' => 'Total',
     ],
 
+    'recent' => [
+        'title' => 'Recent Transfers',
+        'description' => 'Search and review the latest transfer activity.',
+        'search' => 'Search by reference or customer',
+        'reference' => 'Reference',
+        'customer' => 'Customer',
+        'amount' => 'Amount',
+        'date' => 'Date',
+        'transfer_status' => 'Transfer Status',
+        'payment_status' => 'Payment Status',
+        'all_transfer_statuses' => 'All transfer statuses',
+        'all_payment_statuses' => 'All payment statuses',
+        'empty' => 'No transfer records match these filters.',
+    ],
+
     'exchange_rates' => [
         'title' => 'Exchange Rates',
         'description' => 'Current exchange rates.',

@@ -35,7 +35,7 @@
     </style>
 </head>
 <body
-    class="bg-gray-100"
+    class="bg-gray-100 {{ auth()->check() ? 'enterprise-layout' : '' }}"
     x-data="{
         sidebarOpen: false,
         sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true'
@@ -200,7 +200,7 @@
                     <button
                         type="submit"
                         :title="sidebarCollapsed ? '{{ __('general.buttons.logout') }}' : null"
-                        class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                        class="sidebar-logout-button flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition"
                     >
                         <x-heroicon-o-arrow-left-on-rectangle class="h-5 w-5"/>
                         <span class="sidebar-label" :class="sidebarCollapsed && 'lg:hidden'">{{ __('general.buttons.logout') }}</span>
@@ -239,6 +239,11 @@
                 <span class="text-lg font-bold text-blue-600 lg:hidden" aria-hidden="true">
                     {{ __('general.app.name') }}
                 </span>
+                @if(request()->routeIs('dashboard'))
+                    <span class="hidden text-lg font-semibold text-slate-900 lg:inline">
+                        {{ __('navigation.dashboard') }}
+                    </span>
+                @endif
 
             </div>
 
@@ -249,6 +254,14 @@
                     class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"                >
                     🌐 {{ app()->getLocale() === 'ar' ? 'English' : 'العربية' }}
                 </a>
+                @if(request()->routeIs('dashboard'))
+                    <div class="hidden items-center gap-2 border-s border-gray-200 ps-4 sm:flex">
+                        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600" aria-hidden="true">
+                            <x-heroicon-o-user class="h-5 w-5" />
+                        </span>
+                        <span class="max-w-40 truncate text-sm font-medium text-slate-700">{{ auth()->user()->name }}</span>
+                    </div>
+                @endif
 
             </div>
 

@@ -239,32 +239,33 @@ class extends Component {
 };
 ?>
 
-<div>
+<div class="transfer-details">
     <x-ui.page-header
+        class="transfer-details-header"
         :title="__('transfers.page.show_title')"
         :description="$transfer->reference_number"
     >
 
         <x-slot:actions>
 
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
 
                 @switch($transfer->status)
 
                     @case(TransferStatus::PENDING)
-                        <x-ui.badge color="yellow">
+                        <x-ui.badge color="yellow" class="detail-status-badge detail-status-pending">
                             {{ TransferStatus::PENDING->label() }}
                         </x-ui.badge>
                         @break
 
                     @case(TransferStatus::COMPLETED)
-                        <x-ui.badge color="green">
+                        <x-ui.badge color="green" class="detail-status-badge detail-status-completed">
                             {{ TransferStatus::COMPLETED->label() }}
                         </x-ui.badge>
                         @break
 
                     @case(TransferStatus::CANCELLED)
-                        <x-ui.badge color="red">
+                        <x-ui.badge color="red" class="detail-status-badge detail-status-cancelled">
                             {{ TransferStatus::CANCELLED->label() }}
                         </x-ui.badge>
                         @break
@@ -274,19 +275,19 @@ class extends Component {
                 @switch($transfer->payment_status)
 
                     @case(PaymentStatus::UNPAID)
-                        <x-ui.badge color="red">
+                        <x-ui.badge color="red" class="detail-status-badge detail-payment-unpaid">
                             {{ PaymentStatus::UNPAID->label() }}
                         </x-ui.badge>
                         @break
 
                     @case(PaymentStatus::PARTIALLY_PAID)
-                        <x-ui.badge color="orange">
+                        <x-ui.badge color="orange" class="detail-status-badge detail-payment-partial">
                             {{ PaymentStatus::PARTIALLY_PAID->label() }}
                         </x-ui.badge>
                         @break
 
                     @case(PaymentStatus::PAID)
-                        <x-ui.badge color="green">
+                        <x-ui.badge color="green" class="detail-status-badge detail-payment-paid">
                             {{ PaymentStatus::PAID->label() }}
                         </x-ui.badge>
                         @break
@@ -312,9 +313,9 @@ class extends Component {
 
     @if($transfer->status !== TransferStatus::CANCELLED)
 
-        <x-ui.card :title="__('transfers.sections.actions')">
+        <x-ui.card class="detail-actions-card" :title="__('transfers.sections.actions')">
 
-            <div class="flex flex-wrap gap-3">
+            <div class="flex flex-wrap items-center gap-3">
                 @can('receive-payment')
                     @if($transfer->payment_status !== PaymentStatus::PAID && $transfer->status !== TransferStatus::CANCELLED)
 
@@ -388,7 +389,7 @@ class extends Component {
 
     <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {{-- Receiver --}}
-        <x-ui.card :title="__('transfers.sections.receiver')">
+        <x-ui.card class="detail-card" :title="__('transfers.sections.receiver')">
 
             <p>
                 <strong>{{ __('transfers.details.reference') }}:</strong>
@@ -424,24 +425,27 @@ class extends Component {
 
 
         {{-- Transfer --}}
-        <x-ui.card :title="__('transfers.sections.transfer')">
+        <x-ui.card class="detail-card" :title="__('transfers.sections.transfer')">
 
             <p>
                 <strong>{{ __('transfers.details.receiver_gets') }}:</strong>
-                {{ $transfer->transfer_amount }}
-                {{ $transfer->requested_currency->symbol() }}
+                <span dir="ltr" class="inline-block whitespace-nowrap font-medium tabular-nums text-slate-900">
+                    {{ number_format((float) $transfer->transfer_amount, 2) }} {{ $transfer->requested_currency->symbol() }}
+                </span>
             </p>
 
             <p>
                 <strong>{{ __('transfers.details.customer_pays') }}:</strong>
-                {{ $transfer->customer_payable_amount }}
-                {{ $transfer->customer_payable_currency->symbol() }}
+                <span dir="ltr" class="inline-block whitespace-nowrap font-medium tabular-nums text-slate-900">
+                    {{ number_format((float) $transfer->customer_payable_amount, 2) }} {{ $transfer->customer_payable_currency->symbol() }}
+                </span>
             </p>
 
             <p>
                 <strong>{{ __('transfers.details.commission') }}:</strong>
-                {{ $transfer->commission_amount }}
-                {{ $transfer->commission_currency->symbol() }}
+                <span dir="ltr" class="inline-block whitespace-nowrap font-medium tabular-nums text-slate-900">
+                    {{ number_format((float) $transfer->commission_amount, 2) }} {{ $transfer->commission_currency->symbol() }}
+                </span>
             </p>
 
 
@@ -457,27 +461,29 @@ class extends Component {
 
     <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2 mb-4">
         {{-- Payment --}}
-        <x-ui.card :title="__('transfers.sections.payment')">
+        <x-ui.card class="detail-card" :title="__('transfers.sections.payment')">
 
             <p>
                 <strong>{{ __('transfers.details.paid') }}:</strong>
 
-                {{ $transfer->paid_amount }}
-                {{ $transfer->customer_payable_currency->symbol() }}
+                <span dir="ltr" class="inline-block whitespace-nowrap font-medium tabular-nums text-slate-900">
+                    {{ number_format((float) $transfer->paid_amount, 2) }} {{ $transfer->customer_payable_currency->symbol() }}
+                </span>
             </p>
 
             <p>
                 <strong>{{ __('transfers.details.remaining') }}:</strong>
 
-                {{ $transfer->remaining_amount }}
-                {{ $transfer->customer_payable_currency->symbol() }}
+                <span dir="ltr" class="inline-block whitespace-nowrap font-medium tabular-nums text-slate-900">
+                    {{ number_format((float) $transfer->remaining_amount, 2) }} {{ $transfer->customer_payable_currency->symbol() }}
+                </span>
             </p>
 
         </x-ui.card>
 
 
         {{-- Audit --}}
-        <x-ui.card :title="__('transfers.sections.audit')">
+        <x-ui.card class="detail-card" :title="__('transfers.sections.audit')">
 
             @if($transfer->notes)
 
@@ -525,7 +531,7 @@ class extends Component {
     </div>
     @can('view-capital-ledger')
         <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-1 mb-4">
-            <x-ui.card :title="__('transfers.sections.financial_impact')">
+            <x-ui.card class="detail-card detail-ledger-card" :title="__('transfers.sections.financial_impact')">
 
                 @if($this->transactions->isEmpty())
 

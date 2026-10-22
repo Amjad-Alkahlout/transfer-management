@@ -13,3 +13,326 @@
 html[lang="ar"] {
     font-family: 'IBM Plex Sans Arabic', sans-serif;
 }
+
+body.enterprise-layout {
+    background: #f3f6fa;
+}
+
+.enterprise-layout main {
+    background: #f3f6fa;
+}
+
+.enterprise-layout main > div > .mb-8 h1,
+.enterprise-layout main > div > div > .mb-8 h1 {
+    color: #243b53;
+    letter-spacing: -0.025em;
+}
+
+.enterprise-layout main .rounded-2xl.border.border-gray-200.bg-white,
+.enterprise-layout main .overflow-hidden.rounded-xl.border.border-gray-200.bg-white {
+    border-color: #d8e1eb;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+}
+
+.enterprise-layout main table thead,
+.enterprise-layout main table thead.bg-gray-50 {
+    background: #f8fafc;
+}
+
+.enterprise-layout main table thead th {
+    color: #475569;
+}
+
+.enterprise-layout main table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.enterprise-layout main input:not([type="checkbox"]):not([type="radio"]),
+.enterprise-layout main select,
+.enterprise-layout main textarea {
+    border-color: #cbd5e1;
+    background-color: #fff;
+}
+
+.enterprise-layout main input:focus,
+.enterprise-layout main select:focus,
+.enterprise-layout main textarea:focus {
+    border-color: #486581;
+    --tw-ring-color: rgb(72 101 129 / 22%);
+}
+
+.enterprise-layout main .bg-blue-600 {
+    background-color: #486581;
+}
+
+.enterprise-layout main .bg-blue-600:hover {
+    background-color: #334e68;
+}
+
+.enterprise-layout main .text-blue-600,
+.enterprise-layout main .hover\:text-blue-700:hover {
+    color: #486581;
+}
+
+.enterprise-layout main nav[role="navigation"] a,
+.enterprise-layout main nav[role="navigation"] [aria-disabled="true"] span {
+    border-color: #d8e1eb;
+    color: #334e68;
+}
+
+.enterprise-layout main nav[role="navigation"] a:hover {
+    background: #f3f6fa;
+}
+
+.enterprise-layout main nav[role="navigation"] [aria-current="page"] span {
+    border-color: #486581;
+    background: #486581;
+    color: #fff;
+}
+
+.enterprise-layout main .rounded-full.bg-green-100 {
+    color: #17663b;
+}
+
+.enterprise-layout main .rounded-full.bg-red-100 {
+    color: #9e2f2f;
+}
+
+.enterprise-layout #mobile-sidebar {
+    color: #f8fafc;
+    background: #243b53;
+    border-color: #334e68;
+}
+
+.enterprise-layout #mobile-sidebar .border-b,
+.enterprise-layout #mobile-sidebar .border-t {
+    border-color: rgb(255 255 255 / 12%);
+}
+
+.enterprise-layout #mobile-sidebar h1,
+.enterprise-layout #mobile-sidebar .text-gray-900,
+.enterprise-layout #mobile-sidebar .text-gray-700 {
+    color: #f8fafc;
+}
+
+.enterprise-layout #mobile-sidebar nav a {
+    color: #dbe6f4;
+}
+
+.enterprise-layout #mobile-sidebar nav a:hover {
+    background: rgb(255 255 255 / 9%);
+    color: #fff;
+}
+
+.enterprise-layout #mobile-sidebar nav a.bg-blue-50 {
+    background: #486581;
+    color: #fff;
+}
+
+.enterprise-layout #mobile-sidebar nav a.bg-blue-50 svg {
+    color: #fff;
+}
+
+.enterprise-layout #mobile-sidebar .bg-blue-100 {
+    background: rgb(255 255 255 / 12%);
+}
+
+.enterprise-layout #mobile-sidebar .text-blue-600 {
+    color: #bfdbfe;
+}
+
+.enterprise-layout #mobile-sidebar .sidebar-logout-button {
+    border-color: rgb(255 255 255 / 24%);
+    background: rgb(255 255 255 / 5%);
+    color: #f8fafc;
+}
+
+.enterprise-layout #mobile-sidebar .sidebar-logout-button svg {
+    color: currentColor;
+}
+
+.enterprise-layout #mobile-sidebar .sidebar-logout-button:hover {
+    border-color: rgb(255 255 255 / 36%);
+    background: #334e68;
+    color: #fff;
+}
+
+.enterprise-layout #mobile-sidebar .sidebar-logout-button:active {
+    border-color: rgb(255 255 255 / 40%);
+    background: #1b3348;
+    color: #fff;
+}
+
+.enterprise-layout #mobile-sidebar .sidebar-logout-button:focus-visible {
+    outline: 2px solid #bfdbfe;
+    outline-offset: 2px;
+}
+
+.transfers-listing table {
+    min-width: 1120px;
+}
+
+.transfers-listing thead {
+    background: #f8fafc;
+}
+
+.transfers-listing thead th {
+    color: #475569;
+    white-space: nowrap;
+}
+
+.transfers-listing tbody tr:hover {
+    background: #f8fafc;
+}
+
+.transfers-listing .filter-alert {
+    margin-bottom: 0;
+    border-color: #d8e1eb;
+    background: #f8fafc;
+    color: #334e68;
+}
+
+.transfers-listing .transfer-status-badge {
+    border: 1px solid transparent;
+}
+
+.transfers-listing .transfer-status-pending {
+    border-color: #f3d58b;
+    background: #fff7df;
+    color: #8a5b05;
+}
+
+.transfers-listing .transfer-status-completed {
+    border-color: #a9dec1;
+    background: #eaf8ef;
+    color: #17663b;
+}
+
+.transfers-listing .transfer-status-cancelled {
+    border-color: #f3b8b8;
+    background: #fff0f0;
+    color: #9e2f2f;
+}
+
+.transfers-listing .payment-status-unpaid {
+    border-color: #f3b8b8;
+    background: #fff0f0;
+    color: #9e2f2f;
+}
+
+.transfers-listing .payment-status-partially-paid {
+    border-color: #f4c39a;
+    background: #fff3e8;
+    color: #9a4d0a;
+}
+
+.transfers-listing .payment-status-paid {
+    border-color: #a9dec1;
+    background: #eaf8ef;
+    color: #17663b;
+}
+
+.transfers-listing nav[role="navigation"] a,
+.transfers-listing nav[role="navigation"] [aria-disabled="true"] span {
+    border-color: #d8e1eb;
+    color: #334e68;
+}
+
+.transfers-listing nav[role="navigation"] a:hover {
+    background: #f3f6fa;
+    color: #243b53;
+}
+
+.transfers-listing nav[role="navigation"] [aria-current="page"] span {
+    border-color: #486581;
+    background: #486581;
+    color: #fff;
+}
+
+.transfer-details-header p {
+    direction: ltr;
+    unicode-bidi: isolate;
+    color: #486581;
+    font-weight: 600;
+}
+
+.transfer-details .detail-actions-card,
+.transfer-details .detail-card {
+    border-color: #d8e1eb;
+    border-radius: 0.875rem;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+}
+
+.transfer-details .detail-card > div:last-child > p {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: start;
+    gap: 0.75rem;
+    margin: 0;
+    border-bottom: 1px solid #edf1f5;
+    padding-block: 0.75rem;
+    overflow-wrap: anywhere;
+}
+
+.transfer-details .detail-card > div:last-child > p:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.transfer-details .detail-card > div:last-child > p:first-child {
+    padding-top: 0;
+}
+
+.transfer-details .detail-card strong {
+    color: #475569;
+    font-weight: 600;
+}
+
+.transfer-details .detail-status-badge {
+    border: 1px solid transparent;
+}
+
+.transfer-details .detail-status-pending {
+    border-color: #f3d58b;
+    background: #fff7df;
+    color: #8a5b05;
+}
+
+.transfer-details .detail-status-completed,
+.transfer-details .detail-payment-paid {
+    border-color: #a9dec1;
+    background: #eaf8ef;
+    color: #17663b;
+}
+
+.transfer-details .detail-status-cancelled,
+.transfer-details .detail-payment-unpaid {
+    border-color: #f3b8b8;
+    background: #fff0f0;
+    color: #9e2f2f;
+}
+
+.transfer-details .detail-payment-partial {
+    border-color: #f4c39a;
+    background: #fff3e8;
+    color: #9a4d0a;
+}
+
+.transfer-details .detail-ledger-card table {
+    min-width: 820px;
+}
+
+.transfer-details .detail-ledger-card thead {
+    background: #f8fafc;
+}
+
+.transfer-details .detail-ledger-card tbody tr:hover {
+    background: #f8fafc;
+}
+
+@media (max-width: 639px) {
+    .transfer-details .detail-card > div:last-child > p {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.25rem;
+    }
+}
