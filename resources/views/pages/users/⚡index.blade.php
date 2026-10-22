@@ -278,7 +278,7 @@ class extends Component {
     <div class="mb-6">
         <x-ui.button :href="route('dashboard')" variant="secondary">
             {{ app()->getLocale() === 'ar' ? '→' : '←' }}
-            {{ __('capital_accounts.buttons.back') }}
+            {{ __('users.buttons.back') }}
         </x-ui.button>
     </div>
 
@@ -297,7 +297,7 @@ class extends Component {
                 </x-ui.table-row>
             </x-ui.table-header>
             <x-ui.table-body>
-                @foreach($this->users as $user)
+                @forelse($this->users as $user)
                     <x-ui.table-row>
                         <x-ui.table-cell>
                             {{ $user->name }}
@@ -360,7 +360,16 @@ class extends Component {
                             </div>
                         </x-ui.table-cell>
                     </x-ui.table-row>
-                @endforeach
+                @empty
+                    <x-ui.table-row>
+                        <x-ui.table-cell colspan="5" class="p-0">
+                            <x-ui.empty-state
+                                :title="__('users.empty_state.title')"
+                                :description="__('users.empty_state.description')"
+                            />
+                        </x-ui.table-cell>
+                    </x-ui.table-row>
+                @endforelse
             </x-ui.table-body>
         </x-ui.table>
 
@@ -369,12 +378,14 @@ class extends Component {
         </x-slot:footer>
     </x-ui.card>
 
-    @if($showAddForm)
-        <x-ui.card
+    <x-ui.modal
+        :show="$showAddForm"
+        close="closeAddForm"
+        :dismissible="false"
             :title="__('users.forms.add.title')"
             :description="__('users.forms.add.description')"
-            class="mt-6"
-        >
+        maxWidth="lg"
+    >
             <form wire:submit.prevent="addUser" class="space-y-6">
 
                 <x-ui.input :label="__('users.fields.name')" name="name" wire:model="name" />
@@ -396,21 +407,22 @@ class extends Component {
                     <x-ui.button type="button" variant="secondary" wire:click="closeAddForm">
                         {{ __('general.buttons.cancel') }}
                     </x-ui.button>
-                    <x-ui.button type="submit">
+                    <x-ui.button type="submit" wire:loading.attr="disabled" wire:target="addUser">
                         {{ __('users.buttons.add') }}
                     </x-ui.button>
                 </div>
 
             </form>
-        </x-ui.card>
-    @endif
+    </x-ui.modal>
 
-    @if($showEditForm)
-        <x-ui.card
+    <x-ui.modal
+        :show="$showEditForm"
+        close="closeEditForm"
+        :dismissible="false"
             :title="__('users.forms.edit.title')"
             :description="__('users.forms.edit.description')"
-            class="mt-6"
-        >
+        maxWidth="lg"
+    >
             <form wire:submit.prevent="updateUser" class="space-y-6">
 
                 <x-ui.input :label="__('users.fields.name')" name="editName" wire:model="editName" />
@@ -432,21 +444,22 @@ class extends Component {
                     <x-ui.button type="button" variant="secondary" wire:click="closeEditForm">
                         {{ __('general.buttons.cancel') }}
                     </x-ui.button>
-                    <x-ui.button type="submit">
+                    <x-ui.button type="submit" wire:loading.attr="disabled" wire:target="updateUser">
                         {{ __('users.buttons.update') }}
                     </x-ui.button>
                 </div>
 
             </form>
-        </x-ui.card>
-    @endif
+    </x-ui.modal>
 
-    @if($showPasswordForm)
-        <x-ui.card
+    <x-ui.modal
+        :show="$showPasswordForm"
+        close="closePasswordForm"
+        :dismissible="false"
             :title="__('users.forms.password.title')"
             :description="__('users.forms.password.description', ['user' => $passwordUser?->name])"
-            class="mt-6"
-        >
+        maxWidth="lg"
+    >
             <form wire:submit.prevent="setPassword" class="space-y-6">
 
                 <x-ui.input :label="__('users.fields.new_password')" name="new_password" type="password" wire:model="new_password" />
@@ -457,16 +470,15 @@ class extends Component {
                     <x-ui.button type="button" variant="secondary" wire:click="closePasswordForm">
                         {{ __('general.buttons.cancel') }}
                     </x-ui.button>
-                    <x-ui.button type="submit">
+                    <x-ui.button type="submit" wire:loading.attr="disabled" wire:target="setPassword">
                         {{ __('users.buttons.save_password') }}
                     </x-ui.button>
                 </div>
 
             </form>
-        </x-ui.card>
-    @endif
+    </x-ui.modal>
 
-    <x-ui.modal :show="$showDeleteConfirm" :title="__('users.modals.delete.title')" maxWidth="md">
+    <x-ui.modal :show="$showDeleteConfirm" close="cancelDelete" :title="__('users.modals.delete.title')" maxWidth="md">
 
         <p class="text-sm text-gray-600">
             {{ __('users.modals.delete.message', ['user' => $deletingUser?->name]) }}
@@ -477,7 +489,7 @@ class extends Component {
                 <x-ui.button type="button" variant="secondary" wire:click="cancelDelete">
                     {{ __('general.buttons.cancel') }}
                 </x-ui.button>
-                <x-ui.button type="button" variant="danger" wire:click="deleteUser">
+                <x-ui.button type="button" variant="danger" wire:click="deleteUser" wire:loading.attr="disabled" wire:target="deleteUser">
                     {{ __('users.buttons.confirm_delete') }}
                 </x-ui.button>
             </div>

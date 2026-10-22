@@ -32,7 +32,7 @@ new #[Layout('layouts::app')] class extends Component {
         Gate::authorize('update-transfer');
         $this->transfer = $transfer;
         if ($this->transfer->status !== TransferStatus::PENDING || $this->transfer->payment_status !== PaymentStatus::UNPAID) {
-            abort(403, 'Only transfers with status "Pending " and "unpaid" can be updated.');
+            abort(403, __('transfers.errors.only_pending_unpaid'));
         }
         $this->receiver_name = $this->transfer->receiver_name;
         $this->receiver_method = $this->transfer->receiver_method->value;
@@ -283,6 +283,12 @@ new #[Layout('layouts::app')] class extends Component {
         wire:submit.prevent="updateTransfer"
         class="space-y-6"
     >
+
+        @error('general')
+            <x-ui.alert color="danger" role="alert" aria-live="assertive">
+                {{ $message }}
+            </x-ui.alert>
+        @enderror
 
         <x-ui.form-section
             :title="__('transfers.receiver.title')"

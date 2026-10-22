@@ -31,6 +31,10 @@ return [
         'notes' => 'Notes',
 
     ],
+    'empty_state' => [
+        'title' => 'No capital transfers yet',
+        'description' => 'Transfers between capital accounts will appear here.',
+    ],
     'form' => [
 
         'title' => 'New Capital Transfer',
@@ -80,6 +84,7 @@ return [
     'buttons' => [
 
         'new_transfer' => 'New Capital Transfer',
+        'cancel' => 'Cancel',
 
         'submit' => 'Submit Transfer',
 

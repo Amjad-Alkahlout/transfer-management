@@ -159,9 +159,7 @@ new class extends Component {
 
             @if($this->transactions->isEmpty())
 
-                <div class="py-8 text-center text-sm text-gray-500">
-                    {{ __('capital_ledger.messages.empty') }}
-                </div>
+                <x-ui.empty-state :title="__('capital_ledger.messages.empty')" />
 
             @else
 

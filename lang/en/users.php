@@ -14,7 +14,12 @@ return [
         'status' => 'Status',
         'actions' => 'Actions',
     ],
+    'empty_state' => [
+        'title' => 'No users found',
+        'description' => 'Create a user account to give another person access to the system.',
+    ],
     'buttons' => [
+        'back' => 'Back to Dashboard',
         'add' => 'Add User',
         'edit' => 'Edit',
         'update' => 'Save Changes',
@@ -74,7 +79,7 @@ return [
         'password_updated' => 'Password updated successfully.',
     ],
     'errors' => [
-        'cannot_modify_self' => 'You cannot edit or delete your own account from here.',
+        'cannot_modify_self' => 'You cannot deactivate or delete your own account from here.',
         'last_admin' => 'Cannot deactivate or delete the last active admin account.',
         'cannot_delete_has_history' => 'This user cannot be deleted because they are linked to existing records. You can deactivate the account instead.',
     ],

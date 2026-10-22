@@ -121,6 +121,15 @@ new class extends Component {
             $this->preview = null;
             return;
         }
+
+        // Keep the raw Livewire value so the input can be temporarily empty while
+        // editing, but only pass numeric values across the service boundary.
+        $transferCost = $this->normalizedTransferCost();
+        if (!is_numeric($this->source_amount) || $transferCost === null) {
+            $this->preview = null;
+            return;
+        }
+
         try {
             $from = CapitalAccount::findOrFail($this->from_account_id);
             $to = CapitalAccount::findOrFail($this->to_account_id);
@@ -130,12 +139,23 @@ new class extends Component {
                     $from,
                     $to,
                     (float)$this->source_amount,
-                    (float)($this->transfer_cost ?: 0),
+                    $transferCost,
                 );
         } catch (\Throwable $e) {
             $this->preview = null;
             $this->addError('preview', $e->getMessage());
         }
+    }
+
+    public function normalizedTransferCost(): ?float
+    {
+        if ($this->transfer_cost === null || $this->transfer_cost === '') {
+            return 0.0;
+        }
+
+        return is_numeric($this->transfer_cost)
+            ? (float) $this->transfer_cost
+            : null;
     }
 
 
@@ -249,7 +269,7 @@ new class extends Component {
 
             </x-ui.table-header>
             <x-ui.table-body>
-                @foreach($this->transfers as $transfer)
+                @forelse($this->transfers as $transfer)
                     <x-ui.table-row>
                         <x-ui.table-cell>{{ $transfer->fromAccount->name }}</x-ui.table-cell>
                         <x-ui.table-cell>{{ $transfer->toAccount->name }}</x-ui.table-cell>
@@ -261,7 +281,16 @@ new class extends Component {
                         <x-ui.table-cell>{{ LocalTime::format($transfer->created_at) }}</x-ui.table-cell>
                         <x-ui.table-cell>{{ $transfer->notes }}</x-ui.table-cell>
                     </x-ui.table-row>
-                @endforeach
+                @empty
+                    <x-ui.table-row>
+                        <x-ui.table-cell colspan="9" class="p-0">
+                            <x-ui.empty-state
+                                :title="__('capital_transfers.empty_state.title')"
+                                :description="__('capital_transfers.empty_state.description')"
+                            />
+                        </x-ui.table-cell>
+                    </x-ui.table-row>
+                @endforelse
             </x-ui.table-body>
         </x-ui.table>
 
@@ -273,13 +302,14 @@ new class extends Component {
 
     </x-ui.card>
 
-    @if($showTransferForm)
-
-        <x-ui.card
-            :title="__('capital_transfers.form.title')"
-            :description="__('capital_transfers.form.description')"
-        >
-
+    <x-ui.modal
+        :show="$showTransferForm"
+        close="closeTransferForm"
+        :title="__('capital_transfers.form.title')"
+        :description="__('capital_transfers.form.description')"
+        maxWidth="2xl"
+        :dismissible="false"
+    >
             <form
                 wire:submit.prevent="createTransfer"
                 class="space-y-6"
@@ -386,7 +416,7 @@ new class extends Component {
                             </div>
 
                             <div class="font-semibold text-start">
-                                {{ number_format($source_amount,2) }}
+                                {{ number_format((float) $source_amount, 2) }}
                                 {{ $this->fromAccount?->currency->symbol() }}
                             </div>
 
@@ -395,7 +425,7 @@ new class extends Component {
                             </div>
 
                             <div class="font-semibold text-start">
-                                {{ number_format($transfer_cost,2) }}
+                                {{ $this->normalizedTransferCost() === null ? '—' : number_format($this->normalizedTransferCost(), 2) }}
                                 {{ $this->fromAccount?->currency->symbol() }}
                             </div>
 
@@ -446,13 +476,14 @@ new class extends Component {
 
                     <x-ui.button
                         type="submit"
+                        wire:loading.attr="disabled"
+                        wire:target="createTransfer"
                     >
                         {{ __('capital_transfers.buttons.submit') }}
                     </x-ui.button>
 
                 </div>
             </form>
-        </x-ui.card>
-    @endif
+    </x-ui.modal>
 
 </div>

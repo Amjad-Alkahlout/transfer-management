@@ -8,6 +8,11 @@ return [
     'buttons' => [
         'logout' => 'تسجيل الخروج',
         'cancel' => 'إلغاء',
+        'close' => 'إغلاق',
+    ],
+
+    'modal' => [
+        'dialog' => 'مربع حوار',
     ],
 
 ];

@@ -15,6 +15,10 @@ return [
         'rate_to_usd' => 'Rate to USD',
         'last_updated' => 'Last Updated',
     ],
+    'empty_state' => [
+        'title' => 'No exchange rates found',
+        'description' => 'Exchange rates will appear here when they are available.',
+    ],
 
     'form' => [
         'title' => 'Update Exchange Rates',

@@ -24,7 +24,7 @@ class extends Component {
     public $account_type;
     public $is_active = true;
     public $showAddAccountForm = false;
-    public CapitalAccount $selectedAccount;
+    public ?CapitalAccount $selectedAccount = null;
 
     public bool $withdrawProfitForm = false;
 
@@ -60,6 +60,8 @@ class extends Component {
     public function openWithdrawProfitForm(int $accountId)
     {
         Gate::authorize('manage-capital-accounts');
+        $this->resetValidation();
+        $this->reset(['withdrawAmount', 'withdrawNotes']);
         $this->selectedAccount = CapitalAccount::findOrFail($accountId);
 
         $this->withdrawProfitForm = true;
@@ -68,6 +70,7 @@ class extends Component {
     public function closeWithdrawProfitForm()
     {
         $this->reset([
+            'selectedAccount',
             'withdrawAmount',
             'withdrawNotes',
         ]);
@@ -94,6 +97,7 @@ class extends Component {
             'adjustmentNotes',
         ]);
         $this->resetValidation();
+        $this->adjustmentAccount = null;
 
         $this->adjustmentForm = false;
     }
@@ -152,6 +156,7 @@ class extends Component {
             'profitDistributionNotes',
         ]);
         $this->resetValidation();
+        $this->profitDistributionAccount = null;
 
         $this->profitDistributionForm = false;
     }
@@ -323,7 +328,7 @@ class extends Component {
 
                     'balance_after' => $this->opening_balance,
 
-                    'notes' => 'Initial opening balance',
+                    'notes' => __('capital_accounts.messages.initial_opening_balance'),
 
                     'created_by' => auth()->id(),
                 ]);
@@ -416,7 +421,7 @@ class extends Component {
                     </x-ui.table-row>
                 </x-ui.table-header>
                 <x-ui.table-body>
-                    @foreach ($this->accounts as $account)
+                    @forelse ($this->accounts as $account)
                         <x-ui.table-row>
                             <x-ui.table-cell>{{ $account->name }}</x-ui.table-cell>
                             <x-ui.table-cell>{{ $account->branch->label() }}</x-ui.table-cell>
@@ -491,7 +496,16 @@ class extends Component {
                                 </div>
                             </x-ui.table-cell>
                         </x-ui.table-row>
-                    @endforeach
+                    @empty
+                        <x-ui.table-row>
+                            <x-ui.table-cell colspan="7" class="p-0">
+                                <x-ui.empty-state
+                                    :title="__('capital_accounts.empty_state.title')"
+                                    :description="__('capital_accounts.empty_state.description')"
+                                />
+                            </x-ui.table-cell>
+                        </x-ui.table-row>
+                    @endforelse
                 </x-ui.table-body>
             </x-ui.table>
 
@@ -499,14 +513,15 @@ class extends Component {
     </div>
 
     @can('manage-capital-accounts')
-        @if($withdrawProfitForm)
-
-            <x-ui.card
+        <x-ui.modal
+            :show="$withdrawProfitForm"
+            close="closeWithdrawProfitForm"
+            :dismissible="false"
                 :title="__('capital_accounts.forms.withdraw.title')"
                 :description="__('capital_accounts.forms.withdraw.description', [
-               'account' => $selectedAccount->name,
+               'account' => $selectedAccount?->name,
               ])"
-                class="mt-6"
+                maxWidth="lg"
             >
 
                 <form
@@ -541,24 +556,25 @@ class extends Component {
                         <x-ui.button
                             type="submit"
                             variant="success"
+                        wire:loading.attr="disabled"
+                        wire:target="withdrawProfit"
                         >
                             {{ __('capital_accounts.buttons.withdraw_profit') }}
                         </x-ui.button>
 
                     </div>
                 </form>
+        </x-ui.modal>
 
-            </x-ui.card>
-        @endif
-
-        @if($adjustmentForm)
-
-            <x-ui.card
+        <x-ui.modal
+            :show="$adjustmentForm"
+            close="closeAdjustmentForm"
+            :dismissible="false"
                 :title="__('capital_accounts.forms.adjustment.title')"
                 :description="__('capital_accounts.forms.adjustment.description', [
                'account' => $adjustmentAccount?->name,
               ])"
-                class="mt-6"
+                maxWidth="lg"
             >
 
                 <form
@@ -606,24 +622,25 @@ class extends Component {
 
                         <x-ui.button
                             type="submit"
+                            wire:loading.attr="disabled"
+                            wire:target="submitAdjustment"
                         >
                             {{ __('capital_accounts.buttons.save_adjustment') }}
                         </x-ui.button>
 
                     </div>
                 </form>
+        </x-ui.modal>
 
-            </x-ui.card>
-        @endif
-
-        @if($profitDistributionForm)
-
-            <x-ui.card
+        <x-ui.modal
+            :show="$profitDistributionForm"
+            close="closeProfitDistributionForm"
+            :dismissible="false"
                 :title="__('capital_accounts.forms.profit_distribution.title')"
                 :description="__('capital_accounts.forms.profit_distribution.description', [
                'account' => $profitDistributionAccount?->name,
               ])"
-                class="mt-6"
+                maxWidth="lg"
             >
 
                 <form
@@ -680,23 +697,23 @@ class extends Component {
 
                         <x-ui.button
                             type="submit"
+                            wire:loading.attr="disabled"
+                            wire:target="submitProfitDistribution"
                         >
                             {{ __('capital_accounts.buttons.distribute_profit') }}
                         </x-ui.button>
 
                     </div>
                 </form>
+        </x-ui.modal>
 
-            </x-ui.card>
-
-        @endif
-
-        @if($showAddAccountForm)
-
-            <x-ui.card
+        <x-ui.modal
+            :show="$showAddAccountForm"
+            close="closeAddAccountForm"
+            :dismissible="false"
                 :title="__('capital_accounts.forms.add.title')"
                 :description="__('capital_accounts.forms.add.description')"
-                class="mt-6"
+                maxWidth="lg"
             >
 
                 <form
@@ -795,14 +812,15 @@ class extends Component {
 
                         <x-ui.button
                             type="submit"
+                            wire:loading.attr="disabled"
+                            wire:target="addCapitalAccount"
                         >
                             {{ __('capital_accounts.buttons.add') }}
                         </x-ui.button>
 
                     </div>
                 </form>
-            </x-ui.card>
-        @endif
+        </x-ui.modal>
     @endcan
 
 

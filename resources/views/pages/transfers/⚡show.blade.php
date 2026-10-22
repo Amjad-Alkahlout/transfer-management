@@ -56,11 +56,15 @@ class extends Component {
     public function openTransferProofForm()
     {
         Gate::authorize('execute-transfer');
+        $this->resetValidation();
+        $this->reset('transfer_proof_path');
         $this->show_transfer_proof_form = true;
     }
 
     public function hideTransferProofForm()
     {
+        $this->resetValidation();
+        $this->reset('transfer_proof_path');
         $this->show_transfer_proof_form = false;
     }
 
@@ -166,6 +170,8 @@ class extends Component {
     public function closeForceCancelModal(): void
     {
         $this->forceCancelPassword = '';
+        $this->forceCancelNotes = null;
+        $this->resetValidation();
         $this->showForceCancelModal = false;
     }
 
@@ -308,6 +314,13 @@ class extends Component {
 
     </x-ui.page-header>
 
+    @if(!$show_transfer_proof_form && !$showForceCancelModal)
+        @error('general')
+            <x-ui.alert color="danger" role="alert" aria-live="assertive">
+                {{ $message }}
+            </x-ui.alert>
+        @enderror
+    @endif
 
     {{-- Status --}}
 
@@ -625,9 +638,13 @@ class extends Component {
     @endcan
 
 
-    @if($show_transfer_proof_form)
-
-        <x-ui.card :title="__('transfers.sections.execute_transfer')">
+    <x-ui.modal
+        :show="$show_transfer_proof_form"
+        close="hideTransferProofForm"
+        :title="__('transfers.sections.execute_transfer')"
+        :dismissible="false"
+        maxWidth="lg"
+    >
 
             @error('general')
             <x-ui.alert color="danger">
@@ -648,6 +665,8 @@ class extends Component {
                 <x-ui.button
                     type="submit"
                     variant="success"
+                    wire:loading.attr="disabled"
+                    wire:target="executeTransfer"
                 >
                     {{ __('transfers.buttons.execute') }}
                 </x-ui.button>
@@ -663,9 +682,7 @@ class extends Component {
             </form>
 
 
-        </x-ui.card>
-
-    @endif
+    </x-ui.modal>
 
     <x-ui.modal
         :show="$showProofModal"
@@ -676,6 +693,7 @@ class extends Component {
 
         <img
             src="{{ Storage::url($transfer->transfer_proof_path) }}"
+            alt="{{ __('transfers.modal.proof_title') }}"
             class="mx-auto max-h-[80vh] max-w-full rounded-lg object-contain"
         >
 
@@ -710,8 +728,9 @@ class extends Component {
 
     <x-ui.modal
         :show="$showForceCancelModal"
-        close="$set('showForceCancelModal', false)"
+        close="closeForceCancelModal"
         :title="__('transfers.modal.force_cancel_title')"
+        :dismissible="false"
     >
 
         <x-ui.alert color="danger">
@@ -758,6 +777,8 @@ class extends Component {
                     type="button"
                     variant="danger"
                     wire:click="confirmForceCancel"
+                    wire:loading.attr="disabled"
+                    wire:target="confirmForceCancel"
                 >
                     {{ __('transfers.buttons.confirm_force_cancel') }}
                 </x-ui.button>

@@ -239,8 +239,10 @@
 
                 <a
                     href="{{ route('locale.switch', app()->getLocale() === 'ar' ? 'en' : 'ar') }}"
-                    class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"                >
-                    🌐 {{ app()->getLocale() === 'ar' ? 'English' : 'العربية' }}
+                    class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    aria-label="{{ app()->getLocale() === 'ar' ? __('navigation.switch_to_english') : __('navigation.switch_to_arabic') }}"
+                >
+                    🌐 {{ app()->getLocale() === 'ar' ? __('navigation.english') : __('navigation.arabic') }}
                 </a>
                 <div class="hidden items-center gap-2 border-s border-gray-200 ps-4 sm:flex">
                     <span class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600" aria-hidden="true">

@@ -19,6 +19,10 @@ return [
         'is_active' => 'Status',
         'actions' => 'Actions',
     ],
+    'empty_state' => [
+        'title' => 'No capital accounts yet',
+        'description' => 'Add a capital account to start tracking company balances.',
+    ],
 
     'forms' => [
 
@@ -80,6 +84,7 @@ return [
 
     'messages' => [
         'created' => 'Capital account added successfully.',
+        'initial_opening_balance' => 'Initial opening balance',
         'updated' => 'Capital account updated successfully.',
         'activated' => 'Capital account activated successfully.',
         'deactivated' => 'Capital account deactivated successfully.',

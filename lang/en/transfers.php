@@ -86,6 +86,7 @@ return [
     ],
 
     'messages' => [
+        'no_capital_transactions' => 'No capital transactions are linked to this transfer.',
         'created' => 'Transfer created successfully.',
         'updated' => 'Transfer updated successfully.',
         'completed' => 'Transfer completed successfully.',

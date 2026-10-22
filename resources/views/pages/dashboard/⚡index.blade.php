@@ -554,6 +554,7 @@ class extends Component {
 
     <x-ui.modal
         :show="$showTelegramModal"
+        close="closeTelegramModal"
         :title="__('dashboard.telegram.modal_title')"
         maxWidth="lg"
     >

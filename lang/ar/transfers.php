@@ -96,7 +96,7 @@ return [
         'no_financial_impact' => 'لا يوجد أثر مالي.',
         'cancelled' => 'تم إلغاء الحوالة بنجاح.',
         'force_cancelled' => 'تم إلغاء الحوالة وعكس جميع الحركات المالية بنجاح.',
-        'no_capital_transactions' => 'لا توجد حركات مالية.',
+        'no_capital_transactions' => 'لا توجد حركات رأسمالية مرتبطة بهذه الحوالة.',
     ],
 
     'errors' => [

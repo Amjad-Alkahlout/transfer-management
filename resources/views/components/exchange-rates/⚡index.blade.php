@@ -11,12 +11,14 @@ new class extends Component {
 
     public function openUpdateForm()
     {
+        $this->resetValidation();
         $this->loadRates();
         $this->showUpdateForm = true;
     }
 
     public function hideUpdateForm()
     {
+        $this->resetValidation();
         $this->showUpdateForm = false;
     }
 
@@ -101,24 +103,34 @@ new class extends Component {
                 </x-ui.table-row>
             </x-ui.table-header>
             <x-ui.table-body>
-                @foreach ($rates as $rate)
+                @forelse ($rates as $rate)
                     <x-ui.table-row>
                         <x-ui.table-cell>{{  $rate['currency']->label()  }}</x-ui.table-cell>
                         <x-ui.table-cell>{{ number_format((float) $rate['rate_to_usd'], 8) }}</x-ui.table-cell>
                         <x-ui.table-cell>{{ LocalTime::format($rate['updated_at']) }}</x-ui.table-cell>
                     </x-ui.table-row>
-                @endforeach
+                @empty
+                    <x-ui.table-row>
+                        <x-ui.table-cell colspan="3" class="p-0">
+                            <x-ui.empty-state
+                                :title="__('exchange_rates.empty_state.title')"
+                                :description="__('exchange_rates.empty_state.description')"
+                            />
+                        </x-ui.table-cell>
+                    </x-ui.table-row>
+                @endforelse
             </x-ui.table-body>
         </x-ui.table>
     </x-ui.card>
 
-    @if($showUpdateForm)
-
-        <x-ui.card
-            :title="__('exchange_rates.form.title')"
-
-            :description="__('exchange_rates.form.description')"
-        >
+    <x-ui.modal
+        :show="$showUpdateForm"
+        close="hideUpdateForm"
+        :title="__('exchange_rates.form.title')"
+        :description="__('exchange_rates.form.description')"
+        maxWidth="lg"
+        :dismissible="false"
+    >
 
             <form
                 wire:submit.prevent="saveRates"
@@ -145,13 +157,14 @@ new class extends Component {
 
                     <x-ui.button
                         type="submit"
+                        wire:loading.attr="disabled"
+                        wire:target="saveRates"
                     >
                         {{ __('exchange_rates.buttons.save') }}
                     </x-ui.button>
 
                 </div>
             </form>
-        </x-ui.card>
-    @endif
+    </x-ui.modal>
 
 </div>
